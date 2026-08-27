@@ -320,16 +320,17 @@ export function SalesPage() {
                         <td className="px-2 py-2">{item.product.name}</td>
                         <td className="px-2 py-2 text-center">
                           <input
-                            type="number"
+                            type="text"
+                            inputMode="numeric"
                             value={item.quantity}
-                            min={1}
                             onChange={(e) => updateCartItem(item.product.id, Number(e.target.value))}
                             className="w-16 rounded border px-2 py-1 text-center text-sm"
                           />
                         </td>
                         <td className="px-2 py-2 text-right">
                           <input
-                            type="number"
+                            type="text"
+                            inputMode="decimal"
                             value={item.unit_price}
                             onChange={(e) =>
                               setCart(cart.map((c) =>
@@ -358,7 +359,7 @@ export function SalesPage() {
                 <div className="flex justify-between"><span>Subtotal:</span><span>{formatCurrency(subtotal)}</span></div>
                 <div className="flex justify-between">
                   <span>Descuento:</span>
-                  <input type="number" value={discount} onChange={(e) => setDiscount(Number(e.target.value))} className="w-24 rounded border px-2 py-1 text-right text-sm" />
+                  <input type="text" inputMode="decimal" value={discount} onChange={(e) => setDiscount(Number(e.target.value))} className="w-24 rounded border px-2 py-1 text-right text-sm" />
                 </div>
                 <div className="flex justify-between border-t pt-1 text-base font-bold"><span>Total:</span><span>{formatCurrency(total)}</span></div>
               </div>

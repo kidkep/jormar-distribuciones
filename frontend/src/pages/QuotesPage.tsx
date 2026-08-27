@@ -263,7 +263,7 @@ export function QuotesPage() {
               </div>
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">Descuento</label>
-                <input type="number" value={discount} onChange={(e) => setDiscount(Number(e.target.value))} className="w-full rounded-lg border px-3 py-2 text-sm" />
+                <input type="text" inputMode="decimal" value={discount} onChange={(e) => setDiscount(Number(e.target.value))} className="w-full rounded-lg border px-3 py-2 text-sm" />
               </div>
             </div>
 
@@ -305,10 +305,10 @@ export function QuotesPage() {
                       <tr key={item.product.id}>
                         <td className="px-2 py-2">{item.product.name}</td>
                         <td className="px-2 py-2 text-center">
-                          <input type="number" value={item.quantity} min={1} onChange={(e) => updateCartItem(item.product.id, Number(e.target.value))} className="w-16 rounded border px-2 py-1 text-center text-sm" />
+                          <input type="text" inputMode="numeric" value={item.quantity} onChange={(e) => updateCartItem(item.product.id, Number(e.target.value))} className="w-16 rounded border px-2 py-1 text-center text-sm" />
                         </td>
                         <td className="px-2 py-2 text-right">
-                          <input type="number" value={item.unit_price} onChange={(e) => setCart(cart.map((c) => c.product.id === item.product.id ? { ...c, unit_price: Number(e.target.value) } : c))} className="w-24 rounded border px-2 py-1 text-right text-sm" />
+                          <input type="text" inputMode="decimal" value={item.unit_price} onChange={(e) => setCart(cart.map((c) => c.product.id === item.product.id ? { ...c, unit_price: Number(e.target.value) } : c))} className="w-24 rounded border px-2 py-1 text-right text-sm" />
                         </td>
                         <td className="px-2 py-2 text-right font-medium">{formatCurrency(item.unit_price * item.quantity)}</td>
                         <td className="px-2 py-2">
