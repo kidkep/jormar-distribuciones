@@ -87,9 +87,19 @@ export function QuotesPage() {
     setProductSearch("");
   };
 
-  const downloadQuotePdf = (quoteId: number) => {
+  const downloadQuotePdf = async (quoteId: number) => {
     const baseUrl = import.meta.env.VITE_API_URL || "/api/v1";
-    window.open(`${baseUrl}/quotes/download/${quoteId}`, "_blank");
+    const token = localStorage.getItem("token");
+    const res = await fetch(`${baseUrl}/quotes/download/${quoteId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `cotizacion-${quoteId}.pdf`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const addToCart = (product: Product) => {

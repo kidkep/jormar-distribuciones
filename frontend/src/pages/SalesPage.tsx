@@ -104,9 +104,19 @@ export function SalesPage() {
     setCart(cart.filter((item) => item.product.id !== productId));
   };
 
-  const downloadInvoice = (invoiceNumber: string) => {
+  const downloadInvoice = async (invoiceNumber: string) => {
     const baseUrl = import.meta.env.VITE_API_URL || "/api/v1";
-    window.open(`${baseUrl}/sales/download/${invoiceNumber}`, "_blank");
+    const token = localStorage.getItem("token");
+    const res = await fetch(`${baseUrl}/sales/download/${invoiceNumber}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${invoiceNumber}.pdf`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const subtotal = cart.reduce((sum, item) => sum + item.unit_price * item.quantity, 0);
