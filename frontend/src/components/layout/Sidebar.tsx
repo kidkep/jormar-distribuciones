@@ -32,7 +32,7 @@ type NavSection = { name: string; children: NavLeaf[] };
 type NavItem = NavLeaf | NavSection;
 
 const navigation: NavItem[] = [
-  { name: "Dashboard", href: "/", icon: LayoutDashboard },
+  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   {
     name: "VENTAS",
     children: [

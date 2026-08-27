@@ -5,6 +5,7 @@ import { ProtectedRoute } from "@/components/common/ProtectedRoute";
 import { AdminRoute } from "@/components/common/AdminRoute";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { LoginPage } from "@/pages/LoginPage";
+import { WelcomePage } from "@/pages/WelcomePage";
 import { DashboardPage } from "@/pages/DashboardPage";
 import { ProductsPage } from "@/pages/ProductsPage";
 import { ClientsPage } from "@/pages/ClientsPage";
@@ -50,7 +51,8 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       >
-        <Route index element={<DashboardPage />} />
+        <Route index element={<WelcomePage />} />
+        <Route path="dashboard" element={<DashboardPage />} />
         <Route path="productos" element={<ProductsPage />} />
         <Route path="clientes" element={<ClientsPage />} />
         <Route path="proveedores" element={<SuppliersPage />} />
