@@ -67,6 +67,8 @@ class UserService:
             user.is_active = data.is_active
         if data.is_superuser is not None:
             user.is_superuser = data.is_superuser
+        if data.password:
+            user.hashed_password = get_password_hash(data.password)
 
         return await self.user_repo.update(user)
 

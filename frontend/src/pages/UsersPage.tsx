@@ -80,8 +80,10 @@ export function UsersPage() {
     e.preventDefault();
     if (editing) {
       const { password, ...rest } = form;
-      void password;
-      updateMutation.mutate({ id: editing.id, data: rest });
+      updateMutation.mutate({
+        id: editing.id,
+        data: password ? { ...rest, password } : rest,
+      });
     } else {
       if (!form.password) {
         setErrorMsg("Debe indicar una contraseña para el nuevo usuario");
@@ -209,12 +211,19 @@ export function UsersPage() {
                   <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="w-full rounded-lg border px-3 py-2 text-sm" required />
                 </div>
               </div>
-              {!editing && (
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700">Contraseña</label>
-                  <input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} className="w-full rounded-lg border px-3 py-2 text-sm" required={!editing} />
-                </div>
-              )}
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700">
+                  {editing ? "Nueva contraseña (opcional)" : "Contraseña"}
+                </label>
+                <input
+                  type="password"
+                  value={form.password}
+                  onChange={(e) => setForm({ ...form, password: e.target.value })}
+                  placeholder={editing ? "Dejar en blanco para no cambiar" : ""}
+                  className="w-full rounded-lg border px-3 py-2 text-sm"
+                  required={!editing}
+                />
+              </div>
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">Rol</label>
                 <select value={form.role_id ?? ""} onChange={(e) => setForm({ ...form, role_id: e.target.value ? Number(e.target.value) : null })} className="w-full rounded-lg border px-3 py-2 text-sm">

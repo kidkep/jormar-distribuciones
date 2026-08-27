@@ -36,6 +36,7 @@ export interface UserUpdate {
   email?: string;
   username?: string;
   full_name?: string;
+  password?: string;
   role_id?: number | null;
   is_active?: boolean;
   is_superuser?: boolean;
