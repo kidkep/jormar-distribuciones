@@ -61,7 +61,9 @@ class DistributionService:
         amounts = calculate_distribution(sale_total)
 
         client_name = None
-        if sale.client:
+        if sale.client_name:
+            client_name = sale.client_name
+        elif sale.client:
             client_name = sale.client.name
 
         distribution = SaleDistribution(

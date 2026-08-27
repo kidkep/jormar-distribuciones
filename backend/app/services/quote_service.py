@@ -54,6 +54,7 @@ class QuoteService:
             quote_date=data.quote_date or datetime.now(ZoneInfo("America/Bogota")).replace(tzinfo=None),
             valid_until=data.valid_until,
             client_id=data.client_id,
+            client_name=data.client_name,
             user_id=user_id,
             subtotal=subtotal,
             tax_amount=tax_amount,

@@ -69,7 +69,7 @@ def generate_invoice_pdf_bytes(sale) -> bytes:
     sale_date = sale.sale_date.strftime("%d/%m/%Y %H:%M") if sale.sale_date else ""
     pdf.cell(0, 6, f"Fecha: {sale_date}", new_x="LMARGIN", new_y="NEXT")
 
-    client_name = sale.client.name if sale.client else "Consumidor Final"
+    client_name = sale.client_name or (sale.client.name if sale.client else "Consumidor Final")
     client_doc = sale.client.document_number if sale.client else ""
     pdf.cell(0, 6, f"Cliente: {client_name}", new_x="LMARGIN", new_y="NEXT")
     if client_doc:
@@ -125,7 +125,7 @@ def generate_quote_pdf_bytes(quote) -> bytes:
         valid_date = quote.valid_until.strftime("%d/%m/%Y")
         pdf.cell(0, 6, f"Validez hasta: {valid_date}", new_x="LMARGIN", new_y="NEXT")
 
-    client_name = quote.client.name if quote.client else "Sin cliente"
+    client_name = quote.client_name or (quote.client.name if quote.client else "Sin cliente")
     client_doc = quote.client.document_number if quote.client else ""
     pdf.cell(0, 6, f"Cliente: {client_name}", new_x="LMARGIN", new_y="NEXT")
     if client_doc:

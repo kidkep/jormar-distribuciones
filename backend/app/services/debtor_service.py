@@ -28,7 +28,7 @@ class DebtorService:
                 "invoice_number": sale.invoice_number,
                 "sale_date": sale.sale_date,
                 "client_id": sale.client_id,
-                "client_name": sale.client.name if sale.client else None,
+                "client_name": sale.client_name or (sale.client.name if sale.client else None),
                 "client_document": sale.client.document_number if sale.client else None,
                 "total": sale.total,
                 "total_paid": Decimal(str(total_paid)),

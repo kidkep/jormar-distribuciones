@@ -244,7 +244,7 @@ async def get_balance(
             "sale_id": sale.id,
             "invoice_number": sale.invoice_number,
             "sale_date": sale.sale_date.strftime("%Y-%m-%d") if sale.sale_date else "",
-            "client_name": sale.client.name if sale.client else "Sin cliente",
+            "client_name": sale.client_name or (sale.client.name if sale.client else "Sin cliente"),
             "client_doc": sale.client.document_number if sale.client else "",
             "client_phone": sale.client.phone if sale.client else "",
             "total": float(sale.total),

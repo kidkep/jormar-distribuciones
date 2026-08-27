@@ -5,7 +5,6 @@ import { productsApi, type Product } from "@/api/products.api";
 import { clientsApi, type Client } from "@/api/clients.api";
 import { Plus, Search, Eye, XCircle, ShoppingCart, Trash2, Download, AlertTriangle } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import { ClientSearch } from "@/components/common/ClientSearch";
 
 type CartItem = {
   product: Product;
@@ -17,7 +16,7 @@ export function SalesPage() {
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [showDetail, setShowDetail] = useState<Sale | null>(null);
-  const [clientId, setClientId] = useState<number | null>(null);
+  const [clientName, setClientName] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("efectivo");
   const [discount, setDiscount] = useState(0);
   const [notes, setNotes] = useState("");
@@ -68,7 +67,7 @@ export function SalesPage() {
   const resetForm = () => {
     setShowForm(false);
     setCart([]);
-    setClientId(null);
+    setClientName("");
     setPaymentMethod("efectivo");
     setDiscount(0);
     setNotes("");
@@ -122,7 +121,8 @@ export function SalesPage() {
   const handleSubmit = () => {
     if (cart.length === 0) return;
     createMutation.mutate({
-      client_id: clientId,
+      client_id: null,
+      client_name: clientName || null,
       payment_method: paymentMethod,
       discount,
       notes: notes || undefined,
@@ -190,7 +190,7 @@ export function SalesPage() {
                 <tr key={s.id} className="hover:bg-gray-50">
                   <td className="px-4 py-3 font-mono text-xs font-bold">{s.invoice_number}</td>
                   <td className="px-4 py-3">{formatDate(s.sale_date)}</td>
-                  <td className="px-4 py-3">{s.client?.name || "Sin cliente"}</td>
+                  <td className="px-4 py-3">{s.client_name || s.client?.name || "Sin cliente"}</td>
                   <td className="px-4 py-3 font-medium">{formatCurrency(Number(s.total))}</td>
                   <td className="px-4 py-3 capitalize">{s.payment_method}</td>
                   <td className="px-4 py-3">
@@ -229,7 +229,13 @@ export function SalesPage() {
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">Cliente</label>
-                <ClientSearch clients={clients} value={clientId} onChange={setClientId} />
+                <input
+                  type="text"
+                  value={clientName}
+                  onChange={(e) => setClientName(e.target.value)}
+                  placeholder="Nombre del cliente"
+                  className="w-full rounded-lg border px-3 py-2 text-sm"
+                />
               </div>
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">Metodo de Pago</label>
@@ -395,7 +401,7 @@ export function SalesPage() {
             </div>
             <div className="mb-4 grid grid-cols-2 gap-2 text-sm">
               <div><span className="text-gray-500">Fecha:</span> {formatDate(showDetail.sale_date)}</div>
-              <div><span className="text-gray-500">Cliente:</span> {showDetail.client?.name || "Sin cliente"}</div>
+              <div><span className="text-gray-500">Cliente:</span> {showDetail.client_name || showDetail.client?.name || "Sin cliente"}</div>
               <div><span className="text-gray-500">Pago:</span> {showDetail.payment_method}</div>
               <div><span className="text-gray-500">Estado:</span> {showDetail.status}</div>
               {showDetail.delivery_address && (

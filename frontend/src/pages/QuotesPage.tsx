@@ -5,7 +5,6 @@ import { productsApi, type Product } from "@/api/products.api";
 import { clientsApi, type Client } from "@/api/clients.api";
 import { Plus, Search, Eye, Trash2, Send, CheckCircle, XCircle, FileText, Download } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import { ClientSearch } from "@/components/common/ClientSearch";
 
 type CartItem = {
   product: Product;
@@ -31,7 +30,7 @@ export function QuotesPage() {
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [showDetail, setShowDetail] = useState<Quote | null>(null);
-  const [clientId, setClientId] = useState<number | null>(null);
+  const [clientName, setClientName] = useState("");
   const [validUntil, setValidUntil] = useState("");
   const [discount, setDiscount] = useState(0);
   const [notes, setNotes] = useState("");
@@ -81,7 +80,7 @@ export function QuotesPage() {
   const resetForm = () => {
     setShowForm(false);
     setCart([]);
-    setClientId(null);
+    setClientName("");
     setValidUntil("");
     setDiscount(0);
     setNotes("");
@@ -131,7 +130,8 @@ export function QuotesPage() {
   const handleSubmit = () => {
     if (cart.length === 0) return;
     createMutation.mutate({
-      client_id: clientId,
+      client_id: null,
+      client_name: clientName || null,
       valid_until: validUntil || undefined,
       discount,
       notes: notes || undefined,
@@ -196,7 +196,7 @@ export function QuotesPage() {
                 <tr key={q.id} className="hover:bg-gray-50">
                   <td className="px-4 py-3 font-mono text-xs font-bold">{q.quote_number}</td>
                   <td className="px-4 py-3">{formatDate(q.quote_date)}</td>
-                  <td className="px-4 py-3">{q.client?.name || "Sin cliente"}</td>
+                  <td className="px-4 py-3">{q.client_name || q.client?.name || "Sin cliente"}</td>
                   <td className="px-4 py-3 font-medium">{formatCurrency(Number(q.total))}</td>
                   <td className="px-4 py-3">
                     <span className={`rounded-full px-2 py-1 text-xs ${STATUS_COLORS[q.status] || ""}`}>
@@ -249,7 +249,13 @@ export function QuotesPage() {
             <div className="grid grid-cols-3 gap-4 mb-4">
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">Cliente</label>
-                <ClientSearch clients={clients} value={clientId} onChange={setClientId} />
+                <input
+                  type="text"
+                  value={clientName}
+                  onChange={(e) => setClientName(e.target.value)}
+                  placeholder="Nombre del cliente"
+                  className="w-full rounded-lg border px-3 py-2 text-sm"
+                />
               </div>
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">Validez hasta</label>
@@ -355,7 +361,7 @@ export function QuotesPage() {
             </div>
             <div className="mb-4 grid grid-cols-2 gap-2 text-sm">
               <div><span className="text-gray-500">Fecha:</span> {formatDate(showDetail.quote_date)}</div>
-              <div><span className="text-gray-500">Cliente:</span> {showDetail.client?.name || "Sin cliente"}</div>
+              <div><span className="text-gray-500">Cliente:</span> {showDetail.client_name || showDetail.client?.name || "Sin cliente"}</div>
               <div><span className="text-gray-500">Estado:</span> <span className={`rounded-full px-2 py-0.5 text-xs ${STATUS_COLORS[showDetail.status]}`}>{STATUS_LABELS[showDetail.status]}</span></div>
               {showDetail.valid_until && <div><span className="text-gray-500">Validez:</span> {formatDate(showDetail.valid_until)}</div>}
             </div>

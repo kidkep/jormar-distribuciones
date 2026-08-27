@@ -20,6 +20,7 @@ class Sale(Base, TimestampMixin):
     invoice_number: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
     sale_date: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=lambda: datetime.now(ZoneInfo("America/Bogota")).replace(tzinfo=None))
     client_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("clients.id"), nullable=True)
+    client_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
     subtotal: Mapped[float] = mapped_column(Numeric(12, 2), default=0, nullable=False)
     tax_amount: Mapped[float] = mapped_column(Numeric(12, 2), default=0, nullable=False)

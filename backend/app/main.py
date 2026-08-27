@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import text
 
 from app.config import get_settings
 from app.database import engine, Base
@@ -14,6 +15,12 @@ settings = get_settings()
 async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        await conn.execute(text(
+            "ALTER TABLE sales ADD COLUMN IF NOT EXISTS client_name VARCHAR(255)"
+        ))
+        await conn.execute(text(
+            "ALTER TABLE quotes ADD COLUMN IF NOT EXISTS client_name VARCHAR(255)"
+        ))
 
     from sqlalchemy import select
     from app.database import AsyncSessionLocal

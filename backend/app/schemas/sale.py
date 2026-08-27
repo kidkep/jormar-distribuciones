@@ -16,7 +16,6 @@ class ClientBrief(BaseModel):
     document_number: str | None = None
     model_config = {"from_attributes": True}
 
-
 class SaleItemCreate(BaseModel):
     product_id: int
     quantity: int = Field(ge=1)
@@ -36,6 +35,7 @@ class SaleItemResponse(BaseModel):
 
 class SaleCreate(BaseModel):
     client_id: int | None = None
+    client_name: str | None = None
     sale_date: datetime | None = None
     payment_method: str = "efectivo"
     discount: Decimal = Decimal("0")
@@ -51,6 +51,7 @@ class SaleResponse(BaseModel):
     sale_date: datetime
     client_id: int | None = None
     client: ClientBrief | None = None
+    client_name: str | None = None
     user_id: int
     subtotal: Decimal
     tax_amount: Decimal

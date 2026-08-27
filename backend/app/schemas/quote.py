@@ -36,6 +36,7 @@ class QuoteItemResponse(BaseModel):
 
 class QuoteCreate(BaseModel):
     client_id: int | None = None
+    client_name: str | None = None
     quote_date: datetime | None = None
     valid_until: datetime | None = None
     discount: Decimal = Decimal("0")
@@ -50,6 +51,7 @@ class QuoteResponse(BaseModel):
     valid_until: datetime | None = None
     client_id: int | None = None
     client: ClientBrief | None = None
+    client_name: str | None = None
     user_id: int
     subtotal: Decimal
     tax_amount: Decimal

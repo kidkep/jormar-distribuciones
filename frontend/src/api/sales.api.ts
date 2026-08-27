@@ -15,6 +15,7 @@ export interface Sale {
   sale_date: string;
   client_id: number | null;
   client: { id: number; name: string } | null;
+  client_name: string | null;
   user_id: number;
   subtotal: number;
   tax_amount: number;
@@ -38,6 +39,7 @@ export interface SaleItemCreate {
 
 export interface SaleCreate {
   client_id?: number | null;
+  client_name?: string | null;
   sale_date?: string;
   payment_method?: string;
   discount?: number;
