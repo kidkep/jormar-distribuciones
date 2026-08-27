@@ -1,0 +1,21 @@
+from fastapi import APIRouter
+from app.api.v1 import auth, users, roles, products, clients, suppliers, sales, quotes, debtors, dashboard, expenses, catalog, caja, balance, retiros, distributions
+
+api_router = APIRouter(prefix="/api/v1")
+
+api_router.include_router(auth.router)
+api_router.include_router(users.router)
+api_router.include_router(roles.router)
+api_router.include_router(products.router)
+api_router.include_router(clients.router)
+api_router.include_router(suppliers.router)
+api_router.include_router(sales.router)
+api_router.include_router(quotes.router)
+api_router.include_router(debtors.router)
+api_router.include_router(dashboard.router)
+api_router.include_router(expenses.router)
+api_router.include_router(catalog.router)
+api_router.include_router(caja.router)
+api_router.include_router(balance.router)
+api_router.include_router(retiros.router)
+api_router.include_router(distributions.router)
