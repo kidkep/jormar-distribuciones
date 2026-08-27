@@ -1,5 +1,20 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+  PieChart,
+  Pie,
+  Cell,
+  BarChart,
+  Bar,
+  Legend,
+} from "recharts";
 import { balanceApi, type BalanceData } from "@/api/balance.api";
 import { formatCurrency } from "@/lib/utils";
 import {
@@ -170,6 +185,94 @@ export function BalancePage() {
           color="rose"
         />
       </div>
+
+      {/* GRAFICAS DE VENTAS */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="rounded-xl border bg-white p-5 shadow-sm">
+          <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-gray-800">
+            <TrendingUp className="h-4 w-4 text-green-600" />
+            Ventas por Dia
+          </h2>
+          {d.ventas.por_dia.length === 0 ? (
+            <p className="text-sm text-gray-400">No hay ventas en este periodo</p>
+          ) : (
+            <ResponsiveContainer width="100%" height={260}>
+              <AreaChart data={d.ventas.por_dia} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="gradVentas" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#16a34a" stopOpacity={0.4} />
+                    <stop offset="95%" stopColor="#16a34a" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis dataKey="fecha" tick={{ fontSize: 11 }} />
+                <YAxis tick={{ fontSize: 11 }} />
+                <Tooltip formatter={(v: any) => formatCurrency(Number(v))} />
+                <Area
+                  type="monotone"
+                  dataKey="total"
+                  name="Ventas"
+                  stroke="#16a34a"
+                  fill="url(#gradVentas)"
+                  strokeWidth={2}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          )}
+        </div>
+
+        <div className="rounded-xl border bg-white p-5 shadow-sm">
+          <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-gray-800">
+            <TrendingUp className="h-4 w-4 text-blue-600" />
+            Distribucion por Metodo de Pago
+          </h2>
+          {(() => {
+            const pieData = Object.entries(d.ventas.por_metodo).map(([k, v]) => ({
+              name: methodLabels[k] || k,
+              value: v,
+            }));
+            const pieColors = ["#16a34a", "#7c3aed", "#eab308", "#dc2626", "#ea580c"];
+            return Object.values(d.ventas.por_metodo).every((v) => v === 0) ? (
+              <p className="text-sm text-gray-400">No hay ventas en este periodo</p>
+            ) : (
+              <ResponsiveContainer width="100%" height={260}>
+                <PieChart>
+                  <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={90}>
+                    {pieData.map((_, i) => (
+                      <Cell key={i} fill={pieColors[i % pieColors.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(v: any) => formatCurrency(Number(v))} />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            );
+          })()}
+        </div>
+      </div>
+
+      {/* TOP PRODUCTOS (grafica) */}
+      {d.top_productos.length > 0 && (
+        <div className="rounded-xl border bg-white p-5 shadow-sm">
+          <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-gray-800">
+            <Package className="h-4 w-4 text-orange-600" />
+            Top 5 Productos Mas Vendidos (Grafica)
+          </h2>
+          <ResponsiveContainer width="100%" height={260}>
+            <BarChart
+              data={d.top_productos.map((p) => ({ ...p, unidades: Number(p.unidades_vendidas) }))}
+              margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+              <XAxis dataKey="producto" tick={{ fontSize: 11 }} interval={0} />
+              <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
+              <Tooltip />
+              <Legend />
+              <Bar dataKey="unidades" name="Unidades" fill="#f97316" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      )}
 
       {/* SALDO DISPONIBLE POR METODO */}
       <div className="rounded-xl border-2 border-green-200 bg-gradient-to-r from-green-50 to-emerald-50 p-6 shadow-sm">

@@ -7,6 +7,7 @@ export interface BalanceData {
     cantidad: number;
     ticket_promedio: number;
     por_metodo: Record<string, number>;
+    por_dia: { fecha: string; total: number }[];
   };
   gastos: {
     total: number;

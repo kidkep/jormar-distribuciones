@@ -65,6 +65,24 @@ async def get_balance(
         )
         por_metodo[m] = float(r.scalar() or 0)
 
+    # --- VENTAS POR DIA (serie temporal dentro del periodo) ---
+    ventas_dia_q = await db.execute(
+        select(
+            func.date(Sale.sale_date).label("dia"),
+            func.coalesce(func.sum(Sale.total), 0),
+        )
+        .where(Sale.sale_date >= fi, Sale.sale_date <= ff, Sale.status != "anulada")
+        .group_by(func.date(Sale.sale_date))
+        .order_by(func.date(Sale.sale_date))
+    )
+    ventas_dia_map = {str(row[0]): float(row[1]) for row in ventas_dia_q.all()}
+    ventas_por_dia = []
+    cur = fi
+    while cur <= ff:
+        key = cur.strftime("%Y-%m-%d")
+        ventas_por_dia.append({"fecha": key, "total": ventas_dia_map.get(key, 0.0)})
+        cur = cur + timedelta(days=1)
+
     # --- GASTOS ---
     gastos_q = await db.execute(
         select(func.coalesce(func.sum(Expense.amount), 0)).where(
@@ -270,6 +288,7 @@ async def get_balance(
             "cantidad": ventas_count,
             "ticket_promedio": total_ventas / ventas_count if ventas_count > 0 else 0,
             "por_metodo": por_metodo,
+            "por_dia": ventas_por_dia,
         },
         "gastos": {
             "total": total_gastos,
