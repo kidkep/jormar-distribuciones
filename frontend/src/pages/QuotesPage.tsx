@@ -5,6 +5,7 @@ import { productsApi, type Product } from "@/api/products.api";
 import { clientsApi, type Client } from "@/api/clients.api";
 import { Plus, Search, Eye, Trash2, Send, CheckCircle, XCircle, FileText, Download } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { ClientSearch } from "@/components/common/ClientSearch";
 
 type CartItem = {
   product: Product;
@@ -248,10 +249,7 @@ export function QuotesPage() {
             <div className="grid grid-cols-3 gap-4 mb-4">
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">Cliente</label>
-                <select value={clientId || ""} onChange={(e) => setClientId(e.target.value ? Number(e.target.value) : null)} className="w-full rounded-lg border px-3 py-2 text-sm">
-                  <option value="">Sin cliente</option>
-                  {clients.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-                </select>
+                <ClientSearch clients={clients} value={clientId} onChange={setClientId} />
               </div>
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">Validez hasta</label>
