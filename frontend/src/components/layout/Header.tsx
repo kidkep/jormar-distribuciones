@@ -7,6 +7,8 @@ interface Props {
 
 export function Header({ onMenuClick }: Props) {
   const { user, logout } = useAuth();
+  const canExport =
+    user?.is_superuser || (user?.permissions ?? []).includes("sistema.exportar_db");
 
   const downloadBackup = async () => {
     const baseUrl = import.meta.env.VITE_API_URL || "/api/v1";
@@ -47,13 +49,15 @@ export function Header({ onMenuClick }: Props) {
       </div>
 
       <div className="flex items-center gap-4">
-        <button
-          onClick={downloadBackup}
-          className="flex items-center gap-2 rounded-lg bg-green-600 px-3 py-2 text-sm text-white hover:bg-green-700"
-        >
-          <Database className="h-4 w-4" />
-          <span className="hidden sm:inline">Exportación de base de datos</span>
-        </button>
+        {canExport && (
+          <button
+            onClick={downloadBackup}
+            className="flex items-center gap-2 rounded-lg bg-green-600 px-3 py-2 text-sm text-white hover:bg-green-700"
+          >
+            <Database className="h-4 w-4" />
+            <span className="hidden sm:inline">Exportación de base de datos</span>
+          </button>
+        )}
         <div className="flex items-center gap-2 text-sm text-gray-600">
           <User className="h-4 w-4" />
           <span>{user?.full_name || user?.username}</span>

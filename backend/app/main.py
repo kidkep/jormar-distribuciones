@@ -59,6 +59,7 @@ async def lifespan(app: FastAPI):
                 ("reportes.ver", "Ver reportes", "reportes"),
                 ("usuarios.gestionar", "Gestionar usuarios", "sistema"),
                 ("roles.gestionar", "Gestionar roles", "sistema"),
+                ("sistema.exportar_db", "Exportar base de datos", "sistema"),
             ]
             for name, description, module in PERMISSIONS:
                 result = await db.execute(select(Permission).where(Permission.name == name))
@@ -101,6 +102,28 @@ async def lifespan(app: FastAPI):
         if admin and admin.username != "jormar":
             admin.username = "jormar"
             admin.hashed_password = get_password_hash("2908")
+            await db.commit()
+
+    async with AsyncSessionLocal() as db:
+        from sqlalchemy.orm import selectinload
+        from app.models import Role, Permission
+
+        result = await db.execute(select(Permission).where(Permission.name == "sistema.exportar_db"))
+        perm = result.scalar_one_or_none()
+        if not perm:
+            perm = Permission(name="sistema.exportar_db", description="Exportar base de datos", module="sistema")
+            db.add(perm)
+            await db.flush()
+            await db.commit()
+
+        result = await db.execute(
+            select(Role)
+            .options(selectinload(Role.permissions))
+            .where(Role.name == "admin")
+        )
+        admin_role = result.scalar_one_or_none()
+        if admin_role and perm not in admin_role.permissions:
+            admin_role.permissions.append(perm)
             await db.commit()
 
     yield

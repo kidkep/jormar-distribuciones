@@ -15,7 +15,7 @@ router = APIRouter(prefix="/export", tags=["Exportación"])
 @router.post("/backup")
 async def export_backup(
     db=Depends(get_db),
-    _user: User = Depends(require_permission("reportes.ver")),
+    _user: User = Depends(require_permission("sistema.exportar_db")),
 ):
     conn = await db.connection()
     tables = await backup_exporter.extract_tables(conn)
