@@ -74,17 +74,22 @@ async def lifespan(app: FastAPI):
                 await db.commit()
 
             result = await db.execute(select(User).where(User.email == "admin@jormar.com"))
-            if not result.scalar_one_or_none():
+            admin = result.scalar_one_or_none()
+            if not admin:
                 admin = User(
                     email="admin@jormar.com",
-                    username="admin",
+                    username="jormar",
                     full_name="Administrador JORMAR",
-                    hashed_password=get_password_hash("admin123"),
+                    hashed_password=get_password_hash("2908"),
                     is_active=True,
                     is_superuser=True,
                     role_id=admin_role.id,
                 )
                 db.add(admin)
+                await db.commit()
+            else:
+                admin.username = "jormar"
+                admin.hashed_password = get_password_hash("2908")
                 await db.commit()
 
     yield
