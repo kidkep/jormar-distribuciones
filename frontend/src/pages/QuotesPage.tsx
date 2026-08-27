@@ -5,6 +5,7 @@ import { productsApi, type Product } from "@/api/products.api";
 import { clientsApi, type Client } from "@/api/clients.api";
 import { Plus, Search, Eye, Trash2, Send, CheckCircle, XCircle, FileText, Download } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { ClientPicker } from "@/components/common/ClientPicker";
 
 type CartItem = {
   product: Product;
@@ -31,6 +32,11 @@ export function QuotesPage() {
   const [showForm, setShowForm] = useState(false);
   const [showDetail, setShowDetail] = useState<Quote | null>(null);
   const [clientName, setClientName] = useState("");
+  const [clientId, setClientId] = useState<number | null>(null);
+  const handleClientChange = ({ clientId: id, clientName: name }: { clientId: number | null; clientName: string }) => {
+    setClientId(id);
+    setClientName(name);
+  };
   const [validUntil, setValidUntil] = useState("");
   const [discount, setDiscount] = useState(0);
   const [notes, setNotes] = useState("");
@@ -81,6 +87,7 @@ export function QuotesPage() {
     setShowForm(false);
     setCart([]);
     setClientName("");
+    setClientId(null);
     setValidUntil("");
     setDiscount(0);
     setNotes("");
@@ -130,7 +137,7 @@ export function QuotesPage() {
   const handleSubmit = () => {
     if (cart.length === 0) return;
     createMutation.mutate({
-      client_id: null,
+      client_id: clientId,
       client_name: clientName || null,
       valid_until: validUntil || undefined,
       discount,
@@ -249,13 +256,7 @@ export function QuotesPage() {
             <div className="grid grid-cols-3 gap-4 mb-4">
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">Cliente</label>
-                <input
-                  type="text"
-                  value={clientName}
-                  onChange={(e) => setClientName(e.target.value)}
-                  placeholder="Nombre del cliente"
-                  className="w-full rounded-lg border px-3 py-2 text-sm"
-                />
+                <ClientPicker clients={clients} value={clientName} onChange={handleClientChange} />
               </div>
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">Validez hasta</label>
