@@ -1,9 +1,15 @@
 import io
+import os
 from fpdf import FPDF
+
+LOGO_PATH = os.path.join(os.path.dirname(__file__), "logo.png")
 
 
 class JormarPDF(FPDF):
     def header(self):
+        if os.path.exists(LOGO_PATH):
+            self.image(LOGO_PATH, x=80, w=50)
+            self.ln(32)
         self.set_font("Helvetica", "B", 18)
         self.cell(0, 10, "JORMAR DISTRIBUCIONES", new_x="LMARGIN", new_y="NEXT", align="C")
         self.set_font("Helvetica", "", 10)
