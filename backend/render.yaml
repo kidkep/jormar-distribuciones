@@ -2,6 +2,7 @@ services:
   - type: web
     name: jormar-api
     runtime: python
+    rootDir: backend
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
     envVars:
@@ -13,3 +14,11 @@ services:
         sync: false
       - key: DEBUG
         value: "false"
+      - key: ALGORITHM
+        value: "HS256"
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: "480"
+      - key: APP_NAME
+        value: "JORMAR DISTRIBUCIONES"
+      - key: APP_VERSION
+        value: "1.0.0"
