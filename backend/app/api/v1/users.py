@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
@@ -114,22 +113,3 @@ async def delete_user(
         old_values=old_values,
     )
     return MessageResponse(message="Usuario eliminado correctamente")
-
-
-@router.post("/reset-data", response_model=MessageResponse)
-async def reset_data(
-    db: AsyncSession = Depends(get_db),
-    _admin: User = Depends(require_superuser),
-):
-    """VACIA todos los datos de negocio y auditoria. Conserva admin, roles, permisos y categorias."""
-    tables = [
-        "sale_items", "payments", "sales",
-        "quote_items", "quotes",
-        "products", "clients", "suppliers",
-        "expenses", "retiros", "sale_distributions",
-        "audit_logs",
-    ]
-    for t in tables:
-        await db.execute(text(f'TRUNCATE TABLE "{t}" RESTART IDENTITY CASCADE'))
-    await db.commit()
-    return MessageResponse(message="Datos de negocio borrados correctamente")
