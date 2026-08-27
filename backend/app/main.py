@@ -1,10 +1,7 @@
 from contextlib import asynccontextmanager
 
-import traceback
-
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 from sqlalchemy import text
 
 from app.config import get_settings
@@ -126,19 +123,6 @@ app.add_middleware(
 )
 
 app.include_router(api_router)
-
-
-@app.exception_handler(Exception)
-async def debug_exc_handler(request: Request, exc: Exception):
-    tb = traceback.format_exc()
-    extra = ""
-    for attr in ("errors", "body"):
-        if hasattr(exc, attr):
-            try:
-                extra += f"\n[{attr}]={getattr(exc, attr)!r}"
-            except Exception:
-                pass
-    return JSONResponse(status_code=500, content={"detail": repr(exc), "traceback": tb, "extra": extra})
 
 
 @app.get("/health")
