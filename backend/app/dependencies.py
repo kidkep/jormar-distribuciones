@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
 from app.models.user import User
+from app.models.role import Role
 from app.utils.security import decode_access_token
 from app.exceptions import UnauthorizedException, ForbiddenException
 
@@ -25,7 +26,9 @@ async def get_current_user(
         raise UnauthorizedException("Token invalido")
 
     result = await db.execute(
-        select(User).options(selectinload(User.role)).where(User.id == int(user_id))
+        select(User)
+        .options(selectinload(User.role).selectinload(Role.permissions))
+        .where(User.id == int(user_id))
     )
     user = result.scalar_one_or_none()
 

@@ -17,6 +17,7 @@ import {
   UserCog,
   ShieldCheck,
   History,
+  type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -26,37 +27,41 @@ interface Props {
   onClose: () => void;
 }
 
-const navigation = [
+type NavLeaf = { name: string; href: string; icon: LucideIcon; permission?: string; children?: never };
+type NavSection = { name: string; children: NavLeaf[] };
+type NavItem = NavLeaf | NavSection;
+
+const navigation: NavItem[] = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
   {
     name: "VENTAS",
     children: [
-      { name: "Nueva Venta", href: "/ventas/nueva", icon: ShoppingCart },
-      { name: "Cotizaciones", href: "/cotizaciones", icon: FileText },
-      { name: "Clientes", href: "/clientes", icon: Users },
-      { name: "Deudores", href: "/deudores", icon: AlertCircle },
+      { name: "Nueva Venta", href: "/ventas/nueva", icon: ShoppingCart, permission: "ventas.create" },
+      { name: "Cotizaciones", href: "/cotizaciones", icon: FileText, permission: "cotizaciones.view" },
+      { name: "Clientes", href: "/clientes", icon: Users, permission: "clientes.view" },
+      { name: "Deudores", href: "/deudores", icon: AlertCircle, permission: "deudores.view" },
     ],
   },
   {
     name: "INVENTARIO",
     children: [
-      { name: "Productos", href: "/productos", icon: Package },
-      { name: "Proveedores", href: "/proveedores", icon: Truck },
+      { name: "Productos", href: "/productos", icon: Package, permission: "productos.view" },
+      { name: "Proveedores", href: "/proveedores", icon: Truck, permission: "proveedores.view" },
     ],
   },
   {
     name: "FINANZAS",
     children: [
-      { name: "Caja/Dinero", href: "/dinero", icon: Wallet },
-      { name: "Distribucion", href: "/distribucion", icon: PieChart },
-      { name: "Gastos", href: "/gastos", icon: BarChart3 },
-      { name: "Consultor Balance", href: "/balance", icon: ClipboardList },
+      { name: "Caja/Dinero", href: "/dinero", icon: Wallet, permission: "finanzas.view" },
+      { name: "Distribucion", href: "/distribucion", icon: PieChart, permission: "finanzas.view" },
+      { name: "Gastos", href: "/gastos", icon: BarChart3, permission: "finanzas.gastos" },
+      { name: "Consultor Balance", href: "/balance", icon: ClipboardList, permission: "reportes.ver" },
     ],
   },
   { name: "Configuracion", href: "/configuracion", icon: Settings },
 ];
 
-const adminNavigation = [
+const adminNavigation: NavSection[] = [
   {
     name: "ADMINISTRACION",
     children: [
@@ -70,6 +75,18 @@ const adminNavigation = [
 export function Sidebar({ isOpen, onClose }: Props) {
   const { user } = useAuth();
   const showAdmin = user?.is_superuser;
+  const perms = user?.permissions ?? [];
+
+  const canViewItem = (item: { permission?: string }) =>
+    !item.permission || user?.is_superuser || perms.includes(item.permission);
+
+  const visibleNavigation = navigation
+    .map((item) => {
+      if (!item.children) return canViewItem(item) ? item : null;
+      const children = item.children.filter(canViewItem);
+      return children.length > 0 ? { ...item, children } : null;
+    })
+    .filter(Boolean) as typeof navigation;
 
   return (
     <>
@@ -102,7 +119,7 @@ export function Sidebar({ isOpen, onClose }: Props) {
         </div>
 
         <nav className="mt-4 space-y-1 px-3">
-          {[...navigation, ...(showAdmin ? adminNavigation : [])].map((item) =>
+          {[...visibleNavigation, ...(showAdmin ? adminNavigation : [])].map((item) =>
             item.children ? (
               <div key={item.name} className="mb-4">
                 <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-gray-500">

@@ -22,3 +22,9 @@ class User(Base, TimestampMixin):
     role_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("roles.id"), nullable=True)
 
     role: Mapped["Role | None"] = relationship("Role", back_populates="users")
+
+    @property
+    def permissions(self) -> list[str]:
+        if self.role is None:
+            return []
+        return [p.name for p in self.role.permissions]

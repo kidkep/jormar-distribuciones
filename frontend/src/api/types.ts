@@ -17,6 +17,7 @@ export interface User {
   is_superuser: boolean;
   role_id: number | null;
   role: { id: number; name: string } | null;
+  permissions: string[];
   created_at: string;
   updated_at: string;
 }

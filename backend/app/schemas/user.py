@@ -44,6 +44,7 @@ class UserResponse(UserBase, TimestampSchema):
     is_superuser: bool
     role_id: int | None = None
     role: RoleBrief | None = None
+    permissions: list[str] = []
 
     model_config = {"from_attributes": True}
 

@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.models.user import User
+from app.models.role import Role
 
 
 class UserRepository:
@@ -11,7 +12,9 @@ class UserRepository:
 
     async def get_by_id(self, user_id: int) -> User | None:
         result = await self.db.execute(
-            select(User).options(selectinload(User.role)).where(User.id == user_id)
+            select(User)
+            .options(selectinload(User.role).selectinload(Role.permissions))
+            .where(User.id == user_id)
         )
         return result.scalar_one_or_none()
 
@@ -29,7 +32,7 @@ class UserRepository:
 
         result = await self.db.execute(
             select(User)
-            .options(selectinload(User.role))
+            .options(selectinload(User.role).selectinload(Role.permissions))
             .offset(skip)
             .limit(limit)
             .order_by(User.id)
