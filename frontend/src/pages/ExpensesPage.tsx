@@ -133,7 +133,7 @@ export function ExpensesPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="mb-1 block text-sm font-medium text-gray-700">Monto</label>
-                  <input type="number" value={form.amount} onChange={(e) => setForm({ ...form, amount: Number(e.target.value) })} className="w-full rounded-lg border px-3 py-2 text-sm" required min={1} />
+                  <input type="text" inputMode="decimal" value={form.amount} onChange={(e) => setForm({ ...form, amount: Number(e.target.value) })} className="w-full rounded-lg border px-3 py-2 text-sm" required />
                 </div>
                 <div>
                   <label className="mb-1 block text-sm font-medium text-gray-700">Categoria</label>

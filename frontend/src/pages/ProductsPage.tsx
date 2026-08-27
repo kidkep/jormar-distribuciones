@@ -167,19 +167,19 @@ export function ProductsPage() {
                 </div>
                 <div>
                   <label className="mb-1 block text-sm font-medium text-gray-700">Precio Compra</label>
-                  <input type="number" value={form.purchase_price} onChange={(e) => setForm({ ...form, purchase_price: Number(e.target.value) })} className="w-full rounded-lg border px-3 py-2 text-sm" />
+                  <input type="text" inputMode="decimal" value={form.purchase_price} onChange={(e) => setForm({ ...form, purchase_price: Number(e.target.value) })} className="w-full rounded-lg border px-3 py-2 text-sm" />
                 </div>
                 <div>
                   <label className="mb-1 block text-sm font-medium text-gray-700">Precio Venta</label>
-                  <input type="number" value={form.sale_price} onChange={(e) => setForm({ ...form, sale_price: Number(e.target.value) })} className="w-full rounded-lg border px-3 py-2 text-sm" required />
+                  <input type="text" inputMode="decimal" value={form.sale_price} onChange={(e) => setForm({ ...form, sale_price: Number(e.target.value) })} className="w-full rounded-lg border px-3 py-2 text-sm" required />
                 </div>
                 <div>
                   <label className="mb-1 block text-sm font-medium text-gray-700">Stock Actual</label>
-                  <input type="number" value={form.current_stock} onChange={(e) => setForm({ ...form, current_stock: Number(e.target.value) })} className="w-full rounded-lg border px-3 py-2 text-sm" />
+                  <input type="text" inputMode="numeric" value={form.current_stock} onChange={(e) => setForm({ ...form, current_stock: Number(e.target.value) })} className="w-full rounded-lg border px-3 py-2 text-sm" />
                 </div>
                 <div>
                   <label className="mb-1 block text-sm font-medium text-gray-700">Stock Minimo</label>
-                  <input type="number" value={form.min_stock} onChange={(e) => setForm({ ...form, min_stock: Number(e.target.value) })} className="w-full rounded-lg border px-3 py-2 text-sm" />
+                  <input type="text" inputMode="numeric" value={form.min_stock} onChange={(e) => setForm({ ...form, min_stock: Number(e.target.value) })} className="w-full rounded-lg border px-3 py-2 text-sm" />
                 </div>
               </div>
               <div className="flex justify-end gap-3">
