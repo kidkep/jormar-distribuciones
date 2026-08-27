@@ -1,10 +1,12 @@
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import delete
 from decimal import Decimal
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 
 from app.models.sale import Sale, SaleItem
 from app.models.product import Product
+from app.models.payment import Payment
 from app.repositories.sale_repository import SaleRepository
 from app.repositories.product_repository import ProductRepository
 from app.schemas.sale import SaleCreate
@@ -110,6 +112,11 @@ class SaleService:
                 await self.product_repo.update(product)
 
         sale.status = "anulada"
+
+        await self.db.execute(
+            delete(Payment).where(Payment.sale_id == sale.id)
+        )
+
         result = await self.repo.update(sale)
 
         try:
