@@ -11,6 +11,7 @@ export function ClientPicker({ clients, value, onChange }: ClientPickerProps) {
   const [query, setQuery] = useState(value);
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const ignoreBlur = useRef(false);
 
   useEffect(() => {
     setQuery(value);
@@ -32,6 +33,13 @@ export function ClientPicker({ clients, value, onChange }: ClientPickerProps) {
     (c.phone || "").toLowerCase().includes(query.toLowerCase())
   );
 
+  const selectClient = (c: Client) => {
+    ignoreBlur.current = true;
+    setQuery(c.name);
+    setOpen(false);
+    onChange({ clientId: c.id, clientName: c.name });
+  };
+
   return (
     <div ref={containerRef} className="relative">
       <input
@@ -43,7 +51,13 @@ export function ClientPicker({ clients, value, onChange }: ClientPickerProps) {
           onChange({ clientId: null, clientName: e.target.value });
         }}
         onFocus={() => setOpen(true)}
-        onBlur={() => setTimeout(() => setOpen(false), 150)}
+        onBlur={() => {
+          if (ignoreBlur.current) {
+            ignoreBlur.current = false;
+          } else {
+            setOpen(false);
+          }
+        }}
         placeholder="Buscar o escribir nombre del cliente..."
         className="w-full rounded-lg border px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
         autoComplete="off"
@@ -56,9 +70,7 @@ export function ClientPicker({ clients, value, onChange }: ClientPickerProps) {
               type="button"
               onMouseDown={(e) => {
                 e.preventDefault();
-                setQuery(c.name);
-                setOpen(false);
-                onChange({ clientId: c.id, clientName: c.name });
+                selectClient(c);
               }}
               className="flex w-full flex-col px-3 py-2 text-left text-sm hover:bg-blue-50"
             >
