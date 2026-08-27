@@ -132,7 +132,8 @@ export function QuotesPage() {
   };
 
   const subtotal = cart.reduce((sum, item) => sum + item.unit_price * (Number(item.quantity) || 0), 0);
-  const total = subtotal - discount;
+  const discountAmount = subtotal * (discount / 100);
+  const total = subtotal - discountAmount;
 
   const handleSubmit = () => {
     if (cart.length === 0) return;
@@ -140,7 +141,7 @@ export function QuotesPage() {
       client_id: clientId,
       client_name: clientName || null,
       valid_until: validUntil || undefined,
-      discount,
+      discount: discountAmount,
       notes: notes || undefined,
       items: cart.map((item) => ({
         product_id: item.product.id,
@@ -263,8 +264,8 @@ export function QuotesPage() {
                 <input type="date" value={validUntil} onChange={(e) => setValidUntil(e.target.value)} className="w-full rounded-lg border px-3 py-2 text-sm" />
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">Descuento</label>
-                <input type="text" inputMode="decimal" value={discount} onChange={(e) => setDiscount(Number(e.target.value))} className="w-full rounded-lg border px-3 py-2 text-sm" />
+                <label className="mb-1 block text-sm font-medium text-gray-700">Descuento (%)</label>
+                <input type="text" inputMode="decimal" value={discount} onChange={(e) => setDiscount(Number(e.target.value))} className="w-full rounded-lg border px-3 py-2 text-sm" placeholder="0" />
               </div>
             </div>
 

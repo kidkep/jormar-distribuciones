@@ -123,7 +123,8 @@ export function SalesPage() {
   };
 
   const subtotal = cart.reduce((sum, item) => sum + item.unit_price * (Number(item.quantity) || 0), 0);
-  const total = subtotal - discount;
+  const discountAmount = subtotal * (discount / 100);
+  const total = subtotal - discountAmount;
 
   const handleSubmit = () => {
     if (cart.length === 0) return;
@@ -131,7 +132,7 @@ export function SalesPage() {
       client_id: clientId,
       client_name: clientName || null,
       payment_method: paymentMethod,
-      discount,
+      discount: discountAmount,
       notes: notes || undefined,
       delivery_address: deliveryAddress || undefined,
       delivered_by: deliveredBy || undefined,
@@ -353,8 +354,8 @@ export function SalesPage() {
               <div className="w-64 space-y-1 text-sm">
                 <div className="flex justify-between"><span>Subtotal:</span><span>{formatCurrency(subtotal)}</span></div>
                 <div className="flex justify-between">
-                  <span>Descuento:</span>
-                  <input type="text" inputMode="decimal" value={discount} onChange={(e) => setDiscount(Number(e.target.value))} className="w-24 rounded border px-2 py-1 text-right text-sm" />
+                  <span>Descuento (%):</span>
+                  <input type="text" inputMode="decimal" value={discount} onChange={(e) => setDiscount(Number(e.target.value))} className="w-24 rounded border px-2 py-1 text-right text-sm" placeholder="0" />
                 </div>
                 <div className="flex justify-between border-t pt-1 text-base font-bold"><span>Total:</span><span>{formatCurrency(total)}</span></div>
               </div>
