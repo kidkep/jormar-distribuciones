@@ -27,7 +27,7 @@ class SaleService:
     async def get_sale_by_invoice(self, invoice_number: str) -> Sale:
         sale = await self.repo.get_by_invoice_number(invoice_number)
         if not sale:
-            raise NotFoundException("Factura", invoice_number)
+            raise NotFoundException("Remision", invoice_number)
         return sale
 
     async def get_sales(self, skip: int = 0, limit: int = 50, search: str = "") -> tuple[list[Sale], int]:

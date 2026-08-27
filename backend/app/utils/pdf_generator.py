@@ -63,7 +63,7 @@ def generate_invoice_pdf_bytes(sale) -> bytes:
     pdf.set_auto_page_break(auto=True, margin=15)
 
     pdf.set_font("Helvetica", "B", 12)
-    pdf.cell(0, 8, f"FACTURA: {sale.invoice_number}", new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(0, 8, f"REMISION: {sale.invoice_number}", new_x="LMARGIN", new_y="NEXT")
     pdf.set_font("Helvetica", "", 10)
 
     sale_date = sale.sale_date.strftime("%d/%m/%Y %H:%M") if sale.sale_date else ""

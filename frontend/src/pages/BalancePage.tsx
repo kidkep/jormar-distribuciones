@@ -432,7 +432,7 @@ export function BalancePage() {
                   <div className="flex flex-col">
                     <span className="font-semibold text-gray-800">{deudor.client_name}</span>
                     <span className="text-xs text-gray-500">
-                      {deudor.client_doc} | {deudor.client_phone} | Factura: {deudor.invoice_number}
+                      {deudor.client_doc} | {deudor.client_phone} | Remision: {deudor.invoice_number}
                     </span>
                   </div>
                   <div className="flex items-center gap-4 text-sm">

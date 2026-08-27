@@ -71,7 +71,7 @@ class SaleRepository:
                 num = 1
         else:
             num = 1
-        return f"FAC-{num:06d}"
+        return f"REM-{num:06d}"
 
     async def create(self, sale: Sale) -> Sale:
         self.db.add(sale)

@@ -168,7 +168,7 @@ export function SalesPage() {
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
         <input
           type="text"
-          placeholder="Buscar por numero de factura..."
+          placeholder="Buscar por numero de remision..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="w-full rounded-lg border border-gray-300 py-2.5 pl-10 pr-4 text-sm focus:border-blue-500 focus:outline-none"
@@ -179,7 +179,7 @@ export function SalesPage() {
         <table className="w-full text-left text-sm">
           <thead className="border-b bg-gray-50 text-xs uppercase text-gray-600">
             <tr>
-              <th className="px-4 py-3">Factura</th>
+              <th className="px-4 py-3">Remision</th>
               <th className="px-4 py-3">Fecha</th>
               <th className="px-4 py-3">Cliente</th>
               <th className="px-4 py-3">Total</th>

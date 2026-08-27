@@ -44,7 +44,7 @@ export function DebtorsPage() {
         <table className="w-full text-left text-sm">
           <thead className="border-b bg-gray-50 text-xs uppercase text-gray-600">
             <tr>
-              <th className="px-4 py-3">Factura</th>
+              <th className="px-4 py-3">Remision</th>
               <th className="px-4 py-3">Fecha</th>
               <th className="px-4 py-3">Cliente</th>
               <th className="px-4 py-3">Total</th>
@@ -156,7 +156,7 @@ export function DebtorsPage() {
           <div className="w-full max-w-sm rounded-xl bg-white p-6 shadow-2xl">
             <h2 className="mb-4 text-lg font-semibold">Registrar Abono</h2>
             <p className="mb-4 text-sm text-gray-600">
-              Factura: <strong>{showPayment.invoice_number}</strong> | Saldo: <strong className="text-red-600">{formatCurrency(Number(showPayment.balance))}</strong>
+              Remision: <strong>{showPayment.invoice_number}</strong> | Saldo: <strong className="text-red-600">{formatCurrency(Number(showPayment.balance))}</strong>
             </p>
             <div className="space-y-4">
               <div>

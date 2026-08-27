@@ -113,7 +113,7 @@ export function DashboardPage() {
               <table className="w-full text-sm">
                 <thead className="border-b text-xs uppercase text-gray-600">
                   <tr>
-                    <th className="px-3 py-2 text-left">Factura</th>
+                    <th className="px-3 py-2 text-left">Remision</th>
                     <th className="px-3 py-2 text-left">Fecha</th>
                     <th className="px-3 py-2 text-right">Total</th>
                   </tr>

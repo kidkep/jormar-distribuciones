@@ -263,7 +263,7 @@ export function DistribucionPage() {
             <table className="w-full text-left text-sm">
               <thead>
                 <tr className="border-b text-xs text-gray-500">
-                  <th className="pb-2 pr-4 font-medium">Factura</th>
+                  <th className="pb-2 pr-4 font-medium">Remision</th>
                   <th className="pb-2 pr-4 font-medium">Fecha</th>
                   <th className="pb-2 pr-4 font-medium">Cliente</th>
                   <th className="pb-2 pr-4 font-medium">Metodo</th>
