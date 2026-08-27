@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useAuthStore } from "@/stores/authStore";
 import { ProtectedRoute } from "@/components/common/ProtectedRoute";
+import { AdminRoute } from "@/components/common/AdminRoute";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { LoginPage } from "@/pages/LoginPage";
 import { DashboardPage } from "@/pages/DashboardPage";
@@ -16,6 +17,9 @@ import { DineroPage } from "@/pages/DineroPage";
 import { DistribucionPage } from "@/pages/DistribucionPage";
 import { BalancePage } from "@/pages/BalancePage";
 import { ConfigPage } from "@/pages/ConfigPage";
+import { UsersPage } from "@/pages/UsersPage";
+import { RolesPage } from "@/pages/RolesPage";
+import { AuditLogPage } from "@/pages/AuditLogPage";
 import { NotFoundPage } from "@/pages/NotFoundPage";
 import { useEffect } from "react";
 
@@ -58,6 +62,30 @@ function AppRoutes() {
         <Route path="distribucion" element={<DistribucionPage />} />
         <Route path="balance" element={<BalancePage />} />
         <Route path="configuracion" element={<ConfigPage />} />
+        <Route
+          path="usuarios"
+          element={
+            <AdminRoute>
+              <UsersPage />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="roles"
+          element={
+            <AdminRoute>
+              <RolesPage />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="historial"
+          element={
+            <AdminRoute>
+              <AuditLogPage />
+            </AdminRoute>
+          }
+        />
       </Route>
       <Route path="*" element={<NotFoundPage />} />
     </Routes>

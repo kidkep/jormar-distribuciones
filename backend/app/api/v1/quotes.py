@@ -10,6 +10,7 @@ from app.schemas.quote import QuoteCreate, QuoteResponse
 from app.schemas.common import MessageResponse
 from app.services.quote_service import QuoteService
 from app.utils.pdf_generator import generate_quote_pdf_bytes
+from app.utils.audit import record_audit
 
 router = APIRouter(prefix="/quotes", tags=["Cotizaciones"])
 
@@ -61,7 +62,13 @@ async def create_quote(
     user: User = Depends(require_permission("cotizaciones.create")),
 ):
     service = QuoteService(db)
-    return await service.create_quote(data, user.id)
+    quote = await service.create_quote(data, user.id)
+    record_audit(
+        db, user, "create", "quote",
+        entity_id=quote.id,
+        new_values={"quote_number": getattr(quote, "quote_number", None), "total": str(getattr(quote, "total", ""))},
+    )
+    return quote
 
 
 @router.put("/{quote_id}/status", response_model=QuoteResponse)
@@ -72,7 +79,15 @@ async def update_quote_status(
     _user: User = Depends(require_permission("cotizaciones.edit")),
 ):
     service = QuoteService(db)
-    return await service.update_status(quote_id, status)
+    quote = await service.get_quote(quote_id)
+    updated = await service.update_status(quote_id, status)
+    record_audit(
+        db, _user, "update", "quote",
+        entity_id=quote_id,
+        old_values={"status": quote.status},
+        new_values={"status": updated.status},
+    )
+    return updated
 
 
 @router.delete("/{quote_id}", response_model=MessageResponse)
@@ -82,5 +97,11 @@ async def delete_quote(
     _user: User = Depends(require_permission("cotizaciones.edit")),
 ):
     service = QuoteService(db)
+    existing = await service.get_quote(quote_id)
     await service.delete_quote(quote_id)
+    record_audit(
+        db, _user, "delete", "quote",
+        entity_id=quote_id,
+        old_values={"quote_number": getattr(existing, "quote_number", None)},
+    )
     return MessageResponse(message="Cotización eliminada correctamente")

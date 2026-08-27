@@ -7,6 +7,7 @@ from app.models.user import User
 from app.schemas.client import ClientCreate, ClientUpdate, ClientResponse
 from app.schemas.common import MessageResponse
 from app.services.client_service import ClientService
+from app.utils.audit import record_audit
 
 router = APIRouter(prefix="/clients", tags=["Clientes"])
 
@@ -42,7 +43,13 @@ async def create_client(
     _user: User = Depends(require_permission("clientes.create")),
 ):
     service = ClientService(db)
-    return await service.create_client(data)
+    client = await service.create_client(data)
+    record_audit(
+        db, _user, "create", "client",
+        entity_id=client.id,
+        new_values={"name": client.name, "document_number": client.document_number},
+    )
+    return client
 
 
 @router.put("/{client_id}", response_model=ClientResponse)
@@ -53,7 +60,16 @@ async def update_client(
     _user: User = Depends(require_permission("clientes.edit")),
 ):
     service = ClientService(db)
-    return await service.update_client(client_id, data)
+    existing = await service.get_client(client_id)
+    old_values = {"name": existing.name, "document_number": existing.document_number}
+    updated = await service.update_client(client_id, data)
+    record_audit(
+        db, _user, "update", "client",
+        entity_id=client_id,
+        old_values=old_values,
+        new_values={"name": updated.name, "document_number": updated.document_number},
+    )
+    return updated
 
 
 @router.delete("/{client_id}", response_model=MessageResponse)
@@ -63,5 +79,8 @@ async def delete_client(
     _user: User = Depends(require_permission("clientes.delete")),
 ):
     service = ClientService(db)
+    existing = await service.get_client(client_id)
+    old_values = {"name": existing.name, "document_number": existing.document_number}
     await service.delete_client(client_id)
+    record_audit(db, _user, "delete", "client", entity_id=client_id, old_values=old_values)
     return MessageResponse(message="Cliente desactivado correctamente")

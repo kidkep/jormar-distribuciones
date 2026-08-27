@@ -10,6 +10,7 @@ from app.schemas.sale import SaleCreate, SaleResponse
 from app.schemas.common import MessageResponse
 from app.services.sale_service import SaleService
 from app.utils.pdf_generator import generate_invoice_pdf_bytes
+from app.utils.audit import record_audit
 
 router = APIRouter(prefix="/sales", tags=["Ventas"])
 
@@ -61,7 +62,13 @@ async def create_sale(
     user: User = Depends(require_permission("ventas.create")),
 ):
     service = SaleService(db)
-    return await service.create_sale(data, user.id)
+    sale = await service.create_sale(data, user.id)
+    record_audit(
+        db, user, "create", "sale",
+        entity_id=sale.id,
+        new_values={"invoice_number": getattr(sale, "invoice_number", None), "total": str(getattr(sale, "total", ""))},
+    )
+    return sale
 
 
 @router.post("/{sale_id}/cancel", response_model=MessageResponse)
@@ -71,5 +78,11 @@ async def cancel_sale(
     _user: User = Depends(require_permission("ventas.anular")),
 ):
     service = SaleService(db)
+    sale = await service.get_sale(sale_id)
     await service.cancel_sale(sale_id)
+    record_audit(
+        db, _user, "cancel", "sale",
+        entity_id=sale_id,
+        old_values={"invoice_number": getattr(sale, "invoice_number", None), "total": str(getattr(sale, "total", ""))},
+    )
     return MessageResponse(message="Venta anulada correctamente")

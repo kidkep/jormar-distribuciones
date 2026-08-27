@@ -14,8 +14,12 @@ import {
   ExternalLink,
   ClipboardList,
   PieChart,
+  UserCog,
+  ShieldCheck,
+  History,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Props {
   isOpen: boolean;
@@ -52,7 +56,21 @@ const navigation = [
   { name: "Configuracion", href: "/configuracion", icon: Settings },
 ];
 
+const adminNavigation = [
+  {
+    name: "ADMINISTRACION",
+    children: [
+      { name: "Usuarios", href: "/usuarios", icon: UserCog },
+      { name: "Roles y Permisos", href: "/roles", icon: ShieldCheck },
+      { name: "Historial", href: "/historial", icon: History },
+    ],
+  },
+];
+
 export function Sidebar({ isOpen, onClose }: Props) {
+  const { user } = useAuth();
+  const showAdmin = user?.is_superuser;
+
   return (
     <>
       {isOpen && (
@@ -84,7 +102,7 @@ export function Sidebar({ isOpen, onClose }: Props) {
         </div>
 
         <nav className="mt-4 space-y-1 px-3">
-          {navigation.map((item) =>
+          {[...navigation, ...(showAdmin ? adminNavigation : [])].map((item) =>
             item.children ? (
               <div key={item.name} className="mb-4">
                 <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-gray-500">

@@ -7,6 +7,7 @@ from app.models.user import User
 from app.schemas.product import ProductCreate, ProductUpdate, ProductResponse
 from app.schemas.common import MessageResponse
 from app.services.product_service import ProductService
+from app.utils.audit import record_audit
 
 router = APIRouter(prefix="/products", tags=["Productos"])
 
@@ -51,7 +52,13 @@ async def create_product(
     _user: User = Depends(require_permission("productos.create")),
 ):
     service = ProductService(db)
-    return await service.create_product(data)
+    product = await service.create_product(data)
+    record_audit(
+        db, _user, "create", "product",
+        entity_id=product.id,
+        new_values={"name": product.name, "sku": product.sku},
+    )
+    return product
 
 
 @router.put("/{product_id}", response_model=ProductResponse)
@@ -62,7 +69,16 @@ async def update_product(
     _user: User = Depends(require_permission("productos.edit")),
 ):
     service = ProductService(db)
-    return await service.update_product(product_id, data)
+    existing = await service.get_product(product_id)
+    old_values = {"name": existing.name, "sku": existing.sku}
+    updated = await service.update_product(product_id, data)
+    record_audit(
+        db, _user, "update", "product",
+        entity_id=product_id,
+        old_values=old_values,
+        new_values={"name": updated.name, "sku": updated.sku},
+    )
+    return updated
 
 
 @router.delete("/{product_id}", response_model=MessageResponse)
@@ -72,5 +88,8 @@ async def delete_product(
     _user: User = Depends(require_permission("productos.delete")),
 ):
     service = ProductService(db)
+    existing = await service.get_product(product_id)
+    old_values = {"name": existing.name, "sku": existing.sku}
     await service.delete_product(product_id)
+    record_audit(db, _user, "delete", "product", entity_id=product_id, old_values=old_values)
     return MessageResponse(message="Producto desactivado correctamente")

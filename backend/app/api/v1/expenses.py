@@ -7,6 +7,7 @@ from app.models.user import User
 from app.schemas.expense import ExpenseCreate, ExpenseUpdate, ExpenseResponse
 from app.schemas.common import MessageResponse
 from app.services.expense_service import ExpenseService
+from app.utils.audit import record_audit
 
 router = APIRouter(prefix="/expenses", tags=["Gastos"])
 
@@ -51,7 +52,13 @@ async def create_expense(
     user: User = Depends(require_permission("finanzas.gastos")),
 ):
     service = ExpenseService(db)
-    return await service.create_expense(data, user.id)
+    expense = await service.create_expense(data, user.id)
+    record_audit(
+        db, user, "create", "expense",
+        entity_id=expense.id,
+        new_values={"description": expense.description, "amount": str(expense.amount), "category": expense.category},
+    )
+    return expense
 
 
 @router.put("/{expense_id}", response_model=ExpenseResponse)
@@ -62,7 +69,16 @@ async def update_expense(
     _user: User = Depends(require_permission("finanzas.gastos")),
 ):
     service = ExpenseService(db)
-    return await service.update_expense(expense_id, data)
+    existing = await service.get_expense(expense_id)
+    old_values = {"description": existing.description, "amount": str(existing.amount), "category": existing.category}
+    updated = await service.update_expense(expense_id, data)
+    record_audit(
+        db, _user, "update", "expense",
+        entity_id=expense_id,
+        old_values=old_values,
+        new_values={"description": updated.description, "amount": str(updated.amount), "category": updated.category},
+    )
+    return updated
 
 
 @router.delete("/{expense_id}", response_model=MessageResponse)
@@ -72,5 +88,8 @@ async def delete_expense(
     _user: User = Depends(require_permission("finanzas.gastos")),
 ):
     service = ExpenseService(db)
+    existing = await service.get_expense(expense_id)
+    old_values = {"description": existing.description, "amount": str(existing.amount), "category": existing.category}
     await service.delete_expense(expense_id)
+    record_audit(db, _user, "delete", "expense", entity_id=expense_id, old_values=old_values)
     return MessageResponse(message="Gasto eliminado correctamente")
