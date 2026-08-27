@@ -1,7 +1,7 @@
-import os
 from fastapi import APIRouter, Depends, Query
-from fastapi.responses import FileResponse
+from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
+import io
 
 from app.database import get_db
 from app.dependencies import require_permission
@@ -9,7 +9,7 @@ from app.models.user import User
 from app.schemas.sale import SaleCreate, SaleResponse
 from app.schemas.common import MessageResponse
 from app.services.sale_service import SaleService
-from app.utils.pdf_generator import INVOICES_DIR
+from app.utils.pdf_generator import generate_invoice_pdf_bytes
 
 router = APIRouter(prefix="/sales", tags=["Ventas"])
 
@@ -31,17 +31,16 @@ async def list_sales(
 @router.get("/download/{invoice_number}")
 async def download_invoice(
     invoice_number: str,
+    db: AsyncSession = Depends(get_db),
     _user: User = Depends(require_permission("ventas.view")),
 ):
-    filename = f"{invoice_number}.pdf"
-    filepath = os.path.join(INVOICES_DIR, filename)
-    if not os.path.exists(filepath):
-        from app.exceptions import NotFoundException
-        raise NotFoundException("Factura", invoice_number)
-    return FileResponse(
-        path=filepath,
-        filename=filename,
+    service = SaleService(db)
+    sale = await service.get_sale_by_invoice(invoice_number)
+    pdf_bytes = generate_invoice_pdf_bytes(sale)
+    return StreamingResponse(
+        io.BytesIO(pdf_bytes),
         media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename={invoice_number}.pdf"},
     )
 
 

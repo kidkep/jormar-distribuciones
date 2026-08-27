@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { quotesApi, type Quote, type QuoteCreate } from "@/api/quotes.api";
 import { productsApi, type Product } from "@/api/products.api";
 import { clientsApi, type Client } from "@/api/clients.api";
-import { Plus, Search, Eye, Trash2, Send, CheckCircle, XCircle, FileText } from "lucide-react";
+import { Plus, Search, Eye, Trash2, Send, CheckCircle, XCircle, FileText, Download } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 
 type CartItem = {
@@ -85,6 +85,11 @@ export function QuotesPage() {
     setDiscount(0);
     setNotes("");
     setProductSearch("");
+  };
+
+  const downloadQuotePdf = (quoteId: number) => {
+    const baseUrl = import.meta.env.VITE_API_URL || "/api/v1";
+    window.open(`${baseUrl}/quotes/download/${quoteId}`, "_blank");
   };
 
   const addToCart = (product: Product) => {
@@ -195,6 +200,9 @@ export function QuotesPage() {
                     <div className="flex gap-2">
                       <button onClick={() => setShowDetail(q)} className="rounded p-1 text-blue-600 hover:bg-blue-50">
                         <Eye className="h-4 w-4" />
+                      </button>
+                      <button onClick={() => downloadQuotePdf(q.id)} className="rounded p-1 text-green-600 hover:bg-green-50" title="Descargar PDF">
+                        <Download className="h-4 w-4" />
                       </button>
                       {q.status === "borrador" && (
                         <button onClick={() => statusMutation.mutate({ id: q.id, status: "enviada" })} className="rounded p-1 text-blue-500 hover:bg-blue-50" title="Enviar">
@@ -334,7 +342,12 @@ export function QuotesPage() {
                 <FileText className="h-5 w-5" />
                 {showDetail.quote_number}
               </h2>
-              <button onClick={() => setShowDetail(null)} className="text-gray-400 hover:text-gray-600"><XCircle className="h-5 w-5" /></button>
+              <div className="flex items-center gap-2">
+                <button onClick={() => downloadQuotePdf(showDetail.id)} className="text-green-600 hover:text-green-700" title="Descargar PDF">
+                  <Download className="h-5 w-5" />
+                </button>
+                <button onClick={() => setShowDetail(null)} className="text-gray-400 hover:text-gray-600"><XCircle className="h-5 w-5" /></button>
+              </div>
             </div>
             <div className="mb-4 grid grid-cols-2 gap-2 text-sm">
               <div><span className="text-gray-500">Fecha:</span> {formatDate(showDetail.quote_date)}</div>

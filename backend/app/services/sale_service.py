@@ -9,7 +9,6 @@ from app.repositories.sale_repository import SaleRepository
 from app.repositories.product_repository import ProductRepository
 from app.schemas.sale import SaleCreate
 from app.exceptions import NotFoundException, BadRequestException
-from app.utils.pdf_generator import generate_invoice_pdf
 from app.services.distribution_service import DistributionService
 
 
@@ -23,6 +22,12 @@ class SaleService:
         sale = await self.repo.get_by_id(sale_id)
         if not sale:
             raise NotFoundException("Venta", sale_id)
+        return sale
+
+    async def get_sale_by_invoice(self, invoice_number: str) -> Sale:
+        sale = await self.repo.get_by_invoice_number(invoice_number)
+        if not sale:
+            raise NotFoundException("Factura", invoice_number)
         return sale
 
     async def get_sales(self, skip: int = 0, limit: int = 50, search: str = "") -> tuple[list[Sale], int]:
@@ -83,11 +88,6 @@ class SaleService:
 
         await self.repo.create(sale)
         sale_full = await self.repo.get_by_id(sale.id)
-
-        try:
-            generate_invoice_pdf(sale_full)
-        except Exception:
-            pass
 
         try:
             dist_service = DistributionService(self.db)

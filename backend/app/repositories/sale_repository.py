@@ -23,6 +23,19 @@ class SaleRepository:
         )
         return result.unique().scalar_one_or_none()
 
+    async def get_by_invoice_number(self, invoice_number: str) -> Sale | None:
+        result = await self.db.execute(
+            select(Sale)
+            .options(
+                selectinload(Sale.items).selectinload(SaleItem.product),
+                selectinload(Sale.client),
+                selectinload(Sale.user),
+                selectinload(Sale.payments),
+            )
+            .where(Sale.invoice_number == invoice_number)
+        )
+        return result.unique().scalar_one_or_none()
+
     async def get_all(self, skip: int = 0, limit: int = 50, search: str = "") -> tuple[list[Sale], int]:
         query = select(Sale).options(
             selectinload(Sale.items).selectinload(SaleItem.product),

@@ -1,35 +1,61 @@
-import os
-from decimal import Decimal
+import io
 from fpdf import FPDF
 
-INVOICES_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), "invoices")
+
+class JormarPDF(FPDF):
+    def header(self):
+        self.set_font("Helvetica", "B", 18)
+        self.cell(0, 10, "JORMAR DISTRIBUCIONES", new_x="LMARGIN", new_y="NEXT", align="C")
+        self.set_font("Helvetica", "", 10)
+        self.cell(0, 6, "NIT 901692067 - Mariquita, Tolima", new_x="LMARGIN", new_y="NEXT", align="C")
+        self.cell(0, 6, "Comercializacion de EPP", new_x="LMARGIN", new_y="NEXT", align="C")
+        self.ln(5)
+        self.set_draw_color(0, 0, 0)
+        self.set_line_width(0.5)
+        self.line(10, self.get_y(), 200, self.get_y())
+        self.ln(5)
+
+    def add_item_table(self, headers, col_widths, items, get_row):
+        self.set_fill_color(50, 50, 50)
+        self.set_text_color(255, 255, 255)
+        self.set_font("Helvetica", "B", 9)
+        for i, h in enumerate(headers):
+            self.cell(col_widths[i], 8, h, border=1, fill=True, align="C")
+        self.ln()
+        self.set_text_color(0, 0, 0)
+        self.set_font("Helvetica", "", 9)
+        for item in items:
+            row = get_row(item)
+            for i, val in enumerate(row):
+                align = "R" if i >= 2 else ("C" if i == 0 else "")
+                self.cell(col_widths[i], 7, val, border=1, align=align)
+            self.ln()
+
+    def add_totals(self, subtotal, discount, total):
+        self.ln(5)
+        self.set_font("Helvetica", "B", 10)
+        self.cell(130, 7, "Subtotal:", align="R")
+        self.cell(50, 7, f"${subtotal:,.0f}", align="R")
+        self.ln()
+        if discount > 0:
+            self.cell(130, 7, "Descuento:", align="R")
+            self.cell(50, 7, f"-${discount:,.0f}", align="R")
+            self.ln()
+        self.set_font("Helvetica", "B", 12)
+        self.cell(130, 8, "TOTAL:", align="R")
+        self.cell(50, 8, f"${total:,.0f}", align="R")
+        self.ln(10)
+
+    def add_footer_text(self, text):
+        self.set_font("Helvetica", "I", 9)
+        self.cell(0, 6, text, new_x="LMARGIN", new_y="NEXT", align="C")
 
 
-def ensure_invoices_dir():
-    os.makedirs(INVOICES_DIR, exist_ok=True)
-
-
-def generate_invoice_pdf(sale) -> str:
-    ensure_invoices_dir()
-    pdf = FPDF()
+def generate_invoice_pdf_bytes(sale) -> bytes:
+    pdf = JormarPDF()
     pdf.add_page()
     pdf.set_auto_page_break(auto=True, margin=15)
 
-    # Header
-    pdf.set_font("Helvetica", "B", 18)
-    pdf.cell(0, 10, "JORMAR DISTRIBUCIONES", new_x="LMARGIN", new_y="NEXT", align="C")
-    pdf.set_font("Helvetica", "", 10)
-    pdf.cell(0, 6, "NIT 901692067 - Mariquita, Tolima", new_x="LMARGIN", new_y="NEXT", align="C")
-    pdf.cell(0, 6, "Comercializacion de EPP", new_x="LMARGIN", new_y="NEXT", align="C")
-    pdf.ln(5)
-
-    # Line separator
-    pdf.set_draw_color(0, 0, 0)
-    pdf.set_line_width(0.5)
-    pdf.line(10, pdf.get_y(), 200, pdf.get_y())
-    pdf.ln(5)
-
-    # Invoice info
     pdf.set_font("Helvetica", "B", 12)
     pdf.cell(0, 8, f"FACTURA: {sale.invoice_number}", new_x="LMARGIN", new_y="NEXT")
     pdf.set_font("Helvetica", "", 10)
@@ -44,11 +70,8 @@ def generate_invoice_pdf(sale) -> str:
         pdf.cell(0, 6, f"Documento: {client_doc}", new_x="LMARGIN", new_y="NEXT")
 
     payment_labels = {
-        "efectivo": "Efectivo",
-        "nequi": "Nequi",
-        "bancolombia": "Bancolombia",
-        "bogota": "Banco de Bogota",
-        "credito": "Credito",
+        "efectivo": "Efectivo", "nequi": "Nequi", "bancolombia": "Bancolombia",
+        "bogota": "Banco de Bogota", "credito": "Credito",
     }
     pdf.cell(0, 6, f"Metodo de pago: {payment_labels.get(sale.payment_method, sale.payment_method)}", new_x="LMARGIN", new_y="NEXT")
 
@@ -59,52 +82,73 @@ def generate_invoice_pdf(sale) -> str:
 
     pdf.ln(5)
 
-    # Table header
-    pdf.set_fill_color(50, 50, 50)
-    pdf.set_text_color(255, 255, 255)
-    pdf.set_font("Helvetica", "B", 9)
     col_widths = [18, 62, 25, 35, 35]
     headers = ["Cant", "Producto", "P. Unit", "Subtotal", "Total"]
-    for i, h in enumerate(headers):
-        pdf.cell(col_widths[i], 8, h, border=1, fill=True, align="C")
-    pdf.ln()
 
-    # Table rows
-    pdf.set_text_color(0, 0, 0)
-    pdf.set_font("Helvetica", "", 9)
-    for item in sale.items:
+    def get_row(item):
         product_name = item.product.name if item.product else f"Producto #{item.product_id}"
-        pdf.cell(col_widths[0], 7, str(item.quantity), border=1, align="C")
-        pdf.cell(col_widths[1], 7, product_name[:35], border=1)
-        pdf.cell(col_widths[2], 7, f"${item.unit_price:,.0f}", border=1, align="R")
         item_sub = float(item.unit_price) * item.quantity
-        pdf.cell(col_widths[3], 7, f"${item_sub:,.0f}", border=1, align="R")
-        pdf.cell(col_widths[4], 7, f"${float(item.total_price):,.0f}", border=1, align="R")
-        pdf.ln()
+        return [
+            str(item.quantity),
+            product_name[:35],
+            f"${item.unit_price:,.0f}",
+            f"${item_sub:,.0f}",
+            f"${float(item.total_price):,.0f}",
+        ]
+
+    pdf.add_item_table(headers, col_widths, sale.items, get_row)
+    pdf.add_totals(float(sale.subtotal), float(sale.discount), float(sale.total))
+    pdf.add_footer_text("Gracias por su compra!")
+
+    return pdf.output()
+
+
+def generate_quote_pdf_bytes(quote) -> bytes:
+    pdf = JormarPDF()
+    pdf.add_page()
+    pdf.set_auto_page_break(auto=True, margin=15)
+
+    pdf.set_font("Helvetica", "B", 12)
+    pdf.cell(0, 8, f"COTIZACION: {quote.quote_number}", new_x="LMARGIN", new_y="NEXT")
+    pdf.set_font("Helvetica", "", 10)
+
+    quote_date = quote.quote_date.strftime("%d/%m/%Y") if quote.quote_date else ""
+    pdf.cell(0, 6, f"Fecha: {quote_date}", new_x="LMARGIN", new_y="NEXT")
+
+    if quote.valid_until:
+        valid_date = quote.valid_until.strftime("%d/%m/%Y")
+        pdf.cell(0, 6, f"Validez hasta: {valid_date}", new_x="LMARGIN", new_y="NEXT")
+
+    client_name = quote.client.name if quote.client else "Sin cliente"
+    client_doc = quote.client.document_number if quote.client else ""
+    pdf.cell(0, 6, f"Cliente: {client_name}", new_x="LMARGIN", new_y="NEXT")
+    if client_doc:
+        pdf.cell(0, 6, f"Documento: {client_doc}", new_x="LMARGIN", new_y="NEXT")
+
+    status_labels = {"borrador": "Borrador", "enviada": "Enviada", "aceptada": "Aceptada", "rechazada": "Rechazada"}
+    pdf.cell(0, 6, f"Estado: {status_labels.get(quote.status, quote.status)}", new_x="LMARGIN", new_y="NEXT")
+
+    if quote.notes:
+        pdf.cell(0, 6, f"Notas: {quote.notes}", new_x="LMARGIN", new_y="NEXT")
 
     pdf.ln(5)
 
-    # Totals
-    pdf.set_font("Helvetica", "B", 10)
-    pdf.cell(130, 7, "Subtotal:", align="R")
-    pdf.cell(50, 7, f"${float(sale.subtotal):,.0f}", align="R")
-    pdf.ln()
+    col_widths = [18, 62, 25, 35, 35]
+    headers = ["Cant", "Producto", "P. Unit", "Subtotal", "Total"]
 
-    if float(sale.discount) > 0:
-        pdf.cell(130, 7, "Descuento:", align="R")
-        pdf.cell(50, 7, f"-${float(sale.discount):,.0f}", align="R")
-        pdf.ln()
+    def get_row(item):
+        product_name = item.product.name if item.product else f"Producto #{item.product_id}"
+        item_sub = float(item.unit_price) * item.quantity
+        return [
+            str(item.quantity),
+            product_name[:35],
+            f"${item.unit_price:,.0f}",
+            f"${item_sub:,.0f}",
+            f"${float(item.total_price):,.0f}",
+        ]
 
-    pdf.set_font("Helvetica", "B", 12)
-    pdf.cell(130, 8, "TOTAL:", align="R")
-    pdf.cell(50, 8, f"${float(sale.total):,.0f}", align="R")
-    pdf.ln(10)
+    pdf.add_item_table(headers, col_widths, quote.items, get_row)
+    pdf.add_totals(float(quote.subtotal), float(quote.discount), float(quote.total))
+    pdf.add_footer_text("Gracias por su preferencia!")
 
-    # Footer
-    pdf.set_font("Helvetica", "I", 9)
-    pdf.cell(0, 6, "Gracias por su compra!", new_x="LMARGIN", new_y="NEXT", align="C")
-
-    filename = f"{sale.invoice_number}.pdf"
-    filepath = os.path.join(INVOICES_DIR, filename)
-    pdf.output(filepath)
-    return filepath
+    return pdf.output()

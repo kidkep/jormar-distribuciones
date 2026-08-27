@@ -105,7 +105,8 @@ export function SalesPage() {
   };
 
   const downloadInvoice = (invoiceNumber: string) => {
-    window.open(`/api/v1/sales/download/${invoiceNumber}`, "_blank");
+    const baseUrl = import.meta.env.VITE_API_URL || "/api/v1";
+    window.open(`${baseUrl}/sales/download/${invoiceNumber}`, "_blank");
   };
 
   const subtotal = cart.reduce((sum, item) => sum + item.unit_price * item.quantity, 0);
