@@ -8,7 +8,7 @@ import { formatCurrency, formatDate } from "@/lib/utils";
 
 type CartItem = {
   product: Product;
-  quantity: number;
+  quantity: string;
   unit_price: number;
 };
 
@@ -81,23 +81,19 @@ export function SalesPage() {
     if (existing) {
       setCart(cart.map((item) =>
         item.product.id === product.id
-          ? { ...item, quantity: item.quantity + 1 }
+          ? { ...item, quantity: String(Number(item.quantity) + 1) }
           : item
       ));
     } else {
-      setCart([...cart, { product, quantity: 1, unit_price: product.sale_price }]);
+      setCart([...cart, { product, quantity: "1", unit_price: product.sale_price }]);
     }
     setProductSearch("");
   };
 
-  const updateCartItem = (productId: number, quantity: number) => {
-    if (quantity <= 0) {
-      setCart(cart.filter((item) => item.product.id !== productId));
-    } else {
-      setCart(cart.map((item) =>
-        item.product.id === productId ? { ...item, quantity } : item
-      ));
-    }
+  const updateCartItem = (productId: number, quantity: string) => {
+    setCart(cart.map((item) =>
+      item.product.id === productId ? { ...item, quantity } : item
+    ));
   };
 
   const removeFromCart = (productId: number) => {
@@ -119,7 +115,7 @@ export function SalesPage() {
     URL.revokeObjectURL(url);
   };
 
-  const subtotal = cart.reduce((sum, item) => sum + item.unit_price * item.quantity, 0);
+  const subtotal = cart.reduce((sum, item) => sum + item.unit_price * (Number(item.quantity) || 0), 0);
   const total = subtotal - discount;
 
   const handleSubmit = () => {
@@ -133,7 +129,7 @@ export function SalesPage() {
       delivered_by: deliveredBy || undefined,
       items: cart.map((item) => ({
         product_id: item.product.id,
-        quantity: item.quantity,
+        quantity: Number(item.quantity),
         unit_price: item.unit_price,
       })),
     });
@@ -323,7 +319,7 @@ export function SalesPage() {
                             type="text"
                             inputMode="numeric"
                             value={item.quantity}
-                            onChange={(e) => updateCartItem(item.product.id, Number(e.target.value))}
+                            onChange={(e) => updateCartItem(item.product.id, e.target.value)}
                             className="w-16 rounded border px-2 py-1 text-center text-sm"
                           />
                         </td>
@@ -340,7 +336,7 @@ export function SalesPage() {
                             className="w-24 rounded border px-2 py-1 text-right text-sm"
                           />
                         </td>
-                        <td className="px-2 py-2 text-right font-medium">{formatCurrency(item.unit_price * item.quantity)}</td>
+                        <td className="px-2 py-2 text-right font-medium">{formatCurrency(item.unit_price * (Number(item.quantity) || 0))}</td>
                         <td className="px-2 py-2">
                           <button onClick={() => removeFromCart(item.product.id)} className="text-red-500 hover:text-red-700">
                             <Trash2 className="h-4 w-4" />
