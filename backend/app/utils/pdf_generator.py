@@ -13,7 +13,7 @@ class JormarPDF(FPDF):
         self.set_font("Helvetica", "B", 18)
         self.cell(0, 10, "JORMAR DISTRIBUCIONES", new_x="LMARGIN", new_y="NEXT", align="C")
         self.set_font("Helvetica", "", 10)
-        self.cell(0, 6, "NIT 901692067 - Mariquita, Tolima", new_x="LMARGIN", new_y="NEXT", align="C")
+        self.cell(0, 6, "NIT 931814237 - Mariquita, Tolima", new_x="LMARGIN", new_y="NEXT", align="C")
         self.cell(0, 6, "Comercializacion de EPP", new_x="LMARGIN", new_y="NEXT", align="C")
         self.ln(5)
         self.set_draw_color(0, 0, 0)

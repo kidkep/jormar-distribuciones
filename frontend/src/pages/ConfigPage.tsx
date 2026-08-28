@@ -94,7 +94,7 @@ export function ConfigPage() {
         <h2 className="mb-4 text-lg font-semibold">Informacion de la Empresa</h2>
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div><span className="text-gray-500">Nombre:</span> <strong>JORMAR DISTRIBUCIONES</strong></div>
-          <div><span className="text-gray-500">NIT:</span> <strong>901692067</strong></div>
+          <div><span className="text-gray-500">NIT:</span> <strong>931814237</strong></div>
           <div><span className="text-gray-500">Ubicacion:</span> Mariquita, Tolima, Colombia</div>
           <div><span className="text-gray-500">Actividad:</span> Comercializacion de EPP (Equipo de Proteccion Personal)</div>
         </div>
