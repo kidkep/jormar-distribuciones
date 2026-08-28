@@ -4,7 +4,7 @@ from decimal import Decimal
 
 
 class ProductBase(BaseModel):
-    sku: str
+    sku: str = ""
     barcode: str | None = None
     name: str
     description: str | None = None

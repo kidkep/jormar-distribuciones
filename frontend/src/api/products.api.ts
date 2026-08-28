@@ -23,7 +23,7 @@ export interface Product {
 }
 
 export interface ProductCreate {
-  sku: string;
+  sku?: string;
   name: string;
   purchase_price: number;
   sale_price: number;
