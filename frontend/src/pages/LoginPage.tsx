@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+﻿import { useRef, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Eye, EyeOff } from "lucide-react";
 
@@ -7,6 +7,15 @@ export function LoginPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const { login, isLoginLoading, loginError } = useAuth();
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const el = cardRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    el.style.setProperty("--spot-x", `${e.clientX - rect.left}px`);
+    el.style.setProperty("--spot-y", `${e.clientY - rect.top}px`);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,7 +34,12 @@ export function LoginPage() {
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.5)_100%)]" />
 
       <div className="relative w-full max-w-md">
-        <div className="rounded-2xl border border-gold-500/25 bg-neutral-900/70 p-8 shadow-[0_0_60px_rgba(199,154,50,0.15)] backdrop-blur">
+        <div
+          ref={cardRef}
+          onMouseMove={handleMouseMove}
+          style={{ "--spot-x": "50%", "--spot-y": "50%" } as React.CSSProperties}
+          className="group relative rounded-2xl border border-gold-500/25 bg-neutral-900/70 p-8 shadow-[0_0_60px_rgba(199,154,50,0.15)] backdrop-blur transition-colors duration-300 hover:border-gold-500/50"
+        >
           <div className="mb-6 text-center">
             <img
               src="/logo.png"
@@ -102,6 +116,8 @@ export function LoginPage() {
           <p className="mt-6 text-center text-xs text-neutral-600">
             Jormar Distribuciones &copy; 2026
           </p>
+
+          <div className="pointer-events-none absolute inset-0 z-10 rounded-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100 bg-[radial-gradient(180px_circle_at_var(--spot-x)_var(--spot-y),rgba(199,154,50,0.18),transparent_70%)]" />
         </div>
       </div>
     </div>
