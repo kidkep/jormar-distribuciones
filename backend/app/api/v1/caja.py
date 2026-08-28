@@ -23,32 +23,76 @@ async def get_caja_resumen(
     today = datetime.now(ZoneInfo("America/Bogota")).replace(tzinfo=None, hour=0, minute=0, second=0, microsecond=0)
     month_start = today.replace(day=1)
 
-    # Ventas de hoy (excepto anuladas)
-    sales_today_q = await db.execute(
+    # ========================
+    # DINERO REAL (contado + abonos). Los creditos NO son dinero real hasta que
+    # se abonan; el abono entra como ingreso en el metodo donde se recibio.
+    # ========================
+
+    # Ventas de contado de hoy (efectivo/nequi/etc, SIN credito)
+    cash_today_q = await db.execute(
         select(func.coalesce(func.sum(Sale.total), 0)).where(
-            Sale.sale_date >= today, Sale.status != "anulada"
+            Sale.sale_date >= today, Sale.status != "anulada", Sale.payment_method != "credito"
         )
     )
-    ventas_hoy = float(sales_today_q.scalar() or 0)
+    ventas_contado_hoy = float(cash_today_q.scalar() or 0)
 
-    # Ventas del mes
-    sales_month_q = await db.execute(
-        select(func.coalesce(func.sum(Sale.total), 0)).where(
-            Sale.sale_date >= month_start, Sale.status != "anulada"
+    # Abonos recibidos hoy (el dinero real del credito)
+    abonos_hoy_val_q = await db.execute(
+        select(func.coalesce(func.sum(Payment.amount), 0)).where(
+            Payment.payment_date >= today
         )
     )
-    ventas_mes = float(sales_month_q.scalar() or 0)
+    ventas_abonos_hoy = float(abonos_hoy_val_q.scalar() or 0)
 
-    # Ventas por metodo de pago (hoy)
-    methods = ["efectivo", "nequi", "bancolombia", "bogota", "credito"]
-    por_metodo = {}
-    for m in methods:
+    ventas_hoy = ventas_contado_hoy + ventas_abonos_hoy
+
+    # Ventas de contado del mes (SIN credito)
+    cash_month_q = await db.execute(
+        select(func.coalesce(func.sum(Sale.total), 0)).where(
+            Sale.sale_date >= month_start, Sale.status != "anulada", Sale.payment_method != "credito"
+        )
+    )
+    ventas_contado_mes = float(cash_month_q.scalar() or 0)
+
+    # Abonos recibidos en el mes
+    abonos_mes_val_q = await db.execute(
+        select(func.coalesce(func.sum(Payment.amount), 0)).where(
+            Payment.payment_date >= month_start
+        )
+    )
+    ventas_abonos_mes = float(abonos_mes_val_q.scalar() or 0)
+
+    ventas_mes = ventas_contado_mes + ventas_abonos_mes
+
+    # Abonos recibidos HOY por metodo de pago (donde realmente entro el dinero)
+    abonos_hoy_por_metodo = {}
+    for m in ["efectivo", "nequi", "bancolombia", "bogota"]:
+        r = await db.execute(
+            select(func.coalesce(func.sum(Payment.amount), 0)).where(
+                Payment.payment_date >= today, Payment.payment_method == m
+            )
+        )
+        abonos_hoy_por_metodo[m] = float(r.scalar() or 0)
+
+    # Ventas de contado de hoy por metodo
+    cash_hoy_por_metodo = {}
+    for m in ["efectivo", "nequi", "bancolombia", "bogota"]:
         r = await db.execute(
             select(func.coalesce(func.sum(Sale.total), 0)).where(
                 Sale.sale_date >= today, Sale.status != "anulada", Sale.payment_method == m
             )
         )
-        por_metodo[m] = float(r.scalar() or 0)
+        cash_hoy_por_metodo[m] = float(r.scalar() or 0)
+
+    # Ventas por metodo de pago (HOY): solo dinero real. El credito NO cuenta
+    # como ingreso hoy (su dinero real entra por el metodo donde se abona).
+    methods = ["efectivo", "nequi", "bancolombia", "bogota", "credito"]
+    por_metodo = {}
+    for m in methods:
+        if m == "credito":
+            por_metodo[m] = 0.0
+        else:
+            por_metodo[m] = cash_hoy_por_metodo.get(m, 0) + abonos_hoy_por_metodo.get(m, 0)
 
     # --- DINERO TOTAL POR METODO (todo el historial) ---
     total_por_metodo = {}

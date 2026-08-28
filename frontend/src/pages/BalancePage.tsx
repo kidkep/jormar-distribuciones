@@ -476,8 +476,8 @@ export function BalancePage() {
         <h2 className="mb-3 text-lg font-bold text-blue-900">Resumen del Periodo</h2>
         <div className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-3">
           <div>
-            <span className="text-blue-600">Ingresos totales:</span>
-            <p className="text-lg font-bold text-green-700">{formatCurrency(d.ventas.total + d.abonos.total)}</p>
+            <span className="text-blue-600">Ingresos reales del periodo (contado + abonos):</span>
+            <p className="text-lg font-bold text-green-700">{formatCurrency(d.ventas.total)}</p>
           </div>
           <div>
             <span className="text-blue-600">Egresos totales:</span>

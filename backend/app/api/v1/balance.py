@@ -38,44 +38,84 @@ async def get_balance(
     else:
         ff = now
 
-    # --- VENTAS ---
-    ventas_q = await db.execute(
+    # ========================
+    # DINERO REAL (contado + abonos). Los creditos NO son dinero real hasta que
+    # se abonan; el abono entra como ingreso en el metodo donde se recibio.
+    # ========================
+
+    # Ventas de contado del periodo (efectivo/nequi/etc, SIN credito)
+    ventas_contado_q = await db.execute(
         select(func.coalesce(func.sum(Sale.total), 0)).where(
-            Sale.sale_date >= fi, Sale.sale_date <= ff, Sale.status != "anulada"
+            Sale.sale_date >= fi, Sale.sale_date <= ff, Sale.status != "anulada",
+            Sale.payment_method != "credito"
         )
     )
-    total_ventas = float(ventas_q.scalar() or 0)
+    total_contado = float(ventas_contado_q.scalar() or 0)
 
     ventas_count_q = await db.execute(
         select(func.count()).select_from(Sale).where(
-            Sale.sale_date >= fi, Sale.sale_date <= ff, Sale.status != "anulada"
+            Sale.sale_date >= fi, Sale.sale_date <= ff, Sale.status != "anulada",
+            Sale.payment_method != "credito"
         )
     )
     ventas_count = ventas_count_q.scalar() or 0
 
-    # Ventas por metodo
+    # Abonos recibidos en el periodo (el dinero real del credito entra aqui)
+    abonos_periodo_q = await db.execute(
+        select(func.coalesce(func.sum(Payment.amount), 0)).where(
+            Payment.payment_date >= fi, Payment.payment_date <= ff
+        )
+    )
+    total_abonos = float(abonos_periodo_q.scalar() or 0)
+
+    total_ventas = total_contado + total_abonos
+
+    # Ventas por metodo de pago (solo dinero real del periodo)
     methods = ["efectivo", "nequi", "bancolombia", "bogota", "credito"]
     por_metodo = {}
     for m in methods:
-        r = await db.execute(
-            select(func.coalesce(func.sum(Sale.total), 0)).where(
-                Sale.sale_date >= fi, Sale.sale_date <= ff,
-                Sale.status != "anulada", Sale.payment_method == m
+        if m == "credito":
+            por_metodo[m] = 0.0
+        else:
+            r = await db.execute(
+                select(func.coalesce(func.sum(Sale.total), 0)).where(
+                    Sale.sale_date >= fi, Sale.sale_date <= ff,
+                    Sale.status != "anulada", Sale.payment_method == m
+                )
             )
-        )
-        por_metodo[m] = float(r.scalar() or 0)
+            ab = await db.execute(
+                select(func.coalesce(func.sum(Payment.amount), 0)).where(
+                    Payment.payment_date >= fi, Payment.payment_date <= ff,
+                    Payment.payment_method == m
+                )
+            )
+            por_metodo[m] = float(r.scalar() or 0) + float(ab.scalar() or 0)
 
-    # --- VENTAS POR DIA (serie temporal dentro del periodo) ---
+    # --- VENTAS POR DIA (serie temporal dentro del periodo, solo dinero real) ---
     ventas_dia_q = await db.execute(
         select(
             func.date(Sale.sale_date).label("dia"),
             func.coalesce(func.sum(Sale.total), 0),
         )
-        .where(Sale.sale_date >= fi, Sale.sale_date <= ff, Sale.status != "anulada")
+        .where(Sale.sale_date >= fi, Sale.sale_date <= ff, Sale.status != "anulada",
+               Sale.payment_method != "credito")
         .group_by(func.date(Sale.sale_date))
         .order_by(func.date(Sale.sale_date))
     )
     ventas_dia_map = {str(row[0]): float(row[1]) for row in ventas_dia_q.all()}
+
+    # Abonos por dia dentro del periodo
+    abonos_dia_q = await db.execute(
+        select(
+            func.date(Payment.payment_date).label("dia"),
+            func.coalesce(func.sum(Payment.amount), 0),
+        )
+        .where(Payment.payment_date >= fi, Payment.payment_date <= ff)
+        .group_by(func.date(Payment.payment_date))
+    )
+    abonos_dia_map = {str(row[0]): float(row[1]) for row in abonos_dia_q.all()}
+    for dia, monto in abonos_dia_map.items():
+        ventas_dia_map[dia] = ventas_dia_map.get(dia, 0) + monto
     ventas_por_dia = []
     cur = fi
     while cur <= ff:
@@ -105,14 +145,6 @@ async def get_balance(
         .group_by(Expense.category)
     )
     gastos_por_categoria = {row[0]: float(row[1]) for row in gastos_cat_q.all()}
-
-    # --- ABONOS ---
-    abonos_q = await db.execute(
-        select(func.coalesce(func.sum(Payment.amount), 0)).where(
-            Payment.payment_date >= fi, Payment.payment_date <= ff
-        )
-    )
-    total_abonos = float(abonos_q.scalar() or 0)
 
     # --- ABONOS POR METODO (todo el historial) ---
     abonos_por_metodo = {}

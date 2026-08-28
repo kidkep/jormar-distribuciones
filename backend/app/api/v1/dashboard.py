@@ -32,26 +32,48 @@ async def get_stats(
         select(func.count()).select_from(Product).where(Product.is_active == True, Product.current_stock <= Product.min_stock)
     )).scalar() or 0
 
-    sales_today_result = await db.execute(
+    # Ventas de contado (dinero real) de hoy: efectivo/nequi/etc, SIN credito
+    cash_today_result = await db.execute(
         select(func.coalesce(func.sum(Sale.total), 0)).where(
-            Sale.sale_date >= today, Sale.status != "anulada"
+            Sale.sale_date >= today, Sale.status != "anulada", Sale.payment_method != "credito"
         )
     )
-    sales_today = float(sales_today_result.scalar() or 0)
+    cash_today = float(cash_today_result.scalar() or 0)
 
-    sales_month_result = await db.execute(
-        select(func.coalesce(func.sum(Sale.total), 0)).where(
-            Sale.sale_date >= month_start, Sale.status != "anulada"
+    # Abonos recibidos hoy (el dinero real del credito entra cuando se abona)
+    abonos_today_result = await db.execute(
+        select(func.coalesce(func.sum(Payment.amount), 0)).where(
+            Payment.payment_date >= today
         )
     )
-    sales_month = float(sales_month_result.scalar() or 0)
+    abonos_today = float(abonos_today_result.scalar() or 0)
+
+    sales_today = cash_today + abonos_today
+
+    # Ventas de contado (dinero real) del mes, SIN credito
+    cash_month_result = await db.execute(
+        select(func.coalesce(func.sum(Sale.total), 0)).where(
+            Sale.sale_date >= month_start, Sale.status != "anulada", Sale.payment_method != "credito"
+        )
+    )
+    cash_month = float(cash_month_result.scalar() or 0)
+
+    # Abonos recibidos en el mes
+    abonos_month_result = await db.execute(
+        select(func.coalesce(func.sum(Payment.amount), 0)).where(
+            Payment.payment_date >= month_start
+        )
+    )
+    abonos_month = float(abonos_month_result.scalar() or 0)
+
+    sales_month = cash_month + abonos_month
 
     sales_count_today = (await db.execute(
-        select(func.count()).select_from(Sale).where(Sale.sale_date >= today, Sale.status != "anulada")
+        select(func.count()).select_from(Sale).where(Sale.sale_date >= today, Sale.status != "anulada", Sale.payment_method != "credito")
     )).scalar() or 0
 
     sales_count_month = (await db.execute(
-        select(func.count()).select_from(Sale).where(Sale.sale_date >= month_start, Sale.status != "anulada")
+        select(func.count()).select_from(Sale).where(Sale.sale_date >= month_start, Sale.status != "anulada", Sale.payment_method != "credito")
     )).scalar() or 0
 
     debtors_result = await db.execute(
