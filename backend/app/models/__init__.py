@@ -13,7 +13,6 @@ from app.models.payment import Payment
 from app.models.expense import Expense
 from app.models.retiro import Retiro
 from app.models.distribution import SaleDistribution
-from app.models.purchase import Purchase, PurchaseItem, SupplierPayment
 from app.models.stock_movement import StockMovement
 from app.models.task import Task
 
@@ -21,5 +20,5 @@ __all__ = [
     "Base", "User", "Role", "Permission", "AuditLog",
     "Category", "Unit", "Product", "Supplier", "Client",
     "Sale", "SaleItem", "Quote", "QuoteItem", "Payment", "Expense", "Retiro",
-    "SaleDistribution", "Purchase", "PurchaseItem", "SupplierPayment", "StockMovement", "Task",
+    "SaleDistribution", "StockMovement", "Task",
 ]
