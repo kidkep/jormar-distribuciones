@@ -51,12 +51,12 @@ export function QuotesPage() {
 
   const { data: products = [] } = useQuery({
     queryKey: ["products"],
-    queryFn: () => productsApi.list(1, 200, productSearch),
+    queryFn: () => productsApi.list(1, 1000, productSearch),
   });
 
   const { data: clients = [] } = useQuery({
     queryKey: ["clients"],
-    queryFn: () => clientsApi.list(1, 200),
+    queryFn: () => clientsApi.list(1, 1000),
   });
 
   const createMutation = useMutation({

@@ -20,7 +20,7 @@ export function ProductsPage() {
 
   const { data: products = [], isLoading } = useQuery({
     queryKey: ["products", search],
-    queryFn: () => productsApi.list(1, 200, search),
+    queryFn: () => productsApi.list(1, 1000, search),
   });
 
   const createMutation = useMutation({

@@ -16,7 +16,7 @@ export function ClientsPage() {
 
   const { data: clients = [], isLoading } = useQuery({
     queryKey: ["clients", search],
-    queryFn: () => clientsApi.list(1, 200, search),
+    queryFn: () => clientsApi.list(1, 1000, search),
   });
 
   const createMutation = useMutation({
