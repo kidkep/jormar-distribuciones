@@ -8,6 +8,7 @@ export function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const { login, isLoginLoading, loginError } = useAuth();
   const cardRef = useRef<HTMLDivElement>(null);
+  const bgRef = useRef<HTMLDivElement>(null);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const el = cardRef.current;
@@ -17,13 +18,25 @@ export function LoginPage() {
     el.style.setProperty("--spot-y", `${e.clientY - rect.top}px`);
   };
 
+  const handleBgMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const el = bgRef.current;
+    if (!el) return;
+    el.style.setProperty("--bg-x", `${e.clientX}px`);
+    el.style.setProperty("--bg-y", `${e.clientY}px`);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     login({ username, password });
   };
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-neutral-950 p-4">
+    <div
+      ref={bgRef}
+      onMouseMove={handleBgMouseMove}
+      style={{ "--bg-x": "50vw", "--bg-y": "50vh" } as React.CSSProperties}
+      className="group relative flex min-h-screen items-center justify-center overflow-hidden bg-neutral-950 p-4"
+    >
       <div className="pointer-events-none absolute -top-40 -right-40 h-96 w-96 rounded-full bg-gold-500/15 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-40 -left-40 h-96 w-96 rounded-full bg-gold-500/15 blur-3xl" />
       <div className="pointer-events-none absolute inset-0 bg-[repeating-linear-gradient(45deg,transparent_0px,transparent_40px,rgba(199,154,50,0.05)_40px,rgba(199,154,50,0.05)_41px)]" />
@@ -32,6 +45,7 @@ export function LoginPage() {
       <div className="pointer-events-none absolute left-10 top-1/2 hidden h-72 w-px -translate-y-1/2 bg-gradient-to-b from-transparent via-gold-500/60 to-transparent lg:block" />
       <div className="pointer-events-none absolute right-10 top-1/2 hidden h-72 w-px -translate-y-1/2 bg-gradient-to-b from-transparent via-gold-500/60 to-transparent lg:block" />
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.5)_100%)]" />
+      <div className="pointer-events-none absolute inset-0 z-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 bg-[radial-gradient(400px_circle_at_var(--bg-x)_var(--bg-y),rgba(199,154,50,0.14),transparent_65%)]" />
 
       <div className="relative w-full max-w-md">
         <div
