@@ -48,6 +48,11 @@ export const productsApi = {
     return response.data;
   },
 
+  nextSku: async (): Promise<string> => {
+    const response = await apiClient.get("/products/next-sku");
+    return response.data.next_sku;
+  },
+
   create: async (data: ProductCreate): Promise<Product> => {
     const response = await apiClient.post("/products", data);
     return response.data;

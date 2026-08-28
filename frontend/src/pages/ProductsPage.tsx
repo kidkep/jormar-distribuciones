@@ -23,6 +23,12 @@ export function ProductsPage() {
     queryFn: () => productsApi.list(1, 1000, search),
   });
 
+  const { data: nextSku } = useQuery({
+    queryKey: ["products-next-sku"],
+    queryFn: () => productsApi.nextSku(),
+    enabled: showModal && !editing,
+  });
+
   const createMutation = useMutation({
     mutationFn: productsApi.create,
     onSuccess: () => {
@@ -161,14 +167,10 @@ export function ProductsPage() {
                   <label className="mb-1 block text-sm font-medium text-gray-700">SKU</label>
                   <input
                     type="text"
-                    value={editing ? editing.sku : form.sku}
+                    value={editing ? editing.sku : (nextSku ? `${nextSku} (se asignará)` : "Calculando...")}
                     disabled
-                    placeholder="Automático (último + 1)"
-                    className="w-full rounded-lg border bg-gray-50 px-3 py-2 text-sm text-gray-500"
+                    className="w-full rounded-lg border bg-gray-50 px-3 py-2 text-sm text-gray-500 font-mono"
                   />
-                  <p className="mt-1 text-xs text-gray-400">
-                    Se asigna automáticamente en orden (último + 1)
-                  </p>
                 </div>
                 <div>
                   <label className="mb-1 block text-sm font-medium text-gray-700">Nombre</label>

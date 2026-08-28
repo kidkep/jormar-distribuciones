@@ -35,6 +35,15 @@ async def list_low_stock(
     return await service.get_low_stock()
 
 
+@router.get("/next-sku")
+async def next_sku(
+    db: AsyncSession = Depends(get_db),
+    _user: User = Depends(require_permission("productos.view")),
+):
+    service = ProductService(db)
+    return {"next_sku": await service.next_sku()}
+
+
 @router.get("/{product_id}", response_model=ProductResponse)
 async def get_product(
     product_id: int,
