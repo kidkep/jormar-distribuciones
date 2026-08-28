@@ -96,23 +96,40 @@ async def get_caja_resumen(
     )
     total_retiros = float(total_retiro_q.scalar() or 0)
 
+    # Total deuda pendiente (lo fiado a credito que aun no se ha pagado)
+    total_debt_q = await db.execute(
+        select(func.coalesce(func.sum(Sale.total), 0)).where(
+            Sale.payment_method == "credito", Sale.status != "anulada"
+        )
+    )
+    total_deuda = float(total_debt_q.scalar() or 0)
+
+    total_pagos_q = await db.execute(
+        select(func.coalesce(func.sum(Payment.amount), 0))
+    )
+    total_pagos = float(total_pagos_q.scalar() or 0)
+    deuda_pendiente = max(total_deuda - total_pagos, 0)
+
     # Saldo disponible por metodo
     # Credito: NO cuenta como dinero en caja (es dinero fiado, no ha entrado real).
-    #           El dinero real del credito entra unicamente cuando el cliente abona,
-    #           y ese abono ya se contabiliza en el metodo donde se recibio.
+    #           Solo se muestra como referencia lo fiado pendiente, pero NO se suma
+    #           al dinero disponible. El dinero real del credito entra unicamente
+    #           cuando el cliente abona, y ese abono ya se contabiliza en el metodo
+    #           donde se recibio.
     # Otros: vendido + abonos recibidos en ese metodo - gastos - retiros
     saldo_por_metodo = {}
     for m in methods:
         gastos_m = gastos_por_metodo.get(m, 0)
         retiros_m = retiros_por_metodo.get(m, 0)
         if m == "credito":
-            saldo_por_metodo[m] = 0.0
+            saldo_por_metodo[m] = deuda_pendiente
         else:
             vendido = total_por_metodo.get(m, 0)
             abonos_m = abonos_por_metodo.get(m, 0)
             saldo_por_metodo[m] = vendido + abonos_m - gastos_m - retiros_m
 
-    total_general = sum(saldo_por_metodo.values())
+    # Dinero total disponible = suma de los metodos reales (Credito NO cuenta)
+    total_general = sum(v for m, v in saldo_por_metodo.items() if m != "credito")
 
     # Gastos de hoy
     expenses_today_q = await db.execute(
@@ -137,20 +154,6 @@ async def get_caja_resumen(
         )
     )
     abonos_hoy = float(payments_today_q.scalar() or 0)
-
-    # Total deuda pendiente
-    total_debt_q = await db.execute(
-        select(func.coalesce(func.sum(Sale.total), 0)).where(
-            Sale.payment_method == "credito", Sale.status != "anulada"
-        )
-    )
-    total_deuda = float(total_debt_q.scalar() or 0)
-
-    total_pagos_q = await db.execute(
-        select(func.coalesce(func.sum(Payment.amount), 0))
-    )
-    total_pagos = float(total_pagos_q.scalar() or 0)
-    deuda_pendiente = max(total_deuda - total_pagos, 0)
 
     # Ultimos 15 movimientos (ventas + gastos + retiros + abonos)
     recent_sales_q = await db.execute(

@@ -156,21 +156,6 @@ async def get_balance(
     )
     total_abonos_hist = float(total_abonos_hist_q.scalar() or 0)
 
-    # Calcular saldo real por metodo
-    # Credito: NO cuenta como dinero en caja (es dinero fiado, no ha entrado real).
-    #          El dinero real del credito entra solo cuando el cliente abona, y ese
-    #          abono ya se contabiliza en el metodo donde se recibio.
-    saldo_por_metodo = {}
-    for m in methods:
-        gastos_m = gastos_hist_por_metodo.get(m, 0)
-        retiros_m = retiros_hist_por_metodo.get(m, 0)
-        if m == "credito":
-            saldo_por_metodo[m] = 0.0
-        else:
-            vendido = total_ventas_por_metodo.get(m, 0)
-            abonos_m = abonos_por_metodo.get(m, 0)
-            saldo_por_metodo[m] = vendido + abonos_m - gastos_m - retiros_m
-
     # --- DEUDA PENDIENTE ---
     deuda_total_q = await db.execute(
         select(func.coalesce(func.sum(Sale.total), 0)).where(
@@ -184,6 +169,22 @@ async def get_balance(
     )
     pagos_total = float(pagos_total_q.scalar() or 0)
     deuda_pendiente = max(deuda_total - pagos_total, 0)
+
+    # Calcular saldo real por metodo
+    # Credito: NO cuenta como dinero en caja (es dinero fiado, no ha entrado real).
+    #          Solo se muestra como referencia lo fiado pendiente, pero NO se suma
+    #          al dinero disponible. El dinero real del credito entra solo cuando el
+    #          cliente abona, y ese abono ya se contabiliza en el metodo donde se recibio.
+    saldo_por_metodo = {}
+    for m in methods:
+        gastos_m = gastos_hist_por_metodo.get(m, 0)
+        retiros_m = retiros_hist_por_metodo.get(m, 0)
+        if m == "credito":
+            saldo_por_metodo[m] = deuda_pendiente
+        else:
+            vendido = total_ventas_por_metodo.get(m, 0)
+            abonos_m = abonos_por_metodo.get(m, 0)
+            saldo_por_metodo[m] = vendido + abonos_m - gastos_m - retiros_m
 
     # --- PRODUCTOS / INVENTARIO ---
     inv_q = await db.execute(
