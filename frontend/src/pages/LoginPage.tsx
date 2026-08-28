@@ -15,9 +15,14 @@ export function LoginPage() {
 
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-neutral-950 p-4">
-      <div className="pointer-events-none absolute -top-40 -right-40 h-96 w-96 rounded-full bg-gold-500/10 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-40 -left-40 h-96 w-96 rounded-full bg-gold-500/10 blur-3xl" />
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.6)_100%)]" />
+      <div className="pointer-events-none absolute -top-40 -right-40 h-96 w-96 rounded-full bg-gold-500/15 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-40 -left-40 h-96 w-96 rounded-full bg-gold-500/15 blur-3xl" />
+      <div className="pointer-events-none absolute inset-0 bg-[repeating-linear-gradient(45deg,transparent_0px,transparent_40px,rgba(199,154,50,0.05)_40px,rgba(199,154,50,0.05)_41px)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[repeating-linear-gradient(-45deg,transparent_0px,transparent_40px,rgba(199,154,50,0.05)_40px,rgba(199,154,50,0.05)_41px)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(199,154,50,0.12)_0%,transparent_55%)]" />
+      <div className="pointer-events-none absolute left-10 top-1/2 hidden h-72 w-px -translate-y-1/2 bg-gradient-to-b from-transparent via-gold-500/60 to-transparent lg:block" />
+      <div className="pointer-events-none absolute right-10 top-1/2 hidden h-72 w-px -translate-y-1/2 bg-gradient-to-b from-transparent via-gold-500/60 to-transparent lg:block" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.5)_100%)]" />
 
       <div className="relative w-full max-w-md">
         <div className="rounded-2xl border border-gold-500/25 bg-neutral-900/70 p-8 shadow-[0_0_60px_rgba(199,154,50,0.15)] backdrop-blur">
