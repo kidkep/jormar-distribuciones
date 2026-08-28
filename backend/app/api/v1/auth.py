@@ -8,6 +8,7 @@ from app.schemas.auth import LoginRequest, TokenResponse
 from app.schemas.user import UserResponse, UserChangePassword
 from app.services.auth_service import AuthService
 from app.services.user_service import UserService
+from app.utils.security import create_access_token
 
 router = APIRouter(prefix="/auth", tags=["Autenticacion"])
 
@@ -15,8 +16,9 @@ router = APIRouter(prefix="/auth", tags=["Autenticacion"])
 @router.post("/login", response_model=TokenResponse)
 async def login(data: LoginRequest, db: AsyncSession = Depends(get_db)):
     service = AuthService(db)
-    token = await service.authenticate(data.username, data.password)
-    return TokenResponse(access_token=token)
+    user = await service.authenticate(data.username, data.password)
+    token = create_access_token(data={"sub": str(user.id), "username": user.username})
+    return TokenResponse(access_token=token, user=user)
 
 
 @router.get("/me", response_model=UserResponse)

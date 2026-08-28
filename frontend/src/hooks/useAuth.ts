@@ -18,10 +18,9 @@ export function useAuth() {
 
   const loginMutation = useMutation({
     mutationFn: (data: LoginRequest) => authApi.login(data),
-    onSuccess: async (data) => {
+    onSuccess: (data) => {
       localStorage.setItem("token", data.access_token);
-      const me = await authApi.getMe();
-      setAuth(data.access_token, me);
+      setAuth(data.access_token, data.user);
       navigate("/");
     },
   });
