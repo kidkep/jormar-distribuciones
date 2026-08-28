@@ -60,12 +60,6 @@ async def get_caja_resumen(
         )
         total_por_metodo[m] = float(r.scalar() or 0)
 
-    # Total abonos recibidos (todo el historial)
-    total_abonos_q = await db.execute(
-        select(func.coalesce(func.sum(Payment.amount), 0))
-    )
-    total_abonos = float(total_abonos_q.scalar() or 0)
-
     # Abonos por metodo de pago (como se recibio el dinero: Nequi, Bancolombia, etc.)
     abonos_por_metodo = {}
     for m in methods:
@@ -103,16 +97,18 @@ async def get_caja_resumen(
     total_retiros = float(total_retiro_q.scalar() or 0)
 
     # Saldo disponible por metodo
-    # Credito: vendido - total_abonos (porque los abonos ya entraron a otros metodos)
+    # Credito: NO cuenta como dinero en caja (es dinero fiado, no ha entrado real).
+    #           El dinero real del credito entra unicamente cuando el cliente abona,
+    #           y ese abono ya se contabiliza en el metodo donde se recibio.
     # Otros: vendido + abonos recibidos en ese metodo - gastos - retiros
     saldo_por_metodo = {}
     for m in methods:
-        vendido = total_por_metodo.get(m, 0)
         gastos_m = gastos_por_metodo.get(m, 0)
         retiros_m = retiros_por_metodo.get(m, 0)
         if m == "credito":
-            saldo_por_metodo[m] = vendido - total_abonos
+            saldo_por_metodo[m] = 0.0
         else:
+            vendido = total_por_metodo.get(m, 0)
             abonos_m = abonos_por_metodo.get(m, 0)
             saldo_por_metodo[m] = vendido + abonos_m - gastos_m - retiros_m
 

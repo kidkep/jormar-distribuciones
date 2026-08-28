@@ -157,14 +157,17 @@ async def get_balance(
     total_abonos_hist = float(total_abonos_hist_q.scalar() or 0)
 
     # Calcular saldo real por metodo
+    # Credito: NO cuenta como dinero en caja (es dinero fiado, no ha entrado real).
+    #          El dinero real del credito entra solo cuando el cliente abona, y ese
+    #          abono ya se contabiliza en el metodo donde se recibio.
     saldo_por_metodo = {}
     for m in methods:
-        vendido = total_ventas_por_metodo.get(m, 0)
         gastos_m = gastos_hist_por_metodo.get(m, 0)
         retiros_m = retiros_hist_por_metodo.get(m, 0)
         if m == "credito":
-            saldo_por_metodo[m] = vendido - total_abonos_hist
+            saldo_por_metodo[m] = 0.0
         else:
+            vendido = total_ventas_por_metodo.get(m, 0)
             abonos_m = abonos_por_metodo.get(m, 0)
             saldo_por_metodo[m] = vendido + abonos_m - gastos_m - retiros_m
 
