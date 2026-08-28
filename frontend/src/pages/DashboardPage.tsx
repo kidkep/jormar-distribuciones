@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { dashboardApi } from "@/api/dashboard.api";
+import { tasksApi } from "@/api/tasks.api";
 import { useAuth } from "@/hooks/useAuth";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import {
@@ -12,6 +13,8 @@ import {
   AlertCircle,
   DollarSign,
   FileText,
+  ListTodo,
+  Boxes,
 } from "lucide-react";
 
 export function DashboardPage() {
@@ -20,6 +23,23 @@ export function DashboardPage() {
     queryKey: ["dashboard"],
     queryFn: dashboardApi.getStats,
     staleTime: 60000,
+  });
+
+  const isAdmin = user?.is_superuser;
+  const perms = user?.permissions ?? [];
+  const canSeeLowStock = isAdmin || perms.includes("productos.view");
+  const canSeeTasks = isAdmin || perms.includes("tareas.view");
+
+  const { data: lowStock = [] } = useQuery({
+    queryKey: ["dashboard-low-stock"],
+    queryFn: dashboardApi.lowStock,
+    enabled: canSeeLowStock,
+  });
+
+  const { data: overdueReminders = [] } = useQuery({
+    queryKey: ["tasks-overdue"],
+    queryFn: tasksApi.overdue,
+    enabled: canSeeTasks,
   });
 
   return (
@@ -131,6 +151,53 @@ export function DashboardPage() {
             </div>
           )}
         </>
+      ) : null}
+
+      {(canSeeLowStock && lowStock.length > 0) || (canSeeTasks && overdueReminders.length > 0) ? (
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          {canSeeLowStock && lowStock.length > 0 && (
+            <div className="rounded-xl border border-amber-200 bg-amber-50 p-5">
+              <div className="mb-3 flex items-center gap-2">
+                <Boxes className="h-5 w-5 text-amber-600" />
+                <h2 className="text-sm font-semibold text-amber-800">Productos Bajo Stock</h2>
+              </div>
+              <div className="space-y-2">
+                {lowStock.slice(0, 6).map((p) => (
+                  <div key={p.id} className="flex items-center justify-between rounded-lg bg-white px-3 py-2 text-sm">
+                    <span className="font-medium">{p.name}</span>
+                    <span className="text-amber-700">Stock: {p.current_stock} / Min: {p.min_stock}</span>
+                  </div>
+                ))}
+                {lowStock.length > 6 && (
+                  <Link to="/inventario" className="block text-right text-xs text-amber-700 hover:underline">
+                    Ver mas ({lowStock.length})
+                  </Link>
+                )}
+              </div>
+            </div>
+          )}
+          {canSeeTasks && overdueReminders.length > 0 && (
+            <div className="rounded-xl border border-red-200 bg-red-50 p-5">
+              <div className="mb-3 flex items-center gap-2">
+                <ListTodo className="h-5 w-5 text-red-600" />
+                <h2 className="text-sm font-semibold text-red-800">Recordatorios de Deudores Vencidos</h2>
+              </div>
+              <div className="space-y-2">
+                {overdueReminders.slice(0, 6).map((r) => (
+                  <div key={r.id} className="flex items-center justify-between rounded-lg bg-white px-3 py-2 text-sm">
+                    <span className="font-medium">{r.title}</span>
+                    <span className="text-red-600">Vence: {formatDate(r.due_date)}</span>
+                  </div>
+                ))}
+                {overdueReminders.length > 6 && (
+                  <Link to="/tareas" className="block text-right text-xs text-red-700 hover:underline">
+                    Ver mas ({overdueReminders.length})
+                  </Link>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
       ) : null}
 
       <div>

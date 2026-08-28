@@ -14,6 +14,10 @@ import { SalesPage } from "@/pages/SalesPage";
 import { QuotesPage } from "@/pages/QuotesPage";
 import { DebtorsPage } from "@/pages/DebtorsPage";
 import { ExpensesPage } from "@/pages/ExpensesPage";
+import { PurchasesPage } from "@/pages/PurchasesPage";
+import { AccountsPayablePage } from "@/pages/AccountsPayablePage";
+import { TasksPage } from "@/pages/TasksPage";
+import { StockPage } from "@/pages/StockPage";
 import { DineroPage } from "@/pages/DineroPage";
 import { DistribucionPage } from "@/pages/DistribucionPage";
 import { BalancePage } from "@/pages/BalancePage";
@@ -60,6 +64,10 @@ function AppRoutes() {
         <Route path="cotizaciones" element={<QuotesPage />} />
         <Route path="deudores" element={<DebtorsPage />} />
         <Route path="gastos" element={<ExpensesPage />} />
+        <Route path="compras" element={<PurchasesPage />} />
+        <Route path="cuentas-pagar" element={<AccountsPayablePage />} />
+        <Route path="tareas" element={<TasksPage />} />
+        <Route path="inventario" element={<StockPage />} />
         <Route path="dinero" element={<DineroPage />} />
         <Route path="distribucion" element={<DistribucionPage />} />
         <Route path="balance" element={<BalancePage />} />

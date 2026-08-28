@@ -93,3 +93,27 @@ async def get_stats(
         "total_debt_balance": max(total_debt_balance, 0),
         "recent_sales": recent_sales,
     }
+
+
+@router.get("/low-stock")
+async def low_stock_products(
+    db: AsyncSession = Depends(get_db),
+    _user: User = Depends(require_permission("productos.view")),
+):
+    result = await db.execute(
+        select(Product)
+        .where(Product.is_active == True, Product.current_stock <= Product.min_stock)
+        .order_by(Product.current_stock.asc())
+        .limit(50)
+    )
+    products = result.scalars().all()
+    return [
+        {
+            "id": p.id,
+            "name": p.name,
+            "sku": p.sku,
+            "current_stock": p.current_stock,
+            "min_stock": p.min_stock,
+        }
+        for p in products
+    ]

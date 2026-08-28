@@ -57,6 +57,13 @@ async def lifespan(app: FastAPI):
                 ("finanzas.movimientos", "Registrar movimientos financieros", "finanzas"),
                 ("finanzas.gastos", "Gestionar gastos y costos", "finanzas"),
                 ("reportes.ver", "Ver reportes", "reportes"),
+                ("compras.view", "Ver compras", "compras"),
+                ("compras.create", "Registrar compras", "compras"),
+                ("cuentas_pagar.view", "Ver cuentas por pagar", "cuentas_pagar"),
+                ("cuentas_pagar.gestionar", "Registrar abonos a proveedores", "cuentas_pagar"),
+                ("inventario.ajustes", "Ajustar inventario manual", "inventario"),
+                ("tareas.view", "Ver tareas y recordatorios", "tareas"),
+                ("tareas.gestionar", "Gestionar tareas y recordatorios", "tareas"),
                 ("usuarios.gestionar", "Gestionar usuarios", "sistema"),
                 ("roles.gestionar", "Gestionar roles", "sistema"),
                 ("sistema.exportar_db", "Exportar base de datos", "sistema"),
@@ -108,11 +115,27 @@ async def lifespan(app: FastAPI):
         from sqlalchemy.orm import selectinload
         from app.models import Role, Permission
 
-        result = await db.execute(select(Permission).where(Permission.name == "sistema.exportar_db"))
-        perm = result.scalar_one_or_none()
-        if not perm:
-            perm = Permission(name="sistema.exportar_db", description="Exportar base de datos", module="sistema")
-            db.add(perm)
+        NEW_PERMISSIONS = [
+            ("sistema.exportar_db", "Exportar base de datos", "sistema"),
+            ("sistema.exportar", "Exportar datos", "sistema"),
+            ("compras.view", "Ver compras", "compras"),
+            ("compras.create", "Registrar compras", "compras"),
+            ("cuentas_pagar.view", "Ver cuentas por pagar", "cuentas_pagar"),
+            ("cuentas_pagar.gestionar", "Registrar abonos a proveedores", "cuentas_pagar"),
+            ("inventario.ajustes", "Ajustar inventario manual", "inventario"),
+            ("tareas.view", "Ver tareas y recordatorios", "tareas"),
+            ("tareas.gestionar", "Gestionar tareas y recordatorios", "tareas"),
+        ]
+
+        created_perms = []
+        for name, description, module in NEW_PERMISSIONS:
+            result = await db.execute(select(Permission).where(Permission.name == name))
+            perm = result.scalar_one_or_none()
+            if not perm:
+                perm = Permission(name=name, description=description, module=module)
+                db.add(perm)
+                created_perms.append(perm)
+        if created_perms:
             await db.flush()
             await db.commit()
 
@@ -122,8 +145,12 @@ async def lifespan(app: FastAPI):
             .where(Role.name == "admin")
         )
         admin_role = result.scalar_one_or_none()
-        if admin_role and perm not in admin_role.permissions:
-            admin_role.permissions.append(perm)
+        if admin_role:
+            all_new = await db.execute(select(Permission).where(Permission.name.in_([p[0] for p in NEW_PERMISSIONS])))
+            new_perm_set = all_new.scalars().all()
+            for perm in new_perm_set:
+                if perm not in admin_role.permissions:
+                    admin_role.permissions.append(perm)
             await db.commit()
 
     yield

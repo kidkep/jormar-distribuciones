@@ -13,9 +13,21 @@ export interface DashboardStats {
   recent_sales: { id: number; invoice_number: string; total: number; sale_date: string }[];
 }
 
+export interface LowStockProduct {
+  id: number;
+  name: string;
+  sku: string;
+  current_stock: number;
+  min_stock: number;
+}
+
 export const dashboardApi = {
   getStats: async (): Promise<DashboardStats> => {
     const response = await apiClient.get("/dashboard/stats");
+    return response.data;
+  },
+  lowStock: async (): Promise<LowStockProduct[]> => {
+    const response = await apiClient.get("/dashboard/low-stock");
     return response.data;
   },
 };

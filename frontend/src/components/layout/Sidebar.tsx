@@ -17,6 +17,10 @@ import {
   UserCog,
   ShieldCheck,
   History,
+  ShoppingBag,
+  HandCoins,
+  ListTodo,
+  Archive,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -40,6 +44,7 @@ const navigation: NavItem[] = [
       { name: "Cotizaciones", href: "/cotizaciones", icon: FileText, permission: "cotizaciones.view" },
       { name: "Clientes", href: "/clientes", icon: Users, permission: "clientes.view" },
       { name: "Deudores", href: "/deudores", icon: AlertCircle, permission: "deudores.view" },
+      { name: "Tareas y Recordatorios", href: "/tareas", icon: ListTodo, permission: "tareas.view" },
     ],
   },
   {
@@ -47,6 +52,8 @@ const navigation: NavItem[] = [
     children: [
       { name: "Productos", href: "/productos", icon: Package, permission: "productos.view" },
       { name: "Proveedores", href: "/proveedores", icon: Truck, permission: "proveedores.view" },
+      { name: "Compras", href: "/compras", icon: ShoppingBag, permission: "compras.view" },
+      { name: "Ajustes de Inventario", href: "/inventario", icon: Archive, permission: "inventario.ajustes" },
     ],
   },
   {
@@ -55,6 +62,7 @@ const navigation: NavItem[] = [
       { name: "Caja/Dinero", href: "/dinero", icon: Wallet, permission: "finanzas.view" },
       { name: "Distribucion", href: "/distribucion", icon: PieChart, permission: "finanzas.view" },
       { name: "Gastos", href: "/gastos", icon: BarChart3, permission: "finanzas.gastos" },
+      { name: "Cuentas por Pagar", href: "/cuentas-pagar", icon: HandCoins, permission: "cuentas_pagar.view" },
       { name: "Consultor Balance", href: "/balance", icon: ClipboardList, permission: "reportes.ver" },
     ],
   },
