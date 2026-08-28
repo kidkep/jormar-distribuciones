@@ -202,8 +202,12 @@ export function SalesPage() {
                   <td className="px-4 py-3 font-medium">{formatCurrency(Number(s.total))}</td>
                   <td className="px-4 py-3 capitalize">{s.payment_method}</td>
                   <td className="px-4 py-3">
-                    <span className={`rounded-full px-2 py-1 text-xs ${s.status === "pagada" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
-                      {s.status}
+                    <span className={`rounded-full px-2 py-1 text-xs ${
+                      s.status === "pagada" ? "bg-green-100 text-green-700"
+                      : s.status === "pendiente" || s.status === "credito" ? "bg-amber-100 text-amber-700"
+                      : "bg-red-100 text-red-700"
+                    }`}>
+                      {s.status === "pendiente" || s.status === "credito" ? "Pendiente" : s.status}
                     </span>
                   </td>
                   <td className="px-4 py-3">
@@ -214,7 +218,7 @@ export function SalesPage() {
                       <button onClick={() => downloadInvoice(s.invoice_number)} className="rounded p-1 text-green-600 hover:bg-green-50" title="Descargar PDF">
                         <Download className="h-4 w-4" />
                       </button>
-                      {s.status === "pagada" && (
+                      {s.status !== "anulada" && (
                         <button onClick={() => cancelMutation.mutate(s.id)} className="rounded p-1 text-red-600 hover:bg-red-50">
                           <XCircle className="h-4 w-4" />
                         </button>

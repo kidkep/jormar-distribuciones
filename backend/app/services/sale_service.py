@@ -85,7 +85,7 @@ class SaleService:
             notes=data.notes,
             delivery_address=data.delivery_address,
             delivered_by=data.delivered_by,
-            status="pagada",
+            status="pendiente" if data.payment_method == "credito" else "pagada",
             items=items,
         )
 
