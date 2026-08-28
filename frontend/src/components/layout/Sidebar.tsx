@@ -18,7 +18,6 @@ import {
   ShieldCheck,
   History,
   ListTodo,
-  Archive,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -50,7 +49,6 @@ const navigation: NavItem[] = [
     children: [
       { name: "Productos", href: "/productos", icon: Package, permission: "productos.view" },
       { name: "Proveedores", href: "/proveedores", icon: Truck, permission: "proveedores.view" },
-      { name: "Ajustes de Inventario", href: "/inventario", icon: Archive, permission: "inventario.ajustes" },
     ],
   },
   {

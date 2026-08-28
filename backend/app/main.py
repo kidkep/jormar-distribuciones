@@ -57,7 +57,6 @@ async def lifespan(app: FastAPI):
                 ("finanzas.movimientos", "Registrar movimientos financieros", "finanzas"),
                 ("finanzas.gastos", "Gestionar gastos y costos", "finanzas"),
                 ("reportes.ver", "Ver reportes", "reportes"),
-                ("inventario.ajustes", "Ajustar inventario manual", "inventario"),
                 ("tareas.view", "Ver tareas y recordatorios", "tareas"),
                 ("tareas.gestionar", "Gestionar tareas y recordatorios", "tareas"),
                 ("usuarios.gestionar", "Gestionar usuarios", "sistema"),
@@ -114,7 +113,6 @@ async def lifespan(app: FastAPI):
         NEW_PERMISSIONS = [
             ("sistema.exportar_db", "Exportar base de datos", "sistema"),
             ("sistema.exportar", "Exportar datos", "sistema"),
-            ("inventario.ajustes", "Ajustar inventario manual", "inventario"),
             ("tareas.view", "Ver tareas y recordatorios", "tareas"),
             ("tareas.gestionar", "Gestionar tareas y recordatorios", "tareas"),
         ]

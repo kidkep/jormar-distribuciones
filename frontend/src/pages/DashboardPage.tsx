@@ -169,7 +169,7 @@ export function DashboardPage() {
                   </div>
                 ))}
                 {lowStock.length > 6 && (
-                  <Link to="/inventario" className="block text-right text-xs text-amber-700 hover:underline">
+                  <Link to="/productos" className="block text-right text-xs text-amber-700 hover:underline">
                     Ver mas ({lowStock.length})
                   </Link>
                 )}
