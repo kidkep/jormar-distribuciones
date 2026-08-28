@@ -39,20 +39,6 @@ export function LoginPage() {
     >
       <div className="pointer-events-none absolute -top-40 -right-40 h-96 w-96 rounded-full bg-gold-500/15 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-40 -left-40 h-96 w-96 rounded-full bg-gold-500/15 blur-3xl" />
-      <svg className="pointer-events-none absolute inset-0 h-full w-full" aria-hidden="true">
-        <defs>
-          <pattern id="rombo-jormar" width="82" height="82" patternUnits="userSpaceOnUse">
-            <path
-              d="M41 6 L76 41 L41 76 L6 41 Z"
-              fill="rgba(199,154,50,0.05)"
-              stroke="rgba(199,154,50,0.14)"
-              strokeWidth="1"
-            />
-            <image href="/logo.png" x="29" y="29" width="24" height="24" opacity="0.1" />
-          </pattern>
-        </defs>
-        <rect width="100%" height="100%" fill="url(#rombo-jormar)" />
-      </svg>
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(199,154,50,0.12)_0%,transparent_55%)]" />
       <div className="pointer-events-none absolute left-10 top-1/2 hidden h-72 w-px -translate-y-1/2 bg-gradient-to-b from-transparent via-gold-500/60 to-transparent lg:block" />
       <div className="pointer-events-none absolute right-10 top-1/2 hidden h-72 w-px -translate-y-1/2 bg-gradient-to-b from-transparent via-gold-500/60 to-transparent lg:block" />
