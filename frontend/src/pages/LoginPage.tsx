@@ -44,9 +44,11 @@ export function LoginPage() {
           <pattern id="rombo-jormar" width="82" height="82" patternUnits="userSpaceOnUse">
             <path
               d="M41 6 L76 41 L41 76 L6 41 Z"
-              fill="rgba(199,154,50,0.05)"
-              stroke="rgba(199,154,50,0.14)"
-              strokeWidth="1"
+              fill="rgba(199,154,50,0.04)"
+              stroke="rgba(199,154,50,0.28)"
+              strokeWidth="1.6"
+              strokeDasharray="5 4"
+              strokeLinecap="round"
             />
             <image href="/logo.png" x="29" y="29" width="24" height="24" opacity="0.1" />
           </pattern>
