@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { cajaApi, type CajaResumen } from "@/api/caja.api";
 import { retirosApi, type Retiro } from "@/api/retiros.api";
@@ -119,7 +119,7 @@ export function DineroPage() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card title="Ventas Hoy" value={d.ventas_hoy} icon={<TrendingUp className="h-5 w-5 text-green-600" />} color="bg-green-50 border-green-200" textColor="text-green-700" />
         <Card title="Gastos Hoy" value={d.gastos_hoy} icon={<TrendingDown className="h-5 w-5 text-red-600" />} color="bg-red-50 border-red-200" textColor="text-red-700" />
-        <Card title="Ganancia Neta Hoy" value={d.ganancia_neta_hoy} icon={<DollarSign className="h-5 w-5 text-blue-600" />} color="bg-blue-50 border-blue-200" textColor="text-blue-700" />
+        <Card title="Ganancia Neta Hoy" value={d.ganancia_neta_hoy} icon={<DollarSign className="h-5 w-5 text-gold-600" />} color="bg-gold-50 border-gold-200" textColor="text-gold-700" />
         <Card title="Abonos Hoy" value={d.abonos_hoy} icon={<CreditCard className="h-5 w-5 text-purple-600" />} color="bg-purple-50 border-purple-200" textColor="text-purple-700" />
       </div>
 
@@ -127,7 +127,7 @@ export function DineroPage() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <Card title="Ventas Mes" value={d.ventas_mes} icon={<TrendingUp className="h-5 w-5 text-green-600" />} color="bg-green-50 border-green-200" textColor="text-green-700" />
         <Card title="Gastos Mes" value={d.gastos_mes} icon={<TrendingDown className="h-5 w-5 text-red-600" />} color="bg-red-50 border-red-200" textColor="text-red-700" />
-        <Card title="Ganancia Neta Mes" value={d.ganancia_neta_mes} icon={<DollarSign className="h-5 w-5 text-blue-600" />} color="bg-blue-50 border-blue-200" textColor="text-blue-700" />
+        <Card title="Ganancia Neta Mes" value={d.ganancia_neta_mes} icon={<DollarSign className="h-5 w-5 text-gold-600" />} color="bg-gold-50 border-gold-200" textColor="text-gold-700" />
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">

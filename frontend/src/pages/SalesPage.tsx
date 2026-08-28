@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { salesApi, type Sale, type SaleCreate } from "@/api/sales.api";
 import { productsApi, type Product } from "@/api/products.api";
@@ -157,7 +157,7 @@ export function SalesPage() {
         <h1 className="text-2xl font-bold text-gray-900">Ventas</h1>
         <button
           onClick={() => { resetForm(); setSaleError(null); setShowForm(true); }}
-          className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700"
+          className="flex items-center gap-2 rounded-lg bg-gold-600 px-4 py-2 text-sm text-white hover:bg-gold-700"
         >
           <Plus className="h-4 w-4" />
           Nueva Venta
@@ -171,7 +171,7 @@ export function SalesPage() {
           placeholder="Buscar por numero de remision..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full rounded-lg border border-gray-300 py-2.5 pl-10 pr-4 text-sm focus:border-blue-500 focus:outline-none"
+          className="w-full rounded-lg border border-gray-300 py-2.5 pl-10 pr-4 text-sm focus:border-gold-500 focus:outline-none"
         />
       </div>
 
@@ -212,7 +212,7 @@ export function SalesPage() {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex gap-2">
-                      <button onClick={() => setShowDetail(s)} className="rounded p-1 text-blue-600 hover:bg-blue-50">
+                      <button onClick={() => setShowDetail(s)} className="rounded p-1 text-gold-600 hover:bg-gold-50">
                         <Eye className="h-4 w-4" />
                       </button>
                       <button onClick={() => downloadInvoice(s.invoice_number)} className="rounded p-1 text-green-600 hover:bg-green-50" title="Descargar PDF">
@@ -283,7 +283,7 @@ export function SalesPage() {
                 placeholder="Buscar producto por nombre o SKU..."
                 value={productSearch}
                 onChange={(e) => setProductSearch(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 py-2.5 pl-10 pr-4 text-sm focus:border-blue-500 focus:outline-none"
+                className="w-full rounded-lg border border-gray-300 py-2.5 pl-10 pr-4 text-sm focus:border-gold-500 focus:outline-none"
               />
               {productSearch && filteredProducts.length > 0 && (
                 <div className="absolute z-10 mt-1 max-h-48 w-full overflow-y-auto rounded-lg border bg-white shadow-lg">

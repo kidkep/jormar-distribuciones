@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { suppliersApi, type Supplier, type SupplierCreate } from "@/api/suppliers.api";
 import { Plus, Search, Edit, Trash2 } from "lucide-react";
@@ -78,7 +78,7 @@ export function SuppliersPage() {
         <h1 className="text-2xl font-bold text-gray-900">Proveedores</h1>
         <button
           onClick={() => { resetForm(); setEditing(null); setShowModal(true); }}
-          className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700"
+          className="flex items-center gap-2 rounded-lg bg-gold-600 px-4 py-2 text-sm text-white hover:bg-gold-700"
         >
           <Plus className="h-4 w-4" />
           Nuevo Proveedor
@@ -92,7 +92,7 @@ export function SuppliersPage() {
           placeholder="Buscar por nombre o documento..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full rounded-lg border border-gray-300 py-2.5 pl-10 pr-4 text-sm focus:border-blue-500 focus:outline-none"
+          className="w-full rounded-lg border border-gray-300 py-2.5 pl-10 pr-4 text-sm focus:border-gold-500 focus:outline-none"
         />
       </div>
 
@@ -123,7 +123,7 @@ export function SuppliersPage() {
                   <td className="px-4 py-3">{s.city || "-"}</td>
                   <td className="px-4 py-3">
                     <div className="flex gap-2">
-                      <button onClick={() => openEdit(s)} className="rounded p-1 text-blue-600 hover:bg-blue-50">
+                      <button onClick={() => openEdit(s)} className="rounded p-1 text-gold-600 hover:bg-gold-50">
                         <Edit className="h-4 w-4" />
                       </button>
                       <button onClick={() => deleteMutation.mutate(s.id)} className="rounded p-1 text-red-600 hover:bg-red-50">
@@ -182,7 +182,7 @@ export function SuppliersPage() {
               </div>
               <div className="flex justify-end gap-3">
                 <button type="button" onClick={() => setShowModal(false)} className="rounded-lg border px-4 py-2 text-sm">Cancelar</button>
-                <button type="submit" className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700">
+                <button type="submit" className="rounded-lg bg-gold-600 px-4 py-2 text-sm text-white hover:bg-gold-700">
                   {editing ? "Guardar Cambios" : "Crear Proveedor"}
                 </button>
               </div>

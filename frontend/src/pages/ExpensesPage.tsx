@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { expensesApi, type Expense, type ExpenseCreate } from "@/api/expenses.api";
 import { Plus, Search, Trash2, BarChart3, Tag } from "lucide-react";
@@ -70,7 +70,7 @@ export function ExpensesPage() {
             <p className="text-sm text-red-600">Total gastos: <strong>{formatCurrency(totalData.total)}</strong></p>
           )}
         </div>
-        <button onClick={() => setShowModal(true)} className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700">
+        <button onClick={() => setShowModal(true)} className="flex items-center gap-2 rounded-lg bg-gold-600 px-4 py-2 text-sm text-white hover:bg-gold-700">
           <Plus className="h-4 w-4" />
           Nuevo Gasto
         </button>
@@ -78,7 +78,7 @@ export function ExpensesPage() {
 
       <div className="relative">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-        <input type="text" placeholder="Buscar gasto..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-full rounded-lg border border-gray-300 py-2.5 pl-10 pr-4 text-sm focus:border-blue-500 focus:outline-none" />
+        <input type="text" placeholder="Buscar gasto..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-full rounded-lg border border-gray-300 py-2.5 pl-10 pr-4 text-sm focus:border-gold-500 focus:outline-none" />
       </div>
 
       <div className="overflow-x-auto rounded-xl border bg-white shadow-sm">
@@ -161,7 +161,7 @@ export function ExpensesPage() {
               </div>
               <div className="flex justify-end gap-3">
                 <button type="button" onClick={() => setShowModal(false)} className="rounded-lg border px-4 py-2 text-sm">Cancelar</button>
-                <button type="submit" className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700">Registrar Gasto</button>
+                <button type="submit" className="rounded-lg bg-gold-600 px-4 py-2 text-sm text-white hover:bg-gold-700">Registrar Gasto</button>
               </div>
             </form>
           </div>

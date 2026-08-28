@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { auditApi, type AuditLogEntry } from "@/api/audit.api";
 import { History, Search, RefreshCw } from "lucide-react";
@@ -11,7 +11,7 @@ const ENTITY_LABELS: Record<string, string> = {
   supplier: "Proveedor",
   expense: "Gasto",
   sale: "Venta",
-  quote: "Cotización",
+  quote: "CotizaciÃ³n",
 };
 
 const ACTION_LABELS: Record<string, string> = {
@@ -23,7 +23,7 @@ const ACTION_LABELS: Record<string, string> = {
 
 const ACTION_COLORS: Record<string, string> = {
   create: "bg-green-100 text-green-700",
-  update: "bg-blue-100 text-blue-700",
+  update: "bg-gold-100 text-gold-700",
   delete: "bg-red-100 text-red-700",
   cancel: "bg-orange-100 text-orange-700",
 };
@@ -66,7 +66,7 @@ export function AuditLogPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="flex items-center gap-2 text-2xl font-bold text-gray-900">
-          <History className="h-6 w-6 text-blue-600" />
+          <History className="h-6 w-6 text-gold-600" />
           Historial de Actividades
         </h1>
         <button
@@ -86,7 +86,7 @@ export function AuditLogPage() {
             placeholder="Filtrar por usuario..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full rounded-lg border border-gray-300 py-2.5 pl-10 pr-4 text-sm focus:border-blue-500 focus:outline-none"
+            className="w-full rounded-lg border border-gray-300 py-2.5 pl-10 pr-4 text-sm focus:border-gold-500 focus:outline-none"
           />
         </div>
         <select
@@ -117,7 +117,7 @@ export function AuditLogPage() {
             <tr>
               <th className="px-4 py-3">Fecha</th>
               <th className="px-4 py-3">Usuario</th>
-              <th className="px-4 py-3">Acción</th>
+              <th className="px-4 py-3">AcciÃ³n</th>
               <th className="px-4 py-3">Entidad</th>
               <th className="px-4 py-3">Detalle del cambio</th>
             </tr>
@@ -137,7 +137,7 @@ export function AuditLogPage() {
                     : log.action === "delete" && oldVals
                     ? prettyValues(log.old_values)
                     : log.action === "update" && (oldVals || newVals)
-                    ? `De: ${prettyValues(log.old_values)} → A: ${prettyValues(log.new_values)}`
+                    ? `De: ${prettyValues(log.old_values)} â†’ A: ${prettyValues(log.new_values)}`
                     : "-";
                 return (
                   <tr key={log.id} className="hover:bg-gray-50">

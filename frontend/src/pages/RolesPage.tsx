@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+﻿import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { rolesApi } from "@/api/roles.api";
 import type { Permission, Role } from "@/api/types";
@@ -106,7 +106,7 @@ export function RolesPage() {
         <h1 className="text-2xl font-bold text-gray-900">Roles y Permisos</h1>
         <button
           onClick={() => { setEditing(null); setForm(emptyForm); setErrorMsg(null); setShowModal(true); }}
-          className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700"
+          className="flex items-center gap-2 rounded-lg bg-gold-600 px-4 py-2 text-sm text-white hover:bg-gold-700"
         >
           <Plus className="h-4 w-4" />
           Nuevo Rol
@@ -123,11 +123,11 @@ export function RolesPage() {
             <div key={role.id} className="rounded-xl border bg-white p-4 shadow-sm">
               <div className="mb-2 flex items-center justify-between">
                 <h3 className="flex items-center gap-2 font-semibold text-gray-900">
-                  <KeyRound className="h-4 w-4 text-blue-600" />
+                  <KeyRound className="h-4 w-4 text-gold-600" />
                   {role.name}
                 </h3>
                 <div className="flex gap-2">
-                  <button onClick={() => openEdit(role)} className="rounded p-1 text-blue-600 hover:bg-blue-50">
+                  <button onClick={() => openEdit(role)} className="rounded p-1 text-gold-600 hover:bg-gold-50">
                     <Edit className="h-4 w-4" />
                   </button>
                   <button onClick={() => deleteMutation.mutate(role.id)} className="rounded p-1 text-red-600 hover:bg-red-50">
@@ -171,7 +171,7 @@ export function RolesPage() {
                 />
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">Descripción</label>
+                <label className="mb-1 block text-sm font-medium text-gray-700">DescripciÃ³n</label>
                 <input
                   type="text"
                   value={form.description}
@@ -208,7 +208,7 @@ export function RolesPage() {
 
               <div className="flex justify-end gap-3 pt-2">
                 <button type="button" onClick={() => setShowModal(false)} className="rounded-lg border px-4 py-2 text-sm">Cancelar</button>
-                <button type="submit" className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700">
+                <button type="submit" className="rounded-lg bg-gold-600 px-4 py-2 text-sm text-white hover:bg-gold-700">
                   {editing ? "Guardar Cambios" : "Crear Rol"}
                 </button>
               </div>

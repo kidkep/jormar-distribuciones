@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { usersApi } from "@/api/users.api";
 import { rolesApi } from "@/api/roles.api";
@@ -86,7 +86,7 @@ export function UsersPage() {
       });
     } else {
       if (!form.password) {
-        setErrorMsg("Debe indicar una contraseña para el nuevo usuario");
+        setErrorMsg("Debe indicar una contraseÃ±a para el nuevo usuario");
         return;
       }
       createMutation.mutate(form);
@@ -114,7 +114,7 @@ export function UsersPage() {
         <h1 className="text-2xl font-bold text-gray-900">Usuarios</h1>
         <button
           onClick={() => { setEditing(null); setForm(emptyForm); setErrorMsg(null); setShowModal(true); }}
-          className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700"
+          className="flex items-center gap-2 rounded-lg bg-gold-600 px-4 py-2 text-sm text-white hover:bg-gold-700"
         >
           <Plus className="h-4 w-4" />
           Nuevo Usuario
@@ -128,7 +128,7 @@ export function UsersPage() {
           placeholder="Buscar por nombre de usuario, correo o nombre completo..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full rounded-lg border border-gray-300 py-2.5 pl-10 pr-4 text-sm focus:border-blue-500 focus:outline-none"
+          className="w-full rounded-lg border border-gray-300 py-2.5 pl-10 pr-4 text-sm focus:border-gold-500 focus:outline-none"
         />
       </div>
 
@@ -168,13 +168,13 @@ export function UsersPage() {
                     )}
                   </td>
                   <td className="px-4 py-3">
-                    <span className={`rounded-full px-2 py-1 text-xs ${u.is_active ? "bg-blue-100 text-blue-700" : "bg-red-100 text-red-700"}`}>
+                    <span className={`rounded-full px-2 py-1 text-xs ${u.is_active ? "bg-gold-100 text-gold-700" : "bg-red-100 text-red-700"}`}>
                       {u.is_active ? "Activo" : "Inactivo"}
                     </span>
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex gap-2">
-                      <button onClick={() => openEdit(u)} className="rounded p-1 text-blue-600 hover:bg-blue-50">
+                      <button onClick={() => openEdit(u)} className="rounded p-1 text-gold-600 hover:bg-gold-50">
                         <Edit className="h-4 w-4" />
                       </button>
                       <button onClick={() => deleteMutation.mutate(u.id)} className="rounded p-1 text-red-600 hover:bg-red-50">
@@ -213,7 +213,7 @@ export function UsersPage() {
               </div>
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">
-                  {editing ? "Nueva contraseña (opcional)" : "Contraseña"}
+                  {editing ? "Nueva contraseÃ±a (opcional)" : "ContraseÃ±a"}
                 </label>
                 <input
                   type="password"
@@ -245,7 +245,7 @@ export function UsersPage() {
               </div>
               <div className="flex justify-end gap-3 pt-2">
                 <button type="button" onClick={() => setShowModal(false)} className="rounded-lg border px-4 py-2 text-sm">Cancelar</button>
-                <button type="submit" className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700">
+                <button type="submit" className="rounded-lg bg-gold-600 px-4 py-2 text-sm text-white hover:bg-gold-700">
                   {editing ? "Guardar Cambios" : "Crear Usuario"}
                 </button>
               </div>

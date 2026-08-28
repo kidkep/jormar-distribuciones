@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { debtorsApi, type Debtor } from "@/api/debtors.api";
 import { AlertCircle, DollarSign, Eye, XCircle } from "lucide-react";
@@ -77,7 +77,7 @@ export function DebtorsPage() {
                   <td className="px-4 py-3 font-bold text-red-600">{formatCurrency(Number(d.balance))}</td>
                   <td className="px-4 py-3">
                     <div className="flex gap-2">
-                      <button onClick={() => setShowDetail(d)} className="rounded p-1 text-blue-600 hover:bg-blue-50">
+                      <button onClick={() => setShowDetail(d)} className="rounded p-1 text-gold-600 hover:bg-gold-50">
                         <Eye className="h-4 w-4" />
                       </button>
                       <button

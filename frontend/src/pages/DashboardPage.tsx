@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+﻿import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { dashboardApi } from "@/api/dashboard.api";
 import { tasksApi } from "@/api/tasks.api";
@@ -68,7 +68,7 @@ export function DashboardPage() {
                   <p className="mt-1 text-2xl font-bold text-gray-900">{formatCurrency(stats.sales_today)}</p>
                   <p className="mt-1 text-xs text-gray-500">{stats.sales_count_today} ventas</p>
                 </div>
-                <div className="rounded-lg bg-blue-500 p-3"><ShoppingCart className="h-6 w-6 text-white" /></div>
+                <div className="rounded-lg bg-gold-500 p-3"><ShoppingCart className="h-6 w-6 text-white" /></div>
               </div>
             </div>
 
@@ -109,7 +109,7 @@ export function DashboardPage() {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div className="rounded-xl border bg-white p-6 shadow-sm">
               <div className="flex items-center gap-3">
-                <div className="rounded-lg bg-blue-100 p-2"><Package className="h-5 w-5 text-blue-600" /></div>
+                <div className="rounded-lg bg-gold-100 p-2"><Package className="h-5 w-5 text-gold-600" /></div>
                 <div><p className="text-sm text-gray-600">Productos</p><p className="text-lg font-bold">{stats.total_products}</p></div>
               </div>
             </div>
@@ -203,20 +203,20 @@ export function DashboardPage() {
       <div>
         <h2 className="mb-4 text-lg font-semibold text-gray-900">Accesos Rapidos</h2>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-          <Link to="/ventas/nueva" className="flex items-center gap-3 rounded-xl bg-blue-600 p-4 text-white shadow-sm transition-colors hover:bg-blue-700">
-            <ShoppingCart className="h-6 w-6" />
+          <Link to="/ventas/nueva" className="flex items-center gap-3 rounded-xl bg-neutral-900 p-4 text-white shadow-sm transition-colors hover:bg-neutral-800">
+            <ShoppingCart className="h-6 w-6 text-gold-400" />
             <span className="font-medium">Nueva Venta</span>
           </Link>
-          <Link to="/productos" className="flex items-center gap-3 rounded-xl bg-green-600 p-4 text-white shadow-sm transition-colors hover:bg-green-700">
-            <Package className="h-6 w-6" />
+          <Link to="/productos" className="flex items-center gap-3 rounded-xl bg-neutral-900 p-4 text-white shadow-sm transition-colors hover:bg-neutral-800">
+            <Package className="h-6 w-6 text-gold-400" />
             <span className="font-medium">Productos</span>
           </Link>
-          <Link to="/cotizaciones" className="flex items-center gap-3 rounded-xl bg-purple-600 p-4 text-white shadow-sm transition-colors hover:bg-purple-700">
-            <FileText className="h-6 w-6" />
+          <Link to="/cotizaciones" className="flex items-center gap-3 rounded-xl bg-neutral-900 p-4 text-white shadow-sm transition-colors hover:bg-neutral-800">
+            <FileText className="h-6 w-6 text-gold-400" />
             <span className="font-medium">Cotizar</span>
           </Link>
-          <Link to="/deudores" className="flex items-center gap-3 rounded-xl bg-orange-600 p-4 text-white shadow-sm transition-colors hover:bg-orange-700">
-            <AlertCircle className="h-6 w-6" />
+          <Link to="/deudores" className="flex items-center gap-3 rounded-xl bg-neutral-900 p-4 text-white shadow-sm transition-colors hover:bg-neutral-800">
+            <AlertCircle className="h-6 w-6 text-gold-400" />
             <span className="font-medium">Deudores</span>
           </Link>
         </div>

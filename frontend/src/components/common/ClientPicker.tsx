@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+﻿import { useEffect, useRef, useState } from "react";
 import type { Client } from "@/api/clients.api";
 
 interface ClientPickerProps {
@@ -59,7 +59,7 @@ export function ClientPicker({ clients, value, onChange }: ClientPickerProps) {
           }
         }}
         placeholder="Buscar o escribir nombre del cliente..."
-        className="w-full rounded-lg border px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+        className="w-full rounded-lg border px-3 py-2 text-sm focus:border-gold-500 focus:outline-none"
         autoComplete="off"
       />
       {open && query.trim().length > 0 && filtered.length > 0 && (
@@ -72,7 +72,7 @@ export function ClientPicker({ clients, value, onChange }: ClientPickerProps) {
                 e.preventDefault();
                 selectClient(c);
               }}
-              className="flex w-full flex-col px-3 py-2 text-left text-sm hover:bg-blue-50"
+              className="flex w-full flex-col px-3 py-2 text-left text-sm hover:bg-gold-50"
             >
               <span className="font-medium">{c.name}</span>
               <span className="text-xs text-gray-400">

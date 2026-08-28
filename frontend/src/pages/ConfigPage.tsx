@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { catalogApi, type Category, type Unit } from "@/api/catalog.api";
 import { Plus, Trash2, Tag, Ruler } from "lucide-react";
@@ -43,7 +43,7 @@ export function ConfigPage() {
         <div className="mb-4 flex gap-3">
           <input type="text" placeholder="Nombre" value={catName} onChange={(e) => setCatName(e.target.value)} className="flex-1 rounded-lg border px-3 py-2 text-sm" />
           <input type="text" placeholder="Descripcion (opcional)" value={catDesc} onChange={(e) => setCatDesc(e.target.value)} className="flex-1 rounded-lg border px-3 py-2 text-sm" />
-          <button onClick={() => catName && createCat.mutate()} disabled={!catName} className="flex items-center gap-1 rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 disabled:opacity-50"><Plus className="h-4 w-4" /> Agregar</button>
+          <button onClick={() => catName && createCat.mutate()} disabled={!catName} className="flex items-center gap-1 rounded-lg bg-gold-600 px-4 py-2 text-sm text-white hover:bg-gold-700 disabled:opacity-50"><Plus className="h-4 w-4" /> Agregar</button>
         </div>
         <div className="overflow-x-auto rounded-lg border">
           <table className="w-full text-sm">
@@ -69,7 +69,7 @@ export function ConfigPage() {
         <div className="mb-4 flex gap-3">
           <input type="text" placeholder="Nombre (ej: Kilogramo)" value={unitName} onChange={(e) => setUnitName(e.target.value)} className="flex-1 rounded-lg border px-3 py-2 text-sm" />
           <input type="text" placeholder="Abreviatura (ej: kg)" value={unitAbbr} onChange={(e) => setUnitAbbr(e.target.value)} className="w-32 rounded-lg border px-3 py-2 text-sm" />
-          <button onClick={() => unitName && unitAbbr && createUnit.mutate()} disabled={!unitName || !unitAbbr} className="flex items-center gap-1 rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 disabled:opacity-50"><Plus className="h-4 w-4" /> Agregar</button>
+          <button onClick={() => unitName && unitAbbr && createUnit.mutate()} disabled={!unitName || !unitAbbr} className="flex items-center gap-1 rounded-lg bg-gold-600 px-4 py-2 text-sm text-white hover:bg-gold-700 disabled:opacity-50"><Plus className="h-4 w-4" /> Agregar</button>
         </div>
         <div className="overflow-x-auto rounded-lg border">
           <table className="w-full text-sm">

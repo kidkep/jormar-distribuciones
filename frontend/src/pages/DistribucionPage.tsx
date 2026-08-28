@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   distributionsApi,
@@ -66,7 +66,7 @@ export function DistribucionPage() {
           Distribucion del Dinero
         </h1>
         <div className="flex items-center gap-2 text-xs text-gray-500">
-          <span className="rounded bg-blue-100 px-2 py-1 text-blue-700">
+          <span className="rounded bg-gold-100 px-2 py-1 text-gold-700">
             Utilidad: {summary?.pct_utilidad ?? 20}%
           </span>
           <span className="rounded bg-red-100 px-2 py-1 text-red-700">
@@ -115,10 +115,10 @@ export function DistribucionPage() {
 
       {/* Tarjetas de acumulados */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-xl border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 p-5 shadow-sm">
+        <div className="rounded-xl border-2 border-gold-200 bg-gradient-to-br from-gold-50 to-gold-50 p-5 shadow-sm">
           <div className="mb-3 flex items-center gap-3">
-            <div className="rounded-full bg-blue-100 p-2">
-              <DollarSign className="h-5 w-5 text-blue-600" />
+            <div className="rounded-full bg-gold-100 p-2">
+              <DollarSign className="h-5 w-5 text-gold-600" />
             </div>
             <div>
               <p className="text-xs font-medium text-gray-500">Total Ventas</p>
@@ -127,7 +127,7 @@ export function DistribucionPage() {
               </p>
             </div>
           </div>
-          <p className="text-2xl font-extrabold text-blue-700">
+          <p className="text-2xl font-extrabold text-gold-700">
             {formatCurrency(summary?.total_ventas ?? 0)}
           </p>
         </div>

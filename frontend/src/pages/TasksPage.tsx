@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { tasksApi, type Task } from "@/api/tasks.api";
 import { clientsApi, type Client } from "@/api/clients.api";
@@ -93,7 +93,7 @@ export function TasksPage() {
           <h1 className="text-2xl font-bold text-gray-900">Tareas y Recordatorios</h1>
           {pending > 0 && <p className="text-sm text-gray-500">{pending} tareas pendientes</p>}
         </div>
-        <button onClick={() => setShowForm(true)} className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700">
+        <button onClick={() => setShowForm(true)} className="flex items-center gap-2 rounded-lg bg-gold-600 px-4 py-2 text-sm text-white hover:bg-gold-700">
           <Plus className="h-4 w-4" />
           Nueva Tarea
         </button>
@@ -107,13 +107,13 @@ export function TasksPage() {
             placeholder="Buscar tarea..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full rounded-lg border border-gray-300 py-2.5 pl-10 pr-4 text-sm focus:border-blue-500 focus:outline-none"
+            className="w-full rounded-lg border border-gray-300 py-2.5 pl-10 pr-4 text-sm focus:border-gold-500 focus:outline-none"
           />
         </div>
         <div className="flex gap-2">
           <button
             onClick={() => setFilter("")}
-            className={cn("rounded-lg border px-3 py-2 text-sm", filter === "" ? "border-blue-600 bg-blue-50 text-blue-700" : "border-gray-300")}
+            className={cn("rounded-lg border px-3 py-2 text-sm", filter === "" ? "border-gold-600 bg-gold-50 text-gold-700" : "border-gray-300")}
           >
             Todas
           </button>
@@ -121,7 +121,7 @@ export function TasksPage() {
             <button
               key={s.value}
               onClick={() => setFilter(s.value)}
-              className={cn("rounded-lg border px-3 py-2 text-sm", filter === s.value ? "border-blue-600 bg-blue-50 text-blue-700" : "border-gray-300")}
+              className={cn("rounded-lg border px-3 py-2 text-sm", filter === s.value ? "border-gold-600 bg-gold-50 text-gold-700" : "border-gray-300")}
             >
               {s.label}
             </button>
@@ -218,7 +218,7 @@ export function TasksPage() {
               </div>
               <div className="flex justify-end gap-3">
                 <button type="button" onClick={() => setShowForm(false)} className="rounded-lg border px-4 py-2 text-sm">Cancelar</button>
-                <button type="submit" disabled={createMutation.isPending} className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 disabled:opacity-50">
+                <button type="submit" disabled={createMutation.isPending} className="rounded-lg bg-gold-600 px-4 py-2 text-sm text-white hover:bg-gold-700 disabled:opacity-50">
                   {createMutation.isPending ? "Guardando..." : "Guardar"}
                 </button>
               </div>

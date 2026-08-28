@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Eye, EyeOff } from "lucide-react";
 
@@ -14,12 +14,12 @@ export function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-600 to-blue-800 p-4">
+    <div className="flex min-h-screen items-center justify-center bg-neutral-950 p-4">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
-          <img src="/logo.png" alt="Jormar Distribuciones" className="mx-auto mb-4 h-20 w-20 rounded-full object-contain shadow-lg" />
-          <h1 className="text-2xl font-bold text-white">JORMAR DISTRIBUCIONES</h1>
-          <p className="mt-1 text-blue-200">Gestor de Negocio</p>
+          <img src="/logo.png" alt="Jormar Distribuciones" className="mx-auto mb-4 h-20 w-20 rounded-full object-contain ring-2 ring-gold-500/40 shadow-lg" />
+          <h1 className="text-2xl font-bold text-gold-400">JORMAR DISTRIBUCIONES</h1>
+          <p className="mt-1 text-gold-200">Gestor de Negocio</p>
         </div>
 
         <div className="rounded-xl bg-white p-8 shadow-2xl">
@@ -42,7 +42,7 @@ export function LoginPage() {
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-gold-500 focus:outline-none focus:ring-2 focus:ring-gold-500/20"
                 placeholder="Ingrese su usuario"
                 required
               />
@@ -57,7 +57,7 @@ export function LoginPage() {
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full rounded-lg border border-gray-300 px-4 py-2.5 pr-10 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  className="w-full rounded-lg border border-gray-300 px-4 py-2.5 pr-10 text-sm focus:border-gold-500 focus:outline-none focus:ring-2 focus:ring-gold-500/20"
                   placeholder="Ingrese su contrasena"
                   required
                 />
@@ -78,7 +78,7 @@ export function LoginPage() {
             <button
               type="submit"
               disabled={isLoginLoading}
-              className="w-full rounded-lg bg-blue-600 py-2.5 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:opacity-50"
+              className="w-full rounded-lg bg-gold-500 py-2.5 text-sm font-medium text-neutral-950 hover:bg-gold-400 focus:outline-none focus:ring-2 focus:ring-gold-500/20 disabled:opacity-50"
             >
               {isLoginLoading ? "Ingresando..." : "Ingresar"}
             </button>

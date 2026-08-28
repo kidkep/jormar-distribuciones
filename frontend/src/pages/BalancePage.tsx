@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   ResponsiveContainer,
@@ -102,7 +102,7 @@ export function BalancePage() {
         </div>
         <button
           onClick={() => refetch()}
-          className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700"
+          className="flex items-center gap-2 rounded-lg bg-gold-600 px-4 py-2 text-sm text-white hover:bg-gold-700"
         >
           <Search className="h-4 w-4" />
           Consultar
@@ -138,7 +138,7 @@ export function BalancePage() {
           title="Ganancia Neta"
           value={d.ganancia.bruta}
           sub={`Margen: ${d.ganancia.margen.toFixed(1)}%`}
-          icon={<DollarSign className="h-5 w-5 text-blue-600" />}
+          icon={<DollarSign className="h-5 w-5 text-gold-600" />}
           color="blue"
         />
         <SummaryCard
@@ -174,7 +174,7 @@ export function BalancePage() {
           title="Inventario (Costo)"
           value={d.inventario.valor_compra}
           sub={`Venta: ${formatCurrency(d.inventario.valor_venta)}`}
-          icon={<BarChart3 className="h-5 w-5 text-indigo-600" />}
+          icon={<BarChart3 className="h-5 w-5 text-gold-600" />}
           color="indigo"
         />
         <SummaryCard
@@ -223,7 +223,7 @@ export function BalancePage() {
 
         <div className="rounded-xl border bg-white p-5 shadow-sm">
           <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-gray-800">
-            <TrendingUp className="h-4 w-4 text-blue-600" />
+            <TrendingUp className="h-4 w-4 text-gold-600" />
             Distribucion por Metodo de Pago
           </h2>
           {(() => {
@@ -472,19 +472,19 @@ export function BalancePage() {
       </div>
 
       {/* RESUMEN FINAL */}
-      <div className="rounded-xl border-2 border-blue-200 bg-blue-50 p-6">
-        <h2 className="mb-3 text-lg font-bold text-blue-900">Resumen del Periodo</h2>
+      <div className="rounded-xl border-2 border-gold-200 bg-gold-50 p-6">
+        <h2 className="mb-3 text-lg font-bold text-gold-900">Resumen del Periodo</h2>
         <div className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-3">
           <div>
-            <span className="text-blue-600">Ingresos reales del periodo (contado + abonos):</span>
+            <span className="text-gold-600">Ingresos reales del periodo (contado + abonos):</span>
             <p className="text-lg font-bold text-green-700">{formatCurrency(d.ventas.total)}</p>
           </div>
           <div>
-            <span className="text-blue-600">Egresos totales:</span>
+            <span className="text-gold-600">Egresos totales:</span>
             <p className="text-lg font-bold text-red-700">{formatCurrency(d.gastos.total)}</p>
           </div>
           <div>
-            <span className="text-blue-600">Ganancia neta:</span>
+            <span className="text-gold-600">Ganancia neta:</span>
             <p className={`text-lg font-bold ${d.ganancia.bruta >= 0 ? "text-green-700" : "text-red-700"}`}>
               {formatCurrency(d.ganancia.bruta)}
             </p>
@@ -507,21 +507,21 @@ function SummaryCard({ title, value, isNumber, sub, icon, color, noFormat }: {
   const colors: Record<string, string> = {
     green: "bg-green-50 border-green-200",
     red: "bg-red-50 border-red-200",
-    blue: "bg-blue-50 border-blue-200",
+    blue: "bg-gold-50 border-gold-200",
     purple: "bg-purple-50 border-purple-200",
     orange: "bg-orange-50 border-orange-200",
     teal: "bg-teal-50 border-teal-200",
-    indigo: "bg-indigo-50 border-indigo-200",
+    indigo: "bg-gold-50 border-gold-200",
     rose: "bg-rose-50 border-rose-200",
   };
   const textColors: Record<string, string> = {
     green: "text-green-700",
     red: "text-red-700",
-    blue: "text-blue-700",
+    blue: "text-gold-700",
     purple: "text-purple-700",
     orange: "text-orange-700",
     teal: "text-teal-700",
-    indigo: "text-indigo-700",
+    indigo: "text-gold-700",
     rose: "text-rose-700",
   };
 

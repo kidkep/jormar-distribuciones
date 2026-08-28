@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom";
+﻿import { NavLink } from "react-router-dom";
 import {
   LayoutDashboard,
   Package,
@@ -101,16 +101,16 @@ export function Sidebar({ isOpen, onClose }: Props) {
 
       <aside
         className={cn(
-          "fixed left-0 top-0 z-50 h-full w-64 bg-gray-900 text-white transition-transform duration-200 ease-in-out",
+          "fixed left-0 top-0 z-50 h-full w-64 bg-neutral-950 text-white transition-transform duration-200 ease-in-out",
           isOpen ? "translate-x-0" : "-translate-x-full",
           "lg:translate-x-0 lg:static lg:z-auto"
         )}
       >
-        <div className="flex items-center gap-3 border-b border-gray-700 p-4">
-          <img src="/logo.png" alt="Jormar Distribuciones" className="h-10 w-10 rounded-lg object-contain" />
+        <div className="flex items-center gap-3 border-b border-neutral-800 p-4">
+          <img src="/logo.png" alt="Jormar Distribuciones" className="h-10 w-10 rounded-lg object-contain ring-1 ring-gold-500/40" />
           <div>
-            <h1 className="text-sm font-bold">JORMAR</h1>
-            <p className="text-xs text-gray-400">DISTRIBUCIONES</p>
+            <h1 className="text-sm font-bold text-gold-400">JORMAR</h1>
+            <p className="text-xs text-neutral-500">DISTRIBUCIONES</p>
           </div>
           <button
             onClick={onClose}
@@ -124,7 +124,7 @@ export function Sidebar({ isOpen, onClose }: Props) {
           {[...visibleNavigation, ...(showAdmin ? adminNavigation : [])].map((item) =>
             item.children ? (
               <div key={item.name} className="mb-4">
-                <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-gray-500">
+                <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-gold-600/80">
                   {item.name}
                 </p>
                 {item.children.map((child) => (
@@ -136,8 +136,8 @@ export function Sidebar({ isOpen, onClose }: Props) {
                       cn(
                         "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
                         isActive
-                          ? "bg-blue-600 text-white"
-                          : "text-gray-300 hover:bg-gray-800 hover:text-white"
+                          ? "bg-gold-500 font-medium text-neutral-950"
+                          : "text-neutral-300 hover:bg-neutral-800 hover:text-white"
                       )
                     }
                   >
@@ -155,7 +155,7 @@ export function Sidebar({ isOpen, onClose }: Props) {
                   cn(
                     "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
                     isActive
-                      ? "bg-blue-600 text-white"
+                      ? "bg-gold-600 text-white"
                       : "text-gray-300 hover:bg-gray-800 hover:text-white"
                   )
                 }
@@ -167,13 +167,13 @@ export function Sidebar({ isOpen, onClose }: Props) {
           )}
         </nav>
 
-        <div className="absolute bottom-0 left-0 right-0 border-t border-gray-700 p-3">
+        <div className="absolute bottom-0 left-0 right-0 border-t border-neutral-800 p-3">
           <a
             href="https://catalogo-vpfe.dian.gov.co/User/PersonLogin"
             target="_blank"
             rel="noopener noreferrer"
             onClick={onClose}
-            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-gray-300 transition-colors hover:bg-gray-800 hover:text-white"
+            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-neutral-300 transition-colors hover:bg-neutral-800 hover:text-white"
           >
             <ExternalLink className="h-4 w-4" />
             Ir a la DIAN

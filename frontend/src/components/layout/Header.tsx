@@ -52,7 +52,7 @@ export function Header({ onMenuClick }: Props) {
         {canExport && (
           <button
             onClick={downloadBackup}
-            className="flex items-center gap-2 rounded-lg bg-green-600 px-3 py-2 text-sm text-white hover:bg-green-700"
+            className="flex items-center gap-2 rounded-lg bg-neutral-950 px-3 py-2 text-sm text-gold-400 hover:bg-neutral-800"
           >
             <Database className="h-4 w-4" />
             <span className="hidden sm:inline">Exportación de base de datos</span>
