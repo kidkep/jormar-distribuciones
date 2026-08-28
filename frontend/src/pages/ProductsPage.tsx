@@ -167,7 +167,7 @@ export function ProductsPage() {
                   <label className="mb-1 block text-sm font-medium text-gray-700">SKU</label>
                   <input
                     type="text"
-                    value={editing ? editing.sku : (nextSku ? `${nextSku} (se asignará)` : "Calculando...")}
+                    value={editing ? editing.sku : (nextSku ?? "Calculando...")}
                     disabled
                     className="w-full rounded-lg border bg-gray-50 px-3 py-2 text-sm text-gray-500 font-mono"
                   />
