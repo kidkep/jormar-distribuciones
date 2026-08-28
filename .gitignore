@@ -9,6 +9,7 @@ backups/
 dist/
 build/
 .vite/
+*.tsbuildinfo
 *.log
 .DS_Store
 Thumbs.db
