@@ -21,6 +21,32 @@ async def lifespan(app: FastAPI):
         await conn.execute(text(
             "ALTER TABLE quotes ADD COLUMN IF NOT EXISTS client_name VARCHAR(255)"
         ))
+        await conn.execute(text(
+            "ALTER TABLE sale_distributions "
+            "ADD COLUMN IF NOT EXISTS monto_recibido NUMERIC(12,2) NOT NULL DEFAULT 0"
+        ))
+        await conn.execute(text(
+            "UPDATE sale_distributions SET monto_recibido = sale_total "
+            "WHERE status = 'activa' AND payment_method <> 'credito'"
+        ))
+        await conn.execute(text(
+            "UPDATE sale_distributions sd SET monto_recibido = COALESCE("
+            "(SELECT SUM(p.amount) FROM payments p WHERE p.sale_id = sd.sale_id), 0) "
+            "WHERE sd.payment_method = 'credito'"
+        ))
+        await conn.execute(text(
+            "UPDATE sale_distributions SET status = 'pendiente' "
+            "WHERE payment_method = 'credito' AND monto_recibido <= 0"
+        ))
+        await conn.execute(text(
+            "UPDATE sale_distributions SET "
+            "monto_utilidad = ROUND(monto_recibido * pct_utilidad / 100.0, 2), "
+            "monto_gastos = ROUND(monto_recibido * pct_gastos / 100.0, 2), "
+            "monto_inversion = monto_recibido - "
+            "ROUND(monto_recibido * pct_utilidad / 100.0, 2) - "
+            "ROUND(monto_recibido * pct_gastos / 100.0, 2) "
+            "WHERE payment_method = 'credito'"
+        ))
 
     from sqlalchemy import select
     from app.database import AsyncSessionLocal

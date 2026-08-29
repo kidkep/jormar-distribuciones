@@ -5,6 +5,7 @@ export interface DistributionItem {
   sale_id: number;
   sale_date: string;
   sale_total: number;
+  monto_recibido: number;
   pct_utilidad: number;
   pct_gastos: number;
   pct_inversion: number;

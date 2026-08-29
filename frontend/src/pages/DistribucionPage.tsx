@@ -121,7 +121,7 @@ export function DistribucionPage() {
               <DollarSign className="h-5 w-5 text-gold-600" />
             </div>
             <div>
-              <p className="text-xs font-medium text-gray-500">Total Ventas</p>
+              <p className="text-xs font-medium text-gray-500">Total Recibido</p>
               <p className="text-xs text-gray-400">
                 {summary?.count_ventas ?? 0} venta{(summary?.count_ventas ?? 0) !== 1 ? "s" : ""}
               </p>
@@ -267,6 +267,7 @@ export function DistribucionPage() {
                   <th className="pb-2 pr-4 font-medium">Fecha</th>
                   <th className="pb-2 pr-4 font-medium">Cliente</th>
                   <th className="pb-2 pr-4 font-medium">Metodo</th>
+                  <th className="pb-2 pr-4 text-right font-medium">Recibido</th>
                   <th className="pb-2 pr-4 text-right font-medium">Venta</th>
                   <th className="pb-2 pr-4 text-right font-medium text-emerald-600">
                     Utilidad
@@ -302,6 +303,24 @@ export function DistribucionPage() {
                       >
                         {methodLabels[d.payment_method] || d.payment_method}
                       </span>
+                    </td>
+                    <td className="py-2.5 pr-4 text-right text-gray-600">
+                      {d.payment_method === "credito" ? (
+                        d.status === "pendiente" ? (
+                          <span className="rounded-full bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-700">
+                            Pendiente
+                          </span>
+                        ) : (
+                          <span>
+                            {formatCurrency(d.monto_recibido)}
+                            <span className="ml-1 text-xs text-gray-400">
+                              de {formatCurrency(d.sale_total)}
+                            </span>
+                          </span>
+                        )
+                      ) : (
+                        "--"
+                      )}
                     </td>
                     <td className="py-2.5 pr-4 text-right font-medium text-gray-800">
                       {formatCurrency(d.sale_total)}

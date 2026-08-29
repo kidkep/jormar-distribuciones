@@ -49,7 +49,7 @@ class DistributionRepository:
         result = await self.db.execute(query)
         distributions = list(result.scalars().all())
 
-        total_ventas = sum(float(d.sale_total) for d in distributions)
+        total_ventas = sum(float(d.monto_recibido) for d in distributions)
         total_utilidad = sum(float(d.monto_utilidad) for d in distributions)
         total_gastos = sum(float(d.monto_gastos) for d in distributions)
         total_inversion = sum(float(d.monto_inversion) for d in distributions)

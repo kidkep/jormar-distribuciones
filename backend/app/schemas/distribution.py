@@ -8,6 +8,7 @@ class DistributionResponse(BaseModel):
     sale_id: int
     sale_date: datetime
     sale_total: Decimal
+    monto_recibido: Decimal
     pct_utilidad: Decimal
     pct_gastos: Decimal
     pct_inversion: Decimal

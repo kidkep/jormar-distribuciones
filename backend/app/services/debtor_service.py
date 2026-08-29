@@ -8,6 +8,7 @@ from app.repositories.debtor_repository import DebtorRepository
 from app.repositories.sale_repository import SaleRepository
 from app.schemas.debtor import PaymentCreate
 from app.exceptions import NotFoundException, BadRequestException
+from app.services.distribution_service import DistributionService
 
 
 class DebtorService:
@@ -65,6 +66,12 @@ class DebtorService:
         )
 
         payment = await self.repo.create_payment(payment)
+
+        try:
+            dist_service = DistributionService(self.db)
+            await dist_service.register_receipt(sale_id, Decimal(str(data.amount)))
+        except Exception:
+            pass
 
         if (total_paid + float(data.amount)) >= float(sale.total):
             sale.status = "pagada"

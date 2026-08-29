@@ -58,7 +58,10 @@ class DistributionService:
     async def create_for_sale(self, sale: Sale) -> SaleDistribution:
         sale_total = Decimal(str(sale.total))
 
-        amounts = calculate_distribution(sale_total)
+        is_credit = sale.payment_method == "credito"
+        monto_recibido = Decimal("0") if is_credit else sale_total
+        amounts = calculate_distribution(monto_recibido)
+        status = "pendiente" if is_credit else "activa"
 
         client_name = None
         if sale.client_name:
@@ -70,14 +73,44 @@ class DistributionService:
             sale_id=sale.id,
             sale_date=sale.sale_date,
             sale_total=sale_total,
+            monto_recibido=monto_recibido,
             invoice_number=sale.invoice_number,
             client_name=client_name,
             payment_method=sale.payment_method,
-            status="activa",
+            status=status,
             **amounts,
         )
 
         return await self.repo.create(distribution)
+
+    async def register_receipt(self, sale_id: int, amount: Decimal) -> None:
+        result = await self.db.execute(
+            select(SaleDistribution).where(SaleDistribution.sale_id == sale_id)
+        )
+        dist = result.scalar_one_or_none()
+        if not dist:
+            return
+
+        new_recibido = Decimal(str(dist.monto_recibido)) + amount
+        if new_recibido > Decimal(str(dist.sale_total)):
+            new_recibido = Decimal(str(dist.sale_total))
+
+        dist.monto_recibido = new_recibido
+
+        amounts = calculate_distribution(
+            new_recibido,
+            Decimal(str(dist.pct_utilidad)),
+            Decimal(str(dist.pct_gastos)),
+            Decimal(str(dist.pct_inversion)),
+        )
+        dist.monto_utilidad = amounts["monto_utilidad"]
+        dist.monto_gastos = amounts["monto_gastos"]
+        dist.monto_inversion = amounts["monto_inversion"]
+
+        if new_recibido > 0:
+            dist.status = "activa"
+
+        await self.db.flush()
 
     async def delete_for_sale(self, sale_id: int) -> None:
         await self.repo.delete_by_sale_id(sale_id)

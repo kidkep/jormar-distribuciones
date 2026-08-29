@@ -17,6 +17,7 @@ class SaleDistribution(Base, TimestampMixin):
     sale_id: Mapped[int] = mapped_column(Integer, ForeignKey("sales.id"), nullable=False, unique=True)
     sale_date: Mapped[datetime] = mapped_column(DateTime, nullable=False)
     sale_total: Mapped[float] = mapped_column(Numeric(12, 2), nullable=False)
+    monto_recibido: Mapped[float] = mapped_column(Numeric(12, 2), nullable=False, default=0)
 
     pct_utilidad: Mapped[float] = mapped_column(Numeric(5, 2), nullable=False, default=20.0)
     pct_gastos: Mapped[float] = mapped_column(Numeric(5, 2), nullable=False, default=10.0)
