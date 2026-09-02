@@ -10,17 +10,22 @@ export const THEMES: { name: ThemeName; label: string; swatch: string }[] = [
   { name: "rose", label: "Rosa", swatch: "#E11D48" },
 ];
 
-export function getTheme(): ThemeName {
-  const saved = localStorage.getItem(THEME_KEY) as ThemeName | null;
-  return saved && THEMES.some((t) => t.name === saved) ? saved : "gold";
+export function isTheme(name: string): name is ThemeName {
+  return THEMES.some((t) => t.name === name);
 }
 
-export function applyTheme(name: ThemeName): void {
+export function getTheme(): ThemeName {
+  const saved = localStorage.getItem(THEME_KEY);
+  return saved && isTheme(saved) ? saved : "gold";
+}
+
+export function applyTheme(name: string): void {
+  const valid = isTheme(name) ? name : "gold";
   document.documentElement.setAttribute(
     "data-theme",
-    name === "gold" ? "" : name
+    valid === "gold" ? "" : valid
   );
-  localStorage.setItem(THEME_KEY, name);
+  localStorage.setItem(THEME_KEY, valid);
 }
 
 export function initTheme(): void {

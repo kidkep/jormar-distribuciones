@@ -25,6 +25,7 @@ import { RolesPage } from "@/pages/RolesPage";
 import { AuditLogPage } from "@/pages/AuditLogPage";
 import { NotFoundPage } from "@/pages/NotFoundPage";
 import { useEffect } from "react";
+import { applyTheme } from "@/lib/theme";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -36,11 +37,17 @@ const queryClient = new QueryClient({
 });
 
 function AppRoutes() {
-  const { loadFromStorage, isAuthenticated } = useAuthStore();
+  const { loadFromStorage, isAuthenticated, user } = useAuthStore();
 
   useEffect(() => {
     loadFromStorage();
   }, [loadFromStorage]);
+
+  useEffect(() => {
+    if (user?.theme) {
+      applyTheme(user.theme);
+    }
+  }, [user?.theme]);
 
   return (
     <Routes>

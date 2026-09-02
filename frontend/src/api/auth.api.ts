@@ -18,4 +18,9 @@ export const authApi = {
   }): Promise<void> => {
     await apiClient.put("/auth/me/password", data);
   },
+
+  updateTheme: async (theme: string): Promise<User> => {
+    const response = await apiClient.put("/auth/me/theme", { theme });
+    return response.data;
+  },
 };

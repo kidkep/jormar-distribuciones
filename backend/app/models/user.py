@@ -20,6 +20,7 @@ class User(Base, TimestampMixin):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     is_superuser: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     role_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("roles.id"), nullable=True)
+    theme: Mapped[str] = mapped_column(String(30), server_default="gold", nullable=False)
 
     role: Mapped["Role | None"] = relationship("Role", back_populates="users")
 

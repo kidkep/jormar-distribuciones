@@ -3,9 +3,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.user import User
 from app.repositories.user_repository import UserRepository
 from app.repositories.role_repository import RoleRepository
-from app.schemas.user import UserCreate, UserUpdate, UserChangePassword
+from app.schemas.user import UserCreate, UserUpdate, UserChangePassword, UserUpdateTheme
 from app.utils.security import get_password_hash, verify_password
 from app.exceptions import NotFoundException, ConflictException, BadRequestException
+
+VALID_THEMES = {"gold", "emerald", "blue", "purple", "rose"}
 
 
 class UserService:
@@ -70,6 +72,18 @@ class UserService:
         if data.password:
             user.hashed_password = get_password_hash(data.password)
 
+        if data.theme is not None:
+            if data.theme not in VALID_THEMES:
+                raise BadRequestException("Tema invalido")
+            user.theme = data.theme
+
+        return await self.user_repo.update(user)
+
+    async def update_theme(self, user_id: int, data: UserUpdateTheme) -> User:
+        if data.theme not in VALID_THEMES:
+            raise BadRequestException("Tema invalido")
+        user = await self.get_user(user_id)
+        user.theme = data.theme
         return await self.user_repo.update(user)
 
     async def change_password(self, user_id: int, data: UserChangePassword) -> None:

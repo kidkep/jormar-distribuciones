@@ -5,7 +5,7 @@ from app.database import get_db
 from app.dependencies import get_current_active_user
 from app.models.user import User
 from app.schemas.auth import LoginRequest, TokenResponse
-from app.schemas.user import UserResponse, UserChangePassword
+from app.schemas.user import UserResponse, UserChangePassword, UserUpdateTheme
 from app.services.auth_service import AuthService
 from app.services.user_service import UserService
 from app.utils.security import create_access_token
@@ -35,3 +35,13 @@ async def change_my_password(
     service = UserService(db)
     await service.change_password(current_user.id, data)
     return {"message": "Contrasena actualizada correctamente"}
+
+
+@router.put("/me/theme", response_model=UserResponse)
+async def update_my_theme(
+    data: UserUpdateTheme,
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db),
+):
+    service = UserService(db)
+    return await service.update_theme(current_user.id, data)

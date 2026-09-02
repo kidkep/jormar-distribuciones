@@ -21,6 +21,7 @@ export interface User {
   permissions: string[];
   created_at: string;
   updated_at: string;
+  theme: string;
 }
 
 export interface UserCreate {

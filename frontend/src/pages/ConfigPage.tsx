@@ -1,8 +1,8 @@
 ﻿import { useQuery } from "@tanstack/react-query";
 import { monitorApi } from "@/api/monitor.api";
 import { cn } from "@/lib/utils";
-import { THEMES, getTheme, applyTheme, type ThemeName } from "@/lib/theme";
-import { useState } from "react";
+import { THEMES } from "@/lib/theme";
+import { useTheme } from "@/hooks/useTheme";
 import {
   Activity,
   Server,
@@ -21,12 +21,7 @@ export function ConfigPage() {
     refetchInterval: 60_000,
   });
 
-  const [theme, setTheme] = useState<ThemeName>(getTheme());
-
-  const selectTheme = (name: ThemeName) => {
-    applyTheme(name);
-    setTheme(name);
-  };
+  const { theme, setTheme } = useTheme();
 
   return (
     <div className="space-y-8">
@@ -40,7 +35,7 @@ export function ConfigPage() {
           {THEMES.map((t) => (
             <button
               key={t.name}
-              onClick={() => selectTheme(t.name)}
+              onClick={() => setTheme(t.name)}
               className={cn(
                 "flex items-center gap-3 rounded-lg border p-3 text-sm transition-colors",
                 theme === t.name

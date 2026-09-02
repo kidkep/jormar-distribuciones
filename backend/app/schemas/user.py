@@ -25,11 +25,16 @@ class UserUpdate(BaseModel):
     role_id: int | None = None
     is_active: bool | None = None
     is_superuser: bool | None = None
+    theme: str | None = None
 
 
 class UserChangePassword(BaseModel):
     current_password: str
     new_password: str
+
+
+class UserUpdateTheme(BaseModel):
+    theme: str
 
 
 class RoleBrief(BaseModel):
@@ -46,6 +51,7 @@ class UserResponse(UserBase, TimestampSchema):
     role_id: int | None = None
     role: RoleBrief | None = None
     permissions: list[str] = []
+    theme: str = "gold"
 
     model_config = {"from_attributes": True}
 
