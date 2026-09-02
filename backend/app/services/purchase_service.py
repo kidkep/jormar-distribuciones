@@ -100,6 +100,8 @@ class PurchaseOrderService:
             product = result.scalar_one_or_none()
             if product:
                 product.current_stock += item.quantity
+                if not product.is_active:
+                    product.is_active = True
         await self.db.commit()
 
     async def delete_order(self, order_id: int) -> None:
