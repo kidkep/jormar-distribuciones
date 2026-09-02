@@ -305,7 +305,7 @@ export function QuotesPage() {
                   <tbody className="divide-y">
                     {cart.map((item) => (
                       <tr key={item.product.id}>
-                        <td className="px-2 py-2">{item.product.name}</td>
+                        <td className="px-2 py-2 font-mono text-xs font-bold">{item.product.sku} <span className="font-normal text-gray-700">{item.product.name}</span></td>
                         <td className="px-2 py-2 text-center">
                           <input type="text" inputMode="numeric" value={item.quantity} onChange={(e) => updateCartItem(item.product.id, e.target.value)} className="w-16 rounded border px-2 py-1 text-center text-sm" />
                         </td>
@@ -374,7 +374,7 @@ export function QuotesPage() {
               <tbody className="divide-y">
                 {showDetail.items.map((item) => (
                   <tr key={item.id}>
-                    <td className="px-2 py-2">{item.product?.name || `Producto #${item.product_id}`}</td>
+                    <td className="px-2 py-2 font-mono text-xs font-bold">{item.product ? item.product.sku : ""} <span className={`font-normal ${item.product ? "text-gray-700" : ""}`}>{item.product?.name || `Producto #${item.product_id}`}</span></td>
                     <td className="px-2 py-2 text-center">{item.quantity}</td>
                     <td className="px-2 py-2 text-right">{formatCurrency(Number(item.unit_price))}</td>
                     <td className="px-2 py-2 text-right">{formatCurrency(Number(item.total_price))}</td>
