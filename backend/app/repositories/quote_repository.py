@@ -24,12 +24,11 @@ class QuoteRepository:
             selectinload(Quote.user),
         )
 
-        if search:
-            query = query.where(Quote.quote_number.ilike(f"%{search}%"))
-
         count_query = select(func.count()).select_from(Quote)
         if search:
-            count_query = count_query.where(Quote.quote_number.ilike(f"%{search}%"))
+            filter_condition = Quote.quote_number.ilike(f"%{search}%") | Quote.client_name.ilike(f"%{search}%")
+            query = query.where(filter_condition)
+            count_query = count_query.where(filter_condition)
 
         total_result = await self.db.execute(count_query)
         total = total_result.scalar()
