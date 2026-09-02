@@ -88,15 +88,18 @@ def generate_invoice_pdf_bytes(sale) -> bytes:
 
     pdf.ln(5)
 
-    col_widths = [18, 62, 25, 35, 35]
+    col_widths = [16, 80, 24, 35, 35]
     headers = ["Cant", "Producto", "P. Unit", "Subtotal", "Total"]
 
     def get_row(item):
-        product_name = item.product.name if item.product else f"Producto #{item.product_id}"
+        product = item.product
+        product_name = product.name if product else f"Producto #{item.product_id}"
+        sku = product.sku if product else ""
+        label = f"{sku} - {product_name}" if sku else product_name
         item_sub = float(item.unit_price) * item.quantity
         return [
             str(item.quantity),
-            product_name[:35],
+            label[:40],
             f"${item.unit_price:,.0f}",
             f"${item_sub:,.0f}",
             f"${float(item.total_price):,.0f}",
@@ -139,15 +142,18 @@ def generate_quote_pdf_bytes(quote) -> bytes:
 
     pdf.ln(5)
 
-    col_widths = [18, 62, 25, 35, 35]
+    col_widths = [16, 80, 24, 35, 35]
     headers = ["Cant", "Producto", "P. Unit", "Subtotal", "Total"]
 
     def get_row(item):
-        product_name = item.product.name if item.product else f"Producto #{item.product_id}"
+        product = item.product
+        product_name = product.name if product else f"Producto #{item.product_id}"
+        sku = product.sku if product else ""
+        label = f"{sku} - {product_name}" if sku else product_name
         item_sub = float(item.unit_price) * item.quantity
         return [
             str(item.quantity),
-            product_name[:35],
+            label[:40],
             f"${item.unit_price:,.0f}",
             f"${item_sub:,.0f}",
             f"${float(item.total_price):,.0f}",
@@ -187,15 +193,18 @@ def generate_purchase_order_pdf_bytes(order) -> bytes:
 
     pdf.ln(5)
 
-    col_widths = [18, 62, 25, 35, 35]
+    col_widths = [16, 80, 24, 35, 35]
     headers = ["Cant", "Producto", "P. Unit", "Subtotal", "Total"]
 
     def get_row(item):
-        product_name = item.product.name if item.product else f"Producto #{item.product_id}"
+        product = item.product
+        product_name = product.name if product else f"Producto #{item.product_id}"
+        sku = product.sku if product else ""
+        label = f"{sku} - {product_name}" if sku else product_name
         item_sub = float(item.unit_price) * item.quantity
         return [
             str(item.quantity),
-            product_name[:35],
+            label[:40],
             f"${item.unit_price:,.0f}",
             f"${item_sub:,.0f}",
             f"${float(item.total_price):,.0f}",
