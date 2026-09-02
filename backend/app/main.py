@@ -70,6 +70,9 @@ async def lifespan(app: FastAPI):
                 ("proveedores.create", "Crear proveedores", "proveedores"),
                 ("proveedores.edit", "Editar proveedores", "proveedores"),
                 ("proveedores.delete", "Eliminar proveedores", "proveedores"),
+                ("compras.view", "Ver solicitudes de pedido", "compras"),
+                ("compras.create", "Crear solicitudes de pedido", "compras"),
+                ("compras.edit", "Editar/actualizar solicitudes de pedido", "compras"),
                 ("inventario.view", "Ver inventario", "inventario"),
                 ("inventario.movimientos", "Registrar movimientos", "inventario"),
                 ("ventas.view", "Ver ventas", "ventas"),
@@ -143,6 +146,9 @@ async def lifespan(app: FastAPI):
             ("tareas.view", "Ver tareas y recordatorios", "tareas"),
             ("tareas.gestionar", "Gestionar tareas y recordatorios", "tareas"),
             ("productos.toggle_status", "Activar/Desactivar productos", "productos"),
+            ("compras.view", "Ver solicitudes de pedido", "compras"),
+            ("compras.create", "Crear solicitudes de pedido", "compras"),
+            ("compras.edit", "Editar/actualizar solicitudes de pedido", "compras"),
         ]
 
         created_perms = []

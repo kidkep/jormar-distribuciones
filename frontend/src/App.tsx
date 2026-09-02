@@ -10,6 +10,7 @@ import { DashboardPage } from "@/pages/DashboardPage";
 import { ProductsPage } from "@/pages/ProductsPage";
 import { ClientsPage } from "@/pages/ClientsPage";
 import { SuppliersPage } from "@/pages/SuppliersPage";
+import { PurchaseOrdersPage } from "@/pages/PurchaseOrdersPage";
 import { SalesPage } from "@/pages/SalesPage";
 import { QuotesPage } from "@/pages/QuotesPage";
 import { DebtorsPage } from "@/pages/DebtorsPage";
@@ -57,6 +58,7 @@ function AppRoutes() {
         <Route path="productos" element={<ProductsPage />} />
         <Route path="clientes" element={<ClientsPage />} />
         <Route path="proveedores" element={<SuppliersPage />} />
+        <Route path="pedidos-proveedores" element={<PurchaseOrdersPage />} />
         <Route path="ventas/nueva" element={<SalesPage />} />
         <Route path="cotizaciones" element={<QuotesPage />} />
         <Route path="deudores" element={<DebtorsPage />} />

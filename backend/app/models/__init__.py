@@ -15,10 +15,11 @@ from app.models.retiro import Retiro
 from app.models.distribution import SaleDistribution
 from app.models.task import Task
 from app.models.health_check import HealthCheck
+from app.models.purchase_order import PurchaseOrder, PurchaseOrderItem
 
 __all__ = [
     "Base", "User", "Role", "Permission", "AuditLog",
     "Category", "Unit", "Product", "Supplier", "Client",
     "Sale", "SaleItem", "Quote", "QuoteItem", "Payment", "Expense", "Retiro",
-    "SaleDistribution", "Task", "HealthCheck",
+    "SaleDistribution", "Task", "HealthCheck", "PurchaseOrder", "PurchaseOrderItem",
 ]

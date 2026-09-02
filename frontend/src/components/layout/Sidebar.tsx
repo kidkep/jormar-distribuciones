@@ -49,6 +49,7 @@ const navigation: NavItem[] = [
     children: [
       { name: "Productos", href: "/productos", icon: Package, permission: "productos.view" },
       { name: "Proveedores", href: "/proveedores", icon: Truck, permission: "proveedores.view" },
+      { name: "Solicitudes de Pedido", href: "/pedidos-proveedores", icon: ClipboardList, permission: "compras.view" },
     ],
   },
   {
