@@ -1,6 +1,8 @@
 ﻿import { useQuery } from "@tanstack/react-query";
 import { monitorApi } from "@/api/monitor.api";
 import { cn } from "@/lib/utils";
+import { THEMES, getTheme, applyTheme, type ThemeName } from "@/lib/theme";
+import { useState } from "react";
 import {
   Activity,
   Server,
@@ -9,6 +11,7 @@ import {
   CheckCircle2,
   XCircle,
   Wifi,
+  Palette,
 } from "lucide-react";
 
 export function ConfigPage() {
@@ -18,9 +21,42 @@ export function ConfigPage() {
     refetchInterval: 60_000,
   });
 
+  const [theme, setTheme] = useState<ThemeName>(getTheme());
+
+  const selectTheme = (name: ThemeName) => {
+    applyTheme(name);
+    setTheme(name);
+  };
+
   return (
     <div className="space-y-8">
       <h1 className="text-2xl font-bold text-gray-900">Configuracion</h1>
+
+      {/* Temas de color */}
+      <div className="rounded-xl border bg-white p-6 shadow-sm">
+        <h2 className="mb-1 flex items-center gap-2 text-lg font-semibold"><Palette className="h-5 w-5" /> Tema de Color</h2>
+        <p className="mb-4 text-sm text-gray-500">Elige el color de acento de la aplicacion. Se guarda en este dispositivo.</p>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+          {THEMES.map((t) => (
+            <button
+              key={t.name}
+              onClick={() => selectTheme(t.name)}
+              className={cn(
+                "flex items-center gap-3 rounded-lg border p-3 text-sm transition-colors",
+                theme === t.name
+                  ? "border-gold-500 bg-gold-50 font-semibold text-gold-700"
+                  : "border-gray-200 hover:bg-gray-50"
+              )}
+            >
+              <span
+                className="h-6 w-6 shrink-0 rounded-full ring-2 ring-white shadow"
+                style={{ backgroundColor: t.swatch }}
+              />
+              <span>{t.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
 
       {/* Monitor de estado */}
       <div className="rounded-xl border bg-white p-6 shadow-sm">
