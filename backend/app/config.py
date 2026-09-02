@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 480
     APP_NAME: str = "JORMAR DISTRIBUCIONES"
-    APP_VERSION: str = "1.0.0"
+    APP_VERSION: str = "1.0"
     DEBUG: bool = True
     CORS_ORIGINS: str = "http://localhost:5173,http://localhost:3000"
 

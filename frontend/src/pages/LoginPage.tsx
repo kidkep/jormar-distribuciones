@@ -126,7 +126,7 @@ export function LoginPage() {
           </form>
 
           <p className="mt-6 text-center text-xs text-neutral-600">
-            Jormar Distribuciones &copy; 2026
+            Jormar Distribuciones &copy; 2026 &middot; JC &middot; v1.0
           </p>
 
           <div className="pointer-events-none absolute inset-0 z-10 rounded-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100 bg-[radial-gradient(180px_circle_at_var(--spot-x)_var(--spot-y),rgba(199,154,50,0.18),transparent_70%)]" />

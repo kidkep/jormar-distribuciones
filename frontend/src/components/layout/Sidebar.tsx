@@ -179,6 +179,10 @@ export function Sidebar({ isOpen, onClose }: Props) {
             <ExternalLink className="h-4 w-4" />
             Ir a la DIAN
           </a>
+          <p className="mt-2 flex items-center justify-between px-3 text-[11px] text-neutral-600">
+            <span>JC</span>
+            <span>v1.0</span>
+          </p>
         </div>
       </aside>
     </>
