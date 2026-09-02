@@ -6,6 +6,7 @@ from zoneinfo import ZoneInfo
 
 from app.models.purchase_order import PurchaseOrder, PurchaseOrderItem
 from app.models.supplier import Supplier
+from app.models.product import Product
 from app.repositories.purchase_repository import PurchaseOrderRepository
 from app.repositories.product_repository import ProductRepository
 from app.schemas.purchase import PurchaseOrderCreate
@@ -86,8 +87,20 @@ class PurchaseOrderService:
             raise BadRequestException(f"Estado inválido. Valores permitidos: {', '.join(valid_statuses)}")
 
         order = await self.get_order(order_id)
+
+        if status == "recibida" and order.status != "recibida":
+            await self._increment_stock(order)
+
         order.status = status
         return await self.repo.update(order)
+
+    async def _increment_stock(self, order: PurchaseOrder) -> None:
+        for item in order.items:
+            result = await self.db.execute(select(Product).where(Product.id == item.product_id))
+            product = result.scalar_one_or_none()
+            if product:
+                product.current_stock += item.quantity
+        await self.db.commit()
 
     async def delete_order(self, order_id: int) -> None:
         order = await self.get_order(order_id)
