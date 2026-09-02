@@ -1,7 +1,7 @@
 ﻿import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { debtorsApi, type Debtor } from "@/api/debtors.api";
-import { AlertCircle, DollarSign, Eye, XCircle } from "lucide-react";
+import { AlertCircle, DollarSign, Eye, XCircle, Download } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 
 export function DebtorsPage() {
@@ -30,6 +30,21 @@ export function DebtorsPage() {
   });
 
   const totalDebt = debtors.reduce((sum, d) => sum + d.balance, 0);
+
+  const downloadInvoice = async (invoiceNumber: string) => {
+    const baseUrl = import.meta.env.VITE_API_URL || "/api/v1";
+    const token = localStorage.getItem("token");
+    const res = await fetch(`${baseUrl}/sales/download/${invoiceNumber}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${invoiceNumber}.pdf`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <div className="space-y-6">
@@ -102,7 +117,12 @@ export function DebtorsPage() {
           <div className="w-full max-w-lg rounded-xl bg-white p-6 shadow-2xl">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-lg font-semibold">Detalle - {showDetail.invoice_number}</h2>
-              <button onClick={() => setShowDetail(null)} className="text-gray-400 hover:text-gray-600"><XCircle className="h-5 w-5" /></button>
+              <div className="flex gap-2">
+                <button onClick={() => downloadInvoice(showDetail.invoice_number)} className="text-green-600 hover:text-green-700" title="Descargar remision">
+                  <Download className="h-5 w-5" />
+                </button>
+                <button onClick={() => setShowDetail(null)} className="text-gray-400 hover:text-gray-600"><XCircle className="h-5 w-5" /></button>
+              </div>
             </div>
             <div className="mb-4 grid grid-cols-2 gap-2 text-sm">
               <div><span className="text-gray-500">Cliente:</span> {showDetail.client_name || "Sin cliente"}</div>
@@ -119,7 +139,7 @@ export function DebtorsPage() {
               <tbody className="divide-y">
                 {showDetail.items.map((item, i) => (
                   <tr key={i}>
-                    <td className="px-2 py-2">{item.product_name}</td>
+                    <td className="px-2 py-2 font-mono text-xs font-bold">{item.sku} <span className="font-normal text-gray-700">{item.product_name}</span></td>
                     <td className="px-2 py-2 text-center">{item.quantity}</td>
                     <td className="px-2 py-2 text-right">{formatCurrency(Number(item.total_price))}</td>
                   </tr>

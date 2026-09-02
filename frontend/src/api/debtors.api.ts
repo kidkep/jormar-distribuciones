@@ -20,7 +20,7 @@ export interface Debtor {
   total: number;
   total_paid: number;
   balance: number;
-  items: { product_name: string; quantity: number; unit_price: number; total_price: number }[];
+  items: { product_name: string; sku: string; quantity: number; unit_price: number; total_price: number }[];
   payments: Payment[];
 }
 

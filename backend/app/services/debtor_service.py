@@ -35,7 +35,7 @@ class DebtorService:
                 "total_paid": Decimal(str(total_paid)),
                 "balance": Decimal(str(balance)),
                 "items": [
-                    {"product_name": item.product.name if item.product else "N/A", "quantity": item.quantity, "unit_price": item.unit_price, "total_price": item.total_price}
+                    {"product_name": item.product.name if item.product else "N/A", "sku": item.product.sku if item.product else "", "quantity": item.quantity, "unit_price": item.unit_price, "total_price": item.total_price}
                     for item in sale.items
                 ],
                 "payments": sale.payments,
