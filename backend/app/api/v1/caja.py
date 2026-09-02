@@ -293,6 +293,12 @@ async def get_caja_resumen(
         "costos": costos_neto,
     }
 
+    distribucion_totales = {
+        "utilidad": round(dist_utilidad, 2),
+        "inversion": round(dist_inversion, 2),
+        "costos": round(dist_costos, 2),
+    }
+
     return {
         "ventas_hoy": ventas_hoy,
         "ventas_mes": ventas_mes,
@@ -308,4 +314,5 @@ async def get_caja_resumen(
         "saldo_por_metodo": saldo_por_metodo,
         "total_retiros": total_retiros,
         "distribucion": distribucion,
+        "distribucion_totales": distribucion_totales,
     }

@@ -27,6 +27,11 @@ export interface CajaResumen {
     inversion: number;
     costos: number;
   };
+  distribucion_totales: {
+    utilidad: number;
+    inversion: number;
+    costos: number;
+  };
 }
 
 export const cajaApi = {

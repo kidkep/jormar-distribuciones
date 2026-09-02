@@ -166,8 +166,9 @@ export function DineroPage() {
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <div className="rounded-lg border border-green-200 bg-green-50 p-4">
             <p className="text-sm font-medium text-green-800">Utilidad</p>
-            <p className={`mt-1 text-2xl font-bold ${d.distribucion.utilidad >= 0 ? "text-green-700" : "text-red-600"}`}>
-              {formatCurrency(d.distribucion.utilidad)}
+            <p className="mt-1 text-2xl font-bold text-green-700">{formatCurrency(d.distribucion.utilidad)}</p>
+            <p className="mt-1 text-xs text-green-600">
+              Total generado: {formatCurrency(d.distribucion_totales.utilidad)}
             </p>
           </div>
           <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
@@ -175,11 +176,17 @@ export function DineroPage() {
             <p className={`mt-1 text-2xl font-bold ${d.distribucion.inversion >= 0 ? "text-blue-700" : "text-red-600"}`}>
               {formatCurrency(d.distribucion.inversion)}
             </p>
+            <p className="mt-1 text-xs text-blue-600">
+              Total generado: {formatCurrency(d.distribucion_totales.inversion)}
+            </p>
           </div>
           <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
             <p className="text-sm font-medium text-amber-800">Costos / Gastos</p>
             <p className={`mt-1 text-2xl font-bold ${d.distribucion.costos >= 0 ? "text-amber-700" : "text-red-600"}`}>
               {formatCurrency(d.distribucion.costos)}
+            </p>
+            <p className="mt-1 text-xs text-amber-600">
+              Total generado: {formatCurrency(d.distribucion_totales.costos)}
             </p>
           </div>
         </div>
