@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { purchaseOrdersApi, type PurchaseOrder, type PurchaseOrderCreate } from "@/api/purchaseOrders.api";
 import { productsApi, type Product } from "@/api/products.api";
-import { suppliersApi, type Supplier } from "@/api/suppliers.api";
 import { Plus, Search, Eye, Trash2, Send, CheckCircle, XCircle, FileText, Download } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { SupplierPicker } from "@/components/common/SupplierPicker";
@@ -62,8 +61,8 @@ export function PurchaseOrdersPage() {
   });
 
   const { data: suppliers = [] } = useQuery({
-    queryKey: ["suppliers"],
-    queryFn: () => suppliersApi.list(1, 1000),
+    queryKey: ["purchase-suppliers"],
+    queryFn: () => purchaseOrdersApi.listSuppliers(),
   });
 
   const createMutation = useMutation({

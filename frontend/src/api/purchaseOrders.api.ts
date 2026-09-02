@@ -1,4 +1,5 @@
 import apiClient from "./client";
+import type { Supplier } from "./suppliers.api";
 
 export interface PurchaseOrderItem {
   id: number;
@@ -48,6 +49,11 @@ export interface PurchaseOrderCreate {
 export const purchaseOrdersApi = {
   list: async (page = 1, size = 50, search = ""): Promise<PurchaseOrder[]> => {
     const response = await apiClient.get("/purchase-orders", { params: { page, size, search } });
+    return response.data;
+  },
+
+  listSuppliers: async (): Promise<Supplier[]> => {
+    const response = await apiClient.get("/purchase-orders/suppliers");
     return response.data;
   },
 

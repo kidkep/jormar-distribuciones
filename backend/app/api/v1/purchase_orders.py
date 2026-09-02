@@ -6,7 +6,10 @@ import io
 from app.database import get_db
 from app.dependencies import require_permission
 from app.models.user import User
+from app.models.supplier import Supplier
+from app.repositories.supplier_repository import SupplierRepository
 from app.schemas.purchase import PurchaseOrderCreate, PurchaseOrderResponse
+from app.schemas.supplier import SupplierResponse
 from app.schemas.common import MessageResponse
 from app.services.purchase_service import PurchaseOrderService
 from app.utils.pdf_generator import generate_purchase_order_pdf_bytes
@@ -27,6 +30,16 @@ async def list_orders(
     skip = (page - 1) * size
     orders, total = await service.get_orders(skip, size, search)
     return orders
+
+
+@router.get("/suppliers", response_model=list[SupplierResponse])
+async def list_purchase_suppliers(
+    db: AsyncSession = Depends(get_db),
+    _user: User = Depends(require_permission("compras.view")),
+):
+    repo = SupplierRepository(db)
+    suppliers, _ = await repo.get_all(0, 1000, "")
+    return suppliers
 
 
 @router.get("/download/{order_id}")
