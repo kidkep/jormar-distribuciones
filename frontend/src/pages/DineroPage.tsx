@@ -190,6 +190,15 @@ export function DineroPage() {
             </p>
           </div>
         </div>
+
+        <div className="mt-4 flex items-center justify-between rounded-lg border-2 border-gray-300 bg-gray-50 px-4 py-3">
+          <span className="text-sm font-semibold text-gray-700">
+            Total Distribución
+          </span>
+          <span className="text-xl font-extrabold text-gray-900">
+            {formatCurrency(d.distribucion.utilidad + d.distribucion.inversion + d.distribucion.costos)}
+          </span>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
