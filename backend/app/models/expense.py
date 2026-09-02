@@ -22,6 +22,7 @@ class Expense(Base, TimestampMixin):
     payment_method: Mapped[str] = mapped_column(String(30), nullable=False, default="efectivo")
     reference: Mapped[str | None] = mapped_column(String(100), nullable=True)
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    distribution_category: Mapped[str] = mapped_column(String(30), nullable=False, default="costos")
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
 
     user: Mapped["User"] = relationship("User")

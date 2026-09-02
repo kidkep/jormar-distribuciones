@@ -23,6 +23,7 @@ class RetiroCreate(BaseModel):
     retiro_date: str = ""
     reference: str = ""
     notes: str = ""
+    distribution_category: str = "utilidad"
 
 
 class RetiroOut(BaseModel):
@@ -33,6 +34,7 @@ class RetiroOut(BaseModel):
     retiro_date: str
     reference: str | None
     notes: str | None
+    distribution_category: str
     user_name: str
     created_at: str | None
 
@@ -61,6 +63,7 @@ async def get_retiros(
             retiro_date=r.retiro_date.strftime("%Y-%m-%d") if r.retiro_date else "",
             reference=r.reference,
             notes=r.notes,
+            distribution_category=r.distribution_category,
             user_name=user.username if user else "Desconocido",
             created_at=r.created_at.strftime("%Y-%m-%d %H:%M") if r.created_at else "",
         ))
@@ -78,6 +81,10 @@ async def create_retiro(
 
     if data.source_method == "credito":
         raise HTTPException(status_code=400, detail="No se puede hacer retiros desde credito")
+
+    valid_categories = {"utilidad", "inversion", "costos"}
+    if data.distribution_category not in valid_categories:
+        raise HTTPException(status_code=400, detail="Categoria de saque invalida")
 
     methods = ["efectivo", "nequi", "bancolombia", "bogota"]
 
@@ -138,6 +145,7 @@ async def create_retiro(
         retiro_date=datetime.strptime(data.retiro_date, "%Y-%m-%d") if data.retiro_date else datetime.now(ZoneInfo("America/Bogota")).replace(tzinfo=None),
         reference=data.reference if data.reference else None,
         notes=data.notes if data.notes else None,
+        distribution_category=data.distribution_category,
         user_id=user.id,
     )
     db.add(retiro)

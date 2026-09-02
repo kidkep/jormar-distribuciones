@@ -11,6 +11,7 @@ from app.models.sale import Sale
 from app.models.expense import Expense
 from app.models.payment import Payment
 from app.models.retiro import Retiro
+from app.models.distribution import SaleDistribution
 
 router = APIRouter(prefix="/caja", tags=["Caja"])
 
@@ -250,6 +251,48 @@ async def get_caja_resumen(
     movimientos.sort(key=lambda x: x["fecha"], reverse=True)
     movimientos = movimientos[:15]
 
+    # ========================
+    # DISTRIBUCION (Utilidad / Inversion / Costos)
+    # El dinero de cada venta real se reparte segun porcentajes (sale_distributions).
+    # Luego los egresos (gastos y saques) se descuentan de la categoria que se
+    # eligio al registrarlos.
+    # ========================
+    dist_q = await db.execute(
+        select(
+            func.coalesce(func.sum(SaleDistribution.monto_utilidad), 0),
+            func.coalesce(func.sum(SaleDistribution.monto_inversion), 0),
+            func.coalesce(func.sum(SaleDistribution.monto_gastos), 0),
+        ).where(SaleDistribution.status == "activa")
+    )
+    drow = dist_q.one()
+    dist_utilidad = float(drow[0] or 0)
+    dist_inversion = float(drow[1] or 0)
+    dist_costos = float(drow[2] or 0)
+
+    retiros_por_cat = {}
+    for cat in ["utilidad", "inversion", "costos"]:
+        r = await db.execute(
+            select(func.coalesce(func.sum(Retiro.amount), 0)).where(Retiro.distribution_category == cat)
+        )
+        retiros_por_cat[cat] = float(r.scalar() or 0)
+
+    gastos_por_cat = {}
+    for cat in ["utilidad", "inversion", "costos"]:
+        r = await db.execute(
+            select(func.coalesce(func.sum(Expense.amount), 0)).where(Expense.distribution_category == cat)
+        )
+        gastos_por_cat[cat] = float(r.scalar() or 0)
+
+    utilidad_neto = round(dist_utilidad - retiros_por_cat["utilidad"] - gastos_por_cat["utilidad"], 2)
+    inversion_neto = round(dist_inversion - retiros_por_cat["inversion"] - gastos_por_cat["inversion"], 2)
+    costos_neto = round(dist_costos - retiros_por_cat["costos"] - gastos_por_cat["costos"], 2)
+
+    distribucion = {
+        "utilidad": utilidad_neto,
+        "inversion": inversion_neto,
+        "costos": costos_neto,
+    }
+
     return {
         "ventas_hoy": ventas_hoy,
         "ventas_mes": ventas_mes,
@@ -264,4 +307,5 @@ async def get_caja_resumen(
         "saldo_total": total_general,
         "saldo_por_metodo": saldo_por_metodo,
         "total_retiros": total_retiros,
+        "distribucion": distribucion,
     }

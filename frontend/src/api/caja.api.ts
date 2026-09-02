@@ -22,6 +22,11 @@ export interface CajaResumen {
   saldo_total: number;
   saldo_por_metodo: Record<string, number>;
   total_retiros: number;
+  distribucion: {
+    utilidad: number;
+    inversion: number;
+    costos: number;
+  };
 }
 
 export const cajaApi = {

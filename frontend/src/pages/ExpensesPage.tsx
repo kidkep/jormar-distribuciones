@@ -25,6 +25,7 @@ export function ExpensesPage() {
     amount: 0,
     category: "general",
     payment_method: "efectivo",
+    distribution_category: "costos",
   });
   const queryClient = useQueryClient();
 
@@ -44,7 +45,7 @@ export function ExpensesPage() {
       queryClient.invalidateQueries({ queryKey: ["expenses"] });
       queryClient.invalidateQueries({ queryKey: ["expenses-total"] });
       setShowModal(false);
-      setForm({ description: "", amount: 0, category: "general", payment_method: "efectivo" });
+      setForm({ description: "", amount: 0, category: "general", payment_method: "efectivo", distribution_category: "costos" });
     },
   });
 
@@ -148,6 +149,14 @@ export function ExpensesPage() {
                     <option value="nequi">Nequi</option>
                     <option value="bancolombia">Bancolombia</option>
                     <option value="bogota">Banco de Bogota</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">Sale de la categoria</label>
+                  <select value={form.distribution_category || "costos"} onChange={(e) => setForm({ ...form, distribution_category: e.target.value })} className="w-full rounded-lg border px-3 py-2 text-sm">
+                    <option value="costos">Costos / Gastos</option>
+                    <option value="utilidad">Utilidad</option>
+                    <option value="inversion">Inversión</option>
                   </select>
                 </div>
                 <div>

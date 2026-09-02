@@ -15,8 +15,10 @@ export function DineroPage() {
     retiro_date: new Date().toISOString().split("T")[0],
     reference: "",
     notes: "",
+    distribution_category: "utilidad",
   });
   const [retiroError, setRetiroError] = useState<string | null>(null);
+  const [showConfig, setShowConfig] = useState(false);
 
   const { data: cajaData, isLoading: loadingCaja } = useQuery({
     queryKey: ["caja"],
@@ -35,7 +37,7 @@ export function DineroPage() {
       queryClient.invalidateQueries({ queryKey: ["caja"] });
       setShowForm(false);
       setRetiroError(null);
-      setForm({ amount: "", source_method: "nequi", description: "", retiro_date: new Date().toISOString().split("T")[0], reference: "", notes: "" });
+      setForm({ amount: "", source_method: "nequi", description: "", retiro_date: new Date().toISOString().split("T")[0], reference: "", notes: "", distribution_category: "utilidad" });
     },
     onError: (error: any) => {
       const msg = error?.response?.data?.detail || error?.message || "Error al registrar el saque";
@@ -66,6 +68,12 @@ export function DineroPage() {
     credito: "bg-orange-50 border-orange-200 text-orange-700",
   };
 
+  const catLabels: Record<string, string> = {
+    utilidad: "Utilidad",
+    inversion: "Inversión",
+    costos: "Costos / Gastos",
+  };
+
   const handleSubmit = () => {
     if (!form.amount || !form.description) return;
     createMutation.mutate({
@@ -75,6 +83,7 @@ export function DineroPage() {
       retiro_date: form.retiro_date,
       reference: form.reference,
       notes: form.notes,
+      distribution_category: form.distribution_category,
     });
   };
 
@@ -128,6 +137,52 @@ export function DineroPage() {
         <Card title="Ventas Mes" value={d.ventas_mes} icon={<TrendingUp className="h-5 w-5 text-green-600" />} color="bg-green-50 border-green-200" textColor="text-green-700" />
         <Card title="Gastos Mes" value={d.gastos_mes} icon={<TrendingDown className="h-5 w-5 text-red-600" />} color="bg-red-50 border-red-200" textColor="text-red-700" />
         <Card title="Ganancia Neta Mes" value={d.ganancia_neta_mes} icon={<DollarSign className="h-5 w-5 text-gold-600" />} color="bg-gold-50 border-gold-200" textColor="text-gold-700" />
+      </div>
+
+      {/* Distribucion del dinero */}
+      <div className="rounded-xl border bg-white p-5 shadow-sm">
+        <div className="mb-4 flex items-center justify-between">
+          <div>
+            <h2 className="text-base font-semibold text-gray-800">Distribución del Dinero</h2>
+            <p className="text-xs text-gray-500">
+              Cada venta se reparte entre estas categorías. Los gastos y saques salen de la categoría que elijas al crearlos.
+            </p>
+          </div>
+          <button
+            onClick={() => setShowConfig(!showConfig)}
+            className="rounded-lg border border-gray-300 px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-50"
+          >
+            {showConfig ? "Ocultar" : "Cómo se distribuye"}
+          </button>
+        </div>
+
+        {showConfig && (
+          <div className="mb-4 rounded-lg border border-gold-200 bg-gold-50 p-3 text-xs text-gray-700">
+            Reparto por defecto por cada venta: <strong>20% Utilidad</strong> · <strong>10% Costos/Gastos</strong> · <strong>70% Inversión</strong>.
+            Los gastos se descuentan de <strong>Costos/Gastos</strong> y los saques de <strong>Utilidad</strong> (puedes cambiarlo al crearlos).
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <div className="rounded-lg border border-green-200 bg-green-50 p-4">
+            <p className="text-sm font-medium text-green-800">Utilidad</p>
+            <p className={`mt-1 text-2xl font-bold ${d.distribucion.utilidad >= 0 ? "text-green-700" : "text-red-600"}`}>
+              {formatCurrency(d.distribucion.utilidad)}
+            </p>
+          </div>
+          <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
+            <p className="text-sm font-medium text-blue-800">Inversión</p>
+            <p className={`mt-1 text-2xl font-bold ${d.distribucion.inversion >= 0 ? "text-blue-700" : "text-red-600"}`}>
+              {formatCurrency(d.distribucion.inversion)}
+            </p>
+          </div>
+          <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
+            <p className="text-sm font-medium text-amber-800">Costos / Gastos</p>
+            <p className={`mt-1 text-2xl font-bold ${d.distribucion.costos >= 0 ? "text-amber-700" : "text-red-600"}`}>
+              {formatCurrency(d.distribucion.costos)}
+            </p>
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
@@ -191,6 +246,18 @@ export function DineroPage() {
                     <option value="bancolombia">Bancolombia</option>
                     <option value="bogota">Banco de Bogota</option>
                     <option value="efectivo">Efectivo</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-gray-600">Sale de la categoria *</label>
+                  <select
+                    value={form.distribution_category}
+                    onChange={(e) => setForm({ ...form, distribution_category: e.target.value })}
+                    className="w-full rounded-lg border px-3 py-2 text-sm"
+                  >
+                    <option value="utilidad">Utilidad</option>
+                    <option value="inversion">Inversión</option>
+                    <option value="costos">Costos / Gastos</option>
                   </select>
                 </div>
               </div>
@@ -261,7 +328,7 @@ export function DineroPage() {
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium">{r.description}</p>
                     <p className="text-xs text-gray-400">
-                      {methodLabels[r.source_method] || r.source_method} | {r.retiro_date} | Por: {r.user_name}
+                      {methodLabels[r.source_method] || r.source_method} | {r.retiro_date} | {catLabels[r.distribution_category] || r.distribution_category} | Por: {r.user_name}
                     </p>
                   </div>
                   <span className="text-sm font-semibold text-red-600">-{formatCurrency(r.amount)}</span>

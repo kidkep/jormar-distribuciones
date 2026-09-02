@@ -9,6 +9,7 @@ export interface Expense {
   payment_method: string;
   reference: string | null;
   notes: string | null;
+  distribution_category: string;
   user_id: number;
   created_at: string;
   updated_at: string;
@@ -22,6 +23,7 @@ export interface ExpenseCreate {
   payment_method?: string;
   reference?: string;
   notes?: string;
+  distribution_category?: string;
 }
 
 export const expensesApi = {

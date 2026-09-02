@@ -8,6 +8,7 @@ export interface Retiro {
   retiro_date: string;
   reference: string | null;
   notes: string | null;
+  distribution_category: string;
   user_name: string;
   created_at: string | null;
 }
@@ -19,6 +20,7 @@ export interface RetiroCreate {
   retiro_date: string;
   reference?: string;
   notes?: string;
+  distribution_category: string;
 }
 
 export const retirosApi = {

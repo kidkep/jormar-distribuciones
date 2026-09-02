@@ -21,6 +21,7 @@ class Retiro(Base, TimestampMixin):
     retiro_date: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=lambda: datetime.now(ZoneInfo("America/Bogota")).replace(tzinfo=None))
     reference: Mapped[str | None] = mapped_column(String(100), nullable=True)
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    distribution_category: Mapped[str] = mapped_column(String(30), nullable=False, default="utilidad")
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
 
     user: Mapped["User"] = relationship("User")

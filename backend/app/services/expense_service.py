@@ -34,6 +34,7 @@ class ExpenseService:
             payment_method=data.payment_method,
             reference=data.reference,
             notes=data.notes,
+            distribution_category=data.distribution_category,
             user_id=user_id,
         )
         return await self.repo.create(expense)

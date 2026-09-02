@@ -11,6 +11,7 @@ class ExpenseCreate(BaseModel):
     payment_method: str = "efectivo"
     reference: str | None = None
     notes: str | None = None
+    distribution_category: str = "costos"
 
 
 class ExpenseUpdate(BaseModel):
@@ -21,6 +22,7 @@ class ExpenseUpdate(BaseModel):
     payment_method: str | None = None
     reference: str | None = None
     notes: str | None = None
+    distribution_category: str | None = None
 
 
 class ExpenseResponse(BaseModel):
@@ -32,6 +34,7 @@ class ExpenseResponse(BaseModel):
     payment_method: str
     reference: str | None = None
     notes: str | None = None
+    distribution_category: str = "costos"
     user_id: int
     created_at: datetime
     updated_at: datetime
