@@ -27,7 +27,7 @@ class ProductRepository:
         result = await self.db.execute(select(Product).where(Product.sku == sku))
         return result.scalar_one_or_none()
 
-    async def get_all(self, skip: int = 0, limit: int = 50, search: str = "") -> tuple[list[Product], int]:
+    async def get_all(self, skip: int = 0, limit: int = 50, search: str = "", status: str = "all") -> tuple[list[Product], int]:
         query = select(Product).options(
             selectinload(Product.category),
             selectinload(Product.unit),
@@ -35,13 +35,17 @@ class ProductRepository:
         )
         count_query = select(func.count(Product.id))
 
-        if search:
-            filter_condition = Product.name.ilike(f"%{search}%") | Product.sku.ilike(f"%{search}%")
-            query = query.where(Product.is_active == True, filter_condition)
-            count_query = count_query.where(Product.is_active == True, filter_condition)
-        else:
+        if status == "active":
             query = query.where(Product.is_active == True)
             count_query = count_query.where(Product.is_active == True)
+        elif status == "inactive":
+            query = query.where(Product.is_active == False)
+            count_query = count_query.where(Product.is_active == False)
+
+        if search:
+            filter_condition = Product.name.ilike(f"%{search}%") | Product.sku.ilike(f"%{search}%")
+            query = query.where(filter_condition)
+            count_query = count_query.where(filter_condition)
 
         count_result = await self.db.execute(count_query)
         total = count_result.scalar()

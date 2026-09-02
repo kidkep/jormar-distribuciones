@@ -1,11 +1,16 @@
 ﻿import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { productsApi, type Product, type ProductCreate } from "@/api/products.api";
-import { Plus, Search, Edit, Trash2, Package } from "lucide-react";
+import { Plus, Search, Edit, Power } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
+
+type StatusFilter = "all" | "active" | "inactive";
 
 export function ProductsPage() {
+  const { user } = useAuth();
   const [search, setSearch] = useState("");
+  const [status, setStatus] = useState<StatusFilter>("all");
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
   const [form, setForm] = useState<ProductCreate>({
@@ -18,9 +23,15 @@ export function ProductsPage() {
   });
   const queryClient = useQueryClient();
 
+  const isAdmin = user?.is_superuser;
+  const perms = user?.permissions ?? [];
+  const canToggle = isAdmin || perms.includes("productos.toggle_status");
+  const canEdit = isAdmin || perms.includes("productos.edit");
+  const canCreate = isAdmin || perms.includes("productos.create");
+
   const { data: products = [], isLoading } = useQuery({
-    queryKey: ["products", search],
-    queryFn: () => productsApi.list(1, 1000, search),
+    queryKey: ["products", search, status],
+    queryFn: () => productsApi.list(1, 1000, search, status),
   });
 
   const { data: nextSku } = useQuery({
@@ -49,8 +60,8 @@ export function ProductsPage() {
     },
   });
 
-  const deleteMutation = useMutation({
-    mutationFn: productsApi.delete,
+  const toggleMutation = useMutation({
+    mutationFn: productsApi.toggleStatus,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["products"] }),
   });
 
@@ -81,28 +92,50 @@ export function ProductsPage() {
     setShowModal(true);
   };
 
+  const handleToggle = (product: Product) => {
+    const action = product.is_active ? "desactivar" : "reactivar";
+    if (window.confirm(`¿Seguro que deseas ${action} el producto "${product.name}"?`)) {
+      toggleMutation.mutate(product.id);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">Productos</h1>
-        <button
-          onClick={() => { resetForm(); setEditing(null); setShowModal(true); }}
-          className="flex items-center gap-2 rounded-lg bg-gold-600 px-4 py-2 text-sm text-white hover:bg-gold-700"
-        >
-          <Plus className="h-4 w-4" />
-          Nuevo Producto
-        </button>
+        {canCreate && (
+          <button
+            onClick={() => { resetForm(); setEditing(null); setShowModal(true); }}
+            className="flex items-center gap-2 rounded-lg bg-gold-600 px-4 py-2 text-sm text-white hover:bg-gold-700"
+          >
+            <Plus className="h-4 w-4" />
+            Nuevo Producto
+          </button>
+        )}
       </div>
 
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-        <input
-          type="text"
-          placeholder="Buscar por nombre o SKU..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full rounded-lg border border-gray-300 py-2.5 pl-10 pr-4 text-sm focus:border-gold-500 focus:outline-none"
-        />
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Buscar por nombre o SKU..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full rounded-lg border border-gray-300 py-2.5 pl-10 pr-4 text-sm focus:border-gold-500 focus:outline-none"
+          />
+        </div>
+        <div className="flex rounded-lg border border-gray-300 p-1 text-sm">
+          {(["all", "active", "inactive"] as StatusFilter[]).map((s) => (
+            <button
+              key={s}
+              onClick={() => setStatus(s)}
+              className={`rounded-md px-3 py-1.5 ${status === s ? "bg-gold-600 text-white" : "text-gray-600 hover:bg-gray-100"}`}
+            >
+              {s === "all" ? "Todos" : s === "active" ? "Activos" : "Inactivos"}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="overflow-x-auto rounded-xl border bg-white shadow-sm">
@@ -125,7 +158,7 @@ export function ProductsPage() {
               <tr><td colSpan={7} className="px-4 py-8 text-center text-gray-500">No se encontraron productos</td></tr>
             ) : (
               products.map((p) => (
-                <tr key={p.id} className="hover:bg-gray-50">
+                <tr key={p.id} className={`hover:bg-gray-50 ${p.is_active ? "" : "bg-gray-50 opacity-70"}`}>
                   <td className="px-4 py-3 font-mono text-xs">{p.sku}</td>
                   <td className="px-4 py-3 font-medium">{p.name}</td>
                   <td className="px-4 py-3">{formatCurrency(p.purchase_price)}</td>
@@ -142,12 +175,20 @@ export function ProductsPage() {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex gap-2">
-                      <button onClick={() => openEdit(p)} className="rounded p-1 text-gold-600 hover:bg-gold-50">
-                        <Edit className="h-4 w-4" />
-                      </button>
-                      <button onClick={() => deleteMutation.mutate(p.id)} className="rounded p-1 text-red-600 hover:bg-red-50">
-                        <Trash2 className="h-4 w-4" />
-                      </button>
+                      {canToggle && (
+                        <button
+                          onClick={() => handleToggle(p)}
+                          title={p.is_active ? "Desactivar" : "Reactivar"}
+                          className={`rounded p-1 hover:bg-gray-100 ${p.is_active ? "text-red-600" : "text-green-600"}`}
+                        >
+                          <Power className="h-4 w-4" />
+                        </button>
+                      )}
+                      {canEdit && (
+                        <button onClick={() => openEdit(p)} className="rounded p-1 text-gold-600 hover:bg-gold-50">
+                          <Edit className="h-4 w-4" />
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>

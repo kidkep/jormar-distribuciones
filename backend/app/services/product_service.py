@@ -19,8 +19,8 @@ class ProductService:
             raise NotFoundException("Producto", product_id)
         return product
 
-    async def get_products(self, skip: int = 0, limit: int = 50, search: str = "") -> tuple[list[Product], int]:
-        return await self.repo.get_all(skip, limit, search)
+    async def get_products(self, skip: int = 0, limit: int = 50, search: str = "", status: str = "all") -> tuple[list[Product], int]:
+        return await self.repo.get_all(skip, limit, search, status)
 
     async def get_low_stock(self) -> list[Product]:
         return await self.repo.get_low_stock()
@@ -65,3 +65,9 @@ class ProductService:
         product = await self.get_product(product_id)
         product.is_active = False
         await self.repo.update(product)
+
+    async def toggle_product_status(self, product_id: int) -> Product:
+        product = await self.get_product(product_id)
+        product.is_active = not product.is_active
+        await self.repo.update(product)
+        return await self.repo.get_by_id(product_id)

@@ -11,6 +11,7 @@ PERMISSIONS = [
     ("productos.create", "Crear productos", "productos"),
     ("productos.edit", "Editar productos", "productos"),
     ("productos.delete", "Eliminar productos", "productos"),
+    ("productos.toggle_status", "Activar/Desactivar productos", "productos"),
     ("clientes.view", "Ver clientes", "clientes"),
     ("clientes.create", "Crear clientes", "clientes"),
     ("clientes.edit", "Editar clientes", "clientes"),

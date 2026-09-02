@@ -61,6 +61,7 @@ async def lifespan(app: FastAPI):
                 ("productos.create", "Crear productos", "productos"),
                 ("productos.edit", "Editar productos", "productos"),
                 ("productos.delete", "Eliminar productos", "productos"),
+                ("productos.toggle_status", "Activar/Desactivar productos", "productos"),
                 ("clientes.view", "Ver clientes", "clientes"),
                 ("clientes.create", "Crear clientes", "clientes"),
                 ("clientes.edit", "Editar clientes", "clientes"),
@@ -141,6 +142,7 @@ async def lifespan(app: FastAPI):
             ("sistema.exportar", "Exportar datos", "sistema"),
             ("tareas.view", "Ver tareas y recordatorios", "tareas"),
             ("tareas.gestionar", "Gestionar tareas y recordatorios", "tareas"),
+            ("productos.toggle_status", "Activar/Desactivar productos", "productos"),
         ]
 
         created_perms = []

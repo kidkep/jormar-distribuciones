@@ -38,8 +38,8 @@ export interface ProductCreate {
 }
 
 export const productsApi = {
-  list: async (page = 1, size = 50, search = ""): Promise<Product[]> => {
-    const response = await apiClient.get("/products", { params: { page, size, search } });
+  list: async (page = 1, size = 50, search = "", status = "all"): Promise<Product[]> => {
+    const response = await apiClient.get("/products", { params: { page, size, search, status } });
     return response.data;
   },
 
@@ -65,6 +65,11 @@ export const productsApi = {
 
   delete: async (id: number): Promise<void> => {
     await apiClient.delete(`/products/${id}`);
+  },
+
+  toggleStatus: async (id: number): Promise<Product> => {
+    const response = await apiClient.post(`/products/${id}/toggle-status`);
+    return response.data;
   },
 
   getLowStock: async (): Promise<Product[]> => {
