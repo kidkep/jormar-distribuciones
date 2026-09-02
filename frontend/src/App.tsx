@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useAuthStore } from "@/stores/authStore";
 import { ProtectedRoute } from "@/components/common/ProtectedRoute";
 import { AdminRoute } from "@/components/common/AdminRoute";
+import { PermissionRoute } from "@/components/common/PermissionRoute";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { LoginPage } from "@/pages/LoginPage";
 import { WelcomePage } from "@/pages/WelcomePage";
@@ -65,7 +66,7 @@ function AppRoutes() {
         <Route path="productos" element={<ProductsPage />} />
         <Route path="clientes" element={<ClientsPage />} />
         <Route path="proveedores" element={<SuppliersPage />} />
-        <Route path="pedidos-proveedores" element={<PurchaseOrdersPage />} />
+        <Route path="pedidos-proveedores" element={<PermissionRoute permission="compras.view"><PurchaseOrdersPage /></PermissionRoute>} />
         <Route path="ventas/nueva" element={<SalesPage />} />
         <Route path="cotizaciones" element={<QuotesPage />} />
         <Route path="deudores" element={<DebtorsPage />} />
