@@ -158,3 +158,51 @@ def generate_quote_pdf_bytes(quote) -> bytes:
     pdf.add_footer_text("Gracias por su preferencia!")
 
     return pdf.output()
+
+
+def generate_purchase_order_pdf_bytes(order) -> bytes:
+    pdf = JormarPDF()
+    pdf.add_page()
+    pdf.set_auto_page_break(auto=True, margin=15)
+
+    pdf.set_font("Helvetica", "B", 12)
+    pdf.cell(0, 8, f"SOLICITUD DE PEDIDO: {order.order_number}", new_x="LMARGIN", new_y="NEXT")
+    pdf.set_font("Helvetica", "", 10)
+
+    order_date = order.order_date.strftime("%d/%m/%Y") if order.order_date else ""
+    pdf.cell(0, 6, f"Fecha: {order_date}", new_x="LMARGIN", new_y="NEXT")
+
+    if order.expected_date:
+        expected_date = order.expected_date.strftime("%d/%m/%Y")
+        pdf.cell(0, 6, f"Fecha esperada: {expected_date}", new_x="LMARGIN", new_y="NEXT")
+
+    supplier_name = order.supplier_name or (order.supplier.name if order.supplier else "Sin proveedor")
+    pdf.cell(0, 6, f"Proveedor: {supplier_name}", new_x="LMARGIN", new_y="NEXT")
+
+    status_labels = {"borrador": "Borrador", "enviada": "Enviada", "recibida": "Recibida", "cancelada": "Cancelada"}
+    pdf.cell(0, 6, f"Estado: {status_labels.get(order.status, order.status)}", new_x="LMARGIN", new_y="NEXT")
+
+    if order.notes:
+        pdf.cell(0, 6, f"Notas: {order.notes}", new_x="LMARGIN", new_y="NEXT")
+
+    pdf.ln(5)
+
+    col_widths = [18, 62, 25, 35, 35]
+    headers = ["Cant", "Producto", "P. Unit", "Subtotal", "Total"]
+
+    def get_row(item):
+        product_name = item.product.name if item.product else f"Producto #{item.product_id}"
+        item_sub = float(item.unit_price) * item.quantity
+        return [
+            str(item.quantity),
+            product_name[:35],
+            f"${item.unit_price:,.0f}",
+            f"${item_sub:,.0f}",
+            f"${float(item.total_price):,.0f}",
+        ]
+
+    pdf.add_item_table(headers, col_widths, order.items, get_row)
+    pdf.add_totals(float(order.subtotal), float(order.discount), float(order.total))
+    pdf.add_footer_text(f"Solicitud: {order.order_number}")
+
+    return pdf.output()

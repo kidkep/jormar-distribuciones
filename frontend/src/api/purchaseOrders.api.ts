@@ -69,4 +69,23 @@ export const purchaseOrdersApi = {
   delete: async (id: number): Promise<void> => {
     await apiClient.delete(`/purchase-orders/${id}`);
   },
+
+  downloadPdf: async (id: number): Promise<void> => {
+    const baseUrl = import.meta.env.VITE_API_URL || "/api/v1";
+    const token = localStorage.getItem("token");
+    const res = await fetch(`${baseUrl}/purchase-orders/download/${id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) throw new Error("Error al descargar el PDF");
+    const blob = await res.blob();
+    const disposition = res.headers.get("Content-Disposition") || "";
+    const match = disposition.match(/filename="?([^";]+)"?/);
+    const filename = match ? match[1] : "solicitud.pdf";
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  },
 };

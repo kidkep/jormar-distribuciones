@@ -1,5 +1,7 @@
 from fastapi import APIRouter, Depends, Query
+from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
+import io
 
 from app.database import get_db
 from app.dependencies import require_permission
@@ -7,6 +9,7 @@ from app.models.user import User
 from app.schemas.purchase import PurchaseOrderCreate, PurchaseOrderResponse
 from app.schemas.common import MessageResponse
 from app.services.purchase_service import PurchaseOrderService
+from app.utils.pdf_generator import generate_purchase_order_pdf_bytes
 from app.utils.audit import record_audit
 
 router = APIRouter(prefix="/purchase-orders", tags=["Solicitudes de Pedido"])
@@ -24,6 +27,22 @@ async def list_orders(
     skip = (page - 1) * size
     orders, total = await service.get_orders(skip, size, search)
     return orders
+
+
+@router.get("/download/{order_id}")
+async def download_order(
+    order_id: int,
+    db: AsyncSession = Depends(get_db),
+    _user: User = Depends(require_permission("compras.view")),
+):
+    service = PurchaseOrderService(db)
+    order = await service.get_order(order_id)
+    pdf_bytes = generate_purchase_order_pdf_bytes(order)
+    return StreamingResponse(
+        io.BytesIO(pdf_bytes),
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename={order.order_number}.pdf"},
+    )
 
 
 @router.get("/{order_id}", response_model=PurchaseOrderResponse)

@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { purchaseOrdersApi, type PurchaseOrder, type PurchaseOrderCreate } from "@/api/purchaseOrders.api";
 import { productsApi, type Product } from "@/api/products.api";
 import { suppliersApi, type Supplier } from "@/api/suppliers.api";
-import { Plus, Search, Eye, Trash2, Send, CheckCircle, XCircle, FileText } from "lucide-react";
+import { Plus, Search, Eye, Trash2, Send, CheckCircle, XCircle, FileText, Download } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { SupplierPicker } from "@/components/common/SupplierPicker";
 import { useAuth } from "@/hooks/useAuth";
@@ -89,6 +89,14 @@ export function PurchaseOrdersPage() {
       setShowDetail(null);
     },
   });
+
+  const handleDownload = async (order: PurchaseOrder) => {
+    try {
+      await purchaseOrdersApi.downloadPdf(order.id);
+    } catch {
+      alert("Error al descargar el PDF");
+    }
+  };
 
   const resetForm = () => {
     setShowForm(false);
@@ -209,6 +217,9 @@ export function PurchaseOrdersPage() {
                     <div className="flex gap-2">
                       <button onClick={() => setShowDetail(o)} className="rounded p-1 text-gold-600 hover:bg-gold-50">
                         <Eye className="h-4 w-4" />
+                      </button>
+                      <button onClick={() => handleDownload(o)} className="rounded p-1 text-blue-600 hover:bg-blue-50" title="Descargar PDF">
+                        <Download className="h-4 w-4" />
                       </button>
                       {canEdit && o.status === "borrador" && (
                         <button onClick={() => statusMutation.mutate({ id: o.id, status: "enviada" })} className="rounded p-1 text-gold-500 hover:bg-gold-50" title="Enviar al proveedor">
@@ -346,6 +357,9 @@ export function PurchaseOrdersPage() {
                 {showDetail.order_number}
               </h2>
               <div className="flex items-center gap-2">
+                <button onClick={() => handleDownload(showDetail)} className="rounded p-1 text-blue-600 hover:bg-blue-50" title="Descargar PDF">
+                  <Download className="h-5 w-5" />
+                </button>
                 <button onClick={() => setShowDetail(null)} className="text-gray-400 hover:text-gray-600"><XCircle className="h-5 w-5" /></button>
               </div>
             </div>
