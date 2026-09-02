@@ -1,7 +1,7 @@
 ﻿import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { productsApi, type Product, type ProductCreate } from "@/api/products.api";
-import { Plus, Search, Edit, Power } from "lucide-react";
+import { Plus, Search, Edit, Power, Eye, EyeOff } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -13,6 +13,7 @@ export function ProductsPage() {
   const [status, setStatus] = useState<StatusFilter>("all");
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
+  const [showPurchase, setShowPurchase] = useState(false);
   const [form, setForm] = useState<ProductCreate>({
     sku: "",
     name: "",
@@ -144,7 +145,16 @@ export function ProductsPage() {
             <tr>
               <th className="px-4 py-3">SKU</th>
               <th className="px-4 py-3">Nombre</th>
-              <th className="px-4 py-3">Precio Compra</th>
+              <th className="px-4 py-3">
+                <button
+                  onClick={() => setShowPurchase((v) => !v)}
+                  title={showPurchase ? "Ocultar compra" : "Mostrar compra"}
+                  className="inline-flex items-center gap-1 hover:text-gold-600"
+                >
+                  {showPurchase ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                  Precio Compra
+                </button>
+              </th>
               <th className="px-4 py-3">Precio Venta</th>
               <th className="px-4 py-3">Stock</th>
               <th className="px-4 py-3">Estado</th>
@@ -161,7 +171,9 @@ export function ProductsPage() {
                 <tr key={p.id} className={`hover:bg-gray-50 ${p.is_active ? "" : "bg-gray-50 opacity-70"}`}>
                   <td className="px-4 py-3 font-mono text-xs">{p.sku}</td>
                   <td className="px-4 py-3 font-medium">{p.name}</td>
-                  <td className="px-4 py-3">{formatCurrency(p.purchase_price)}</td>
+                  <td className="px-4 py-3">
+                    {showPurchase ? formatCurrency(p.purchase_price) : <span className="text-gray-300">•••</span>}
+                  </td>
                   <td className="px-4 py-3">{formatCurrency(p.sale_price)}</td>
                   <td className="px-4 py-3">
                     <span className={p.current_stock <= p.min_stock ? "font-bold text-red-600" : ""}>
