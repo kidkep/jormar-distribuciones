@@ -63,24 +63,30 @@ export function SupplierPicker({ suppliers, value, onChange }: SupplierPickerPro
         className="w-full rounded-lg border px-3 py-2 text-sm focus:border-gold-500 focus:outline-none"
         autoComplete="off"
       />
-      {open && query.trim().length > 0 && filtered.length > 0 && (
+      {open && (
         <div className="absolute z-10 mt-1 max-h-56 w-full overflow-y-auto rounded-lg border bg-white shadow-lg">
-          {filtered.map((s) => (
-            <button
-              key={s.id}
-              type="button"
-              onMouseDown={(e) => {
-                e.preventDefault();
-                selectSupplier(s);
-              }}
-              className="flex w-full flex-col px-3 py-2 text-left text-sm hover:bg-gold-50"
-            >
-              <span className="font-medium">{s.name}</span>
-              <span className="text-xs text-gray-400">
-                {s.document_type.toUpperCase()}: {s.document_number}{s.phone ? ` | ${s.phone}` : ""}
-              </span>
-            </button>
-          ))}
+          {filtered.length === 0 ? (
+            <p className="px-3 py-2 text-sm text-gray-400">
+              {suppliers.length === 0 ? "No hay proveedores registrados" : "Sin resultados"}
+            </p>
+          ) : (
+            filtered.map((s) => (
+              <button
+                key={s.id}
+                type="button"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  selectSupplier(s);
+                }}
+                className="flex w-full flex-col px-3 py-2 text-left text-sm hover:bg-gold-50"
+              >
+                <span className="font-medium">{s.name}</span>
+                <span className="text-xs text-gray-400">
+                  {s.document_type.toUpperCase()}: {s.document_number}{s.phone ? ` | ${s.phone}` : ""}
+                </span>
+              </button>
+            ))
+          )}
         </div>
       )}
     </div>
