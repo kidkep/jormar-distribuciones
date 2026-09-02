@@ -27,6 +27,7 @@ export function ProductsPage() {
   const isAdmin = user?.is_superuser;
   const perms = user?.permissions ?? [];
   const canToggle = isAdmin || perms.includes("productos.toggle_status");
+  const canViewPurchase = isAdmin || perms.includes("productos.ver_compra");
   const canEdit = isAdmin || perms.includes("productos.edit");
   const canCreate = isAdmin || perms.includes("productos.create");
 
@@ -146,14 +147,18 @@ export function ProductsPage() {
               <th className="px-4 py-3">SKU</th>
               <th className="px-4 py-3">Nombre</th>
               <th className="px-4 py-3">
-                <button
-                  onClick={() => setShowPurchase((v) => !v)}
-                  title={showPurchase ? "Ocultar compra" : "Mostrar compra"}
-                  className="inline-flex items-center gap-1 hover:text-gold-600"
-                >
-                  {showPurchase ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-                  Precio Compra
-                </button>
+                {canViewPurchase ? (
+                  <button
+                    onClick={() => setShowPurchase((v) => !v)}
+                    title={showPurchase ? "Ocultar compra" : "Mostrar compra"}
+                    className="inline-flex items-center gap-1 hover:text-gold-600"
+                  >
+                    {showPurchase ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                    Precio Compra
+                  </button>
+                ) : (
+                  <span>Precio Compra</span>
+                )}
               </th>
               <th className="px-4 py-3">Precio Venta</th>
               <th className="px-4 py-3">Stock</th>
@@ -172,7 +177,7 @@ export function ProductsPage() {
                   <td className="px-4 py-3 font-mono text-xs">{p.sku}</td>
                   <td className="px-4 py-3 font-medium">{p.name}</td>
                   <td className="px-4 py-3">
-                    {showPurchase ? formatCurrency(p.purchase_price) : <span className="text-gray-300">•••</span>}
+                    {showPurchase && canViewPurchase ? formatCurrency(p.purchase_price) : <span className="text-gray-300">•••</span>}
                   </td>
                   <td className="px-4 py-3">{formatCurrency(p.sale_price)}</td>
                   <td className="px-4 py-3">
