@@ -16,7 +16,6 @@ class JormarPDF(FPDF):
         # Barra superior dorada
         self.set_fill_color(*GOLD)
         self.rect(0, 0, 210, 3, "F")
-        self.rect(0, 207, 210, 3, "F")
 
         # Logo centrado
         if os.path.exists(LOGO_PATH):
@@ -203,7 +202,6 @@ def generate_invoice_pdf_bytes(sale) -> bytes:
 
     pdf.add_item_table(headers, col_widths, sale.items, get_row)
     pdf.add_impactes(float(sale.subtotal), float(sale.discount), float(sale.total))
-    pdf.add_footer_text("Gracias por su compra!")
 
     return pdf.output()
 
@@ -254,7 +252,6 @@ def generate_quote_pdf_bytes(quote) -> bytes:
 
     pdf.add_item_table(headers, col_widths, quote.items, get_row)
     pdf.add_impactes(float(quote.subtotal), float(quote.discount), float(quote.total))
-    pdf.add_footer_text("Gracias por su preferencia!")
 
     return pdf.output()
 
@@ -303,6 +300,5 @@ def generate_purchase_order_pdf_bytes(order) -> bytes:
 
     pdf.add_item_table(headers, col_widths, order.items, get_row)
     pdf.add_impactes(float(order.subtotal), float(order.discount), float(order.total))
-    pdf.add_footer_text(f"Solicitud: {order.order_number}")
 
     return pdf.output()
