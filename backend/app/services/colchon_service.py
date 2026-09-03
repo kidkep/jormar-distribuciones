@@ -8,7 +8,8 @@ from app.schemas.colchon import ColchonMontoUpdate, ColchonPrestamoCreate, Colch
 from app.api.v1.caja import compute_inversion_neta
 from app.exceptions import NotFoundException, BadRequestException
 
-VALID_METHODS = {"efectivo", "nequi", "bancolombia", "bogota"}
+# El colchon solo se maneja con bancolombia (es donde esta el fondo).
+VALID_METHODS = {"bancolombia"}
 
 
 class ColchonService:

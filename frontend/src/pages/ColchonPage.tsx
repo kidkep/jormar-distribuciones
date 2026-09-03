@@ -20,14 +20,14 @@ export function ColchonPage() {
   const [form, setForm] = useState({
     person_name: "",
     amount: "",
-    payment_method: "efectivo",
+    payment_method: "bancolombia",
     description: "",
     notes: "",
   });
 
   const [pagoForm, setPagoForm] = useState({
     amount: "",
-    payment_method: "efectivo",
+    payment_method: "bancolombia",
     payment_date: new Date().toISOString().split("T")[0],
     notes: "",
   });
@@ -62,7 +62,7 @@ export function ColchonPage() {
       queryClient.invalidateQueries({ queryKey: ["colchon-resumen"] });
       setShowForm(false);
       setError(null);
-      setForm({ person_name: "", amount: "", payment_method: "efectivo", description: "", notes: "" });
+      setForm({ person_name: "", amount: "", payment_method: "bancolombia", description: "", notes: "" });
     },
     onError: (err: any) => {
       setError(err?.response?.data?.detail || err?.message || "Error al crear prestamo");
@@ -76,7 +76,7 @@ export function ColchonPage() {
       queryClient.invalidateQueries({ queryKey: ["colchon-resumen"] });
       queryClient.invalidateQueries({ queryKey: ["caja"] });
       setShowPagoForm(null);
-      setPagoForm({ amount: "", payment_method: "efectivo", payment_date: new Date().toISOString().split("T")[0], notes: "" });
+                        setPagoForm({ amount: "", payment_method: "bancolombia", payment_date: new Date().toISOString().split("T")[0], notes: "" });
     },
     onError: (err: any) => {
       setError(err?.response?.data?.detail || err?.message || "Error al registrar abono");
@@ -326,10 +326,7 @@ export function ColchonPage() {
                 onChange={(e) => setForm({ ...form, payment_method: e.target.value })}
                 className="input-premium"
               >
-                <option value="efectivo">Efectivo</option>
-                <option value="nequi">Nequi</option>
                 <option value="bancolombia">Bancolombia</option>
-                <option value="bogota">Banco de Bogota</option>
               </select>
             </div>
             <div className="sm:col-span-2">
@@ -470,7 +467,7 @@ export function ColchonPage() {
                     <button
                       onClick={() => {
                         setShowPagoForm(showPagoForm === p.id ? null : p.id);
-                        setPagoForm({ amount: "", payment_method: "efectivo", payment_date: new Date().toISOString().split("T")[0], notes: "" });
+      setPagoForm({ amount: "", payment_method: "bancolombia", payment_date: new Date().toISOString().split("T")[0], notes: "" });
                         setError(null);
                       }}
                       className="flex items-center gap-1 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 transition-all"
@@ -523,10 +520,7 @@ export function ColchonPage() {
                           onChange={(e) => setPagoForm({ ...pagoForm, payment_method: e.target.value })}
                           className="input-premium"
                         >
-                          <option value="efectivo">Efectivo</option>
-                          <option value="nequi">Nequi</option>
                           <option value="bancolombia">Bancolombia</option>
-                          <option value="bogota">Banco de Bogota</option>
                         </select>
                       </div>
                       <div>
