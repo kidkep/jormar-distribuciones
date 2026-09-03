@@ -127,10 +127,38 @@ export function DineroPage() {
           ))}
         </div>
 
-        {d.total_retiros > 0 && (
-          <p className="mt-3 text-xs text-gray-500">
-            Total saques realizados: <span className="font-semibold text-red-600">-{formatCurrency(d.total_retiros)}</span>
-          </p>
+        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          {d.total_retiros > 0 && (
+            <p className="text-xs text-gray-500">
+              Total saques realizados: <span className="font-semibold text-red-600">-{formatCurrency(d.total_retiros)}</span>
+            </p>
+          )}
+        </div>
+
+        {/* Prestamos desglose */}
+        {(d.prestamos_desembolsados > 0 || d.prestamos_abonados > 0) && (
+          <div className="mt-4 rounded-lg border border-purple-200 bg-purple-50 p-4">
+            <div className="mb-2 flex items-center gap-2">
+              <Landmark className="h-4 w-4 text-purple-600" />
+              <p className="text-sm font-semibold text-purple-800">Prestamos</p>
+            </div>
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+              <div className="flex flex-col">
+                <span className="text-xs text-gray-600">Total prestado (resta)</span>
+                <span className="text-base font-bold text-red-600">-{formatCurrency(d.prestamos_desembolsados)}</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-xs text-gray-600">Total abonos recibidos (suma)</span>
+                <span className="text-base font-bold text-green-600">+{formatCurrency(d.prestamos_abonados)}</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-xs text-gray-600">Neto prestamos</span>
+                <span className={`text-base font-bold ${(d.prestamos_abonados - d.prestamos_desembolsados) >= 0 ? "text-green-700" : "text-red-700"}`}>
+                  {formatCurrency(d.prestamos_abonados - d.prestamos_desembolsados)}
+                </span>
+              </div>
+            </div>
+          </div>
         )}
       </div>
 
