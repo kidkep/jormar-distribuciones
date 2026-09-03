@@ -165,13 +165,14 @@ async def get_caja_resumen(
     saldo_por_metodo = {}
     for m in methods:
         gastos_m = gastos_por_metodo.get(m, 0)
-        retiros_m = retiros_por_metodo.get(m, 0)
         if m == "credito":
             saldo_por_metodo[m] = deuda_pendiente
         else:
             vendido = total_por_metodo.get(m, 0)
             abonos_m = abonos_por_metodo.get(m, 0)
-            saldo_por_metodo[m] = vendido + abonos_m - gastos_m - retiros_m
+            # Los saques ya se registran como Gasto, asi que no se restan aqui
+            # por separado para evitar doble descuento.
+            saldo_por_metodo[m] = vendido + abonos_m - gastos_m
 
     # Dinero total disponible = suma de los metodos reales (Credito NO cuenta)
     total_general = sum(v for m, v in saldo_por_metodo.items() if m != "credito")
@@ -239,14 +240,6 @@ async def get_caja_resumen(
             "metodo": e.payment_method,
             "fecha": (e.created_at or e.expense_date or datetime.min).isoformat(),
         })
-    for r in recent_retiros_q.scalars().all():
-        movimientos.append({
-            "tipo": "egreso",
-            "descripcion": f"Saque: {r.description}",
-            "monto": float(r.amount),
-            "metodo": r.source_method,
-            "fecha": (r.created_at or r.retiro_date or datetime.min).isoformat(),
-        })
 
     movimientos.sort(key=lambda x: x["fecha"], reverse=True)
     movimientos = movimientos[:15]
@@ -269,13 +262,6 @@ async def get_caja_resumen(
     dist_inversion = float(drow[1] or 0)
     dist_costos = float(drow[2] or 0)
 
-    retiros_por_cat = {}
-    for cat in ["utilidad", "inversion", "costos"]:
-        r = await db.execute(
-            select(func.coalesce(func.sum(Retiro.amount), 0)).where(Retiro.distribution_category == cat)
-        )
-        retiros_por_cat[cat] = float(r.scalar() or 0)
-
     gastos_por_cat = {}
     for cat in ["utilidad", "inversion", "costos"]:
         r = await db.execute(
@@ -283,9 +269,11 @@ async def get_caja_resumen(
         )
         gastos_por_cat[cat] = float(r.scalar() or 0)
 
-    utilidad_neto = round(dist_utilidad - retiros_por_cat["utilidad"] - gastos_por_cat["utilidad"], 2)
-    inversion_neto = round(dist_inversion - retiros_por_cat["inversion"] - gastos_por_cat["inversion"], 2)
-    costos_neto = round(dist_costos - retiros_por_cat["costos"] - gastos_por_cat["costos"], 2)
+    # Los saques ya se registran como Gasto, asi que se descuentan aqui por
+    # medio de gastos_por_cat (no por separado) para evitar doble descuento.
+    utilidad_neto = round(dist_utilidad - gastos_por_cat["utilidad"], 2)
+    inversion_neto = round(dist_inversion - gastos_por_cat["inversion"], 2)
+    costos_neto = round(dist_costos - gastos_por_cat["costos"], 2)
 
     distribucion = {
         "utilidad": utilidad_neto,

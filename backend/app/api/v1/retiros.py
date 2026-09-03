@@ -116,18 +116,14 @@ async def create_retiro(
         )
         gastos_por_metodo[m] = float(r.scalar() or 0)
 
-    retiros_q = await db.execute(
-        select(Retiro.source_method, func.coalesce(func.sum(Retiro.amount), 0)).group_by(Retiro.source_method)
-    )
-    retiros_por_metodo = {row[0]: float(row[1]) for row in retiros_q.all()}
-
     saldo_por_metodo = {}
     for m in methods:
         vendido = total_por_metodo.get(m, 0)
         abonos_m = abonos_por_metodo.get(m, 0)
         gastos_m = gastos_por_metodo.get(m, 0)
-        retiros_m = retiros_por_metodo.get(m, 0)
-        saldo_por_metodo[m] = vendido + abonos_m - gastos_m - retiros_m
+        # Los saques ya se registran como Gasto (ver abajo), asi que no se restan
+        # aqui por separado para evitar doble descuento.
+        saldo_por_metodo[m] = vendido + abonos_m - gastos_m
 
     saldo_disponible = saldo_por_metodo.get(data.source_method, 0)
 
@@ -138,17 +134,36 @@ async def create_retiro(
                    f"Disponible: ${saldo_disponible:,.0f}, solicitado: ${data.amount:,.0f}"
         )
 
+    retiro_date = datetime.strptime(data.retiro_date, "%Y-%m-%d") if data.retiro_date else datetime.now(ZoneInfo("America/Bogota")).replace(tzinfo=None)
+
     retiro = Retiro(
         amount=data.amount,
         source_method=data.source_method,
         description=data.description,
-        retiro_date=datetime.strptime(data.retiro_date, "%Y-%m-%d") if data.retiro_date else datetime.now(ZoneInfo("America/Bogota")).replace(tzinfo=None),
+        retiro_date=retiro_date,
         reference=data.reference if data.reference else None,
         notes=data.notes if data.notes else None,
         distribution_category=data.distribution_category,
         user_id=user.id,
     )
     db.add(retiro)
+    await db.flush()
+
+    # El saque tambien se registra como Gasto/Costo para que se refleje en la
+    # pagina de "Gastos y Costos". Asi no se descuenta dos veces del balance.
+    expense = Expense(
+        description=f"Saque: {data.description}",
+        amount=data.amount,
+        category="general",
+        expense_date=retiro_date,
+        payment_method=data.source_method,
+        reference=data.reference if data.reference else None,
+        notes=data.notes if data.notes else None,
+        distribution_category=data.distribution_category,
+        retiro_id=retiro.id,
+        user_id=user.id,
+    )
+    db.add(expense)
     await db.commit()
     return {"message": "Retiro registrado", "id": retiro.id}
 
@@ -163,6 +178,10 @@ async def delete_retiro(
     retiro = result.scalar_one_or_none()
     if not retiro:
         return {"error": "No encontrado"}
+    exp_q = await db.execute(select(Expense).where(Expense.retiro_id == retiro.id))
+    expense = exp_q.scalar_one_or_none()
+    if expense:
+        await db.delete(expense)
     await db.delete(retiro)
     await db.commit()
     return {"message": "Retiro eliminado"}

@@ -210,13 +210,14 @@ async def get_balance(
     saldo_por_metodo = {}
     for m in methods:
         gastos_m = gastos_hist_por_metodo.get(m, 0)
-        retiros_m = retiros_hist_por_metodo.get(m, 0)
         if m == "credito":
             saldo_por_metodo[m] = deuda_pendiente
         else:
             vendido = total_ventas_por_metodo.get(m, 0)
             abonos_m = abonos_por_metodo.get(m, 0)
-            saldo_por_metodo[m] = vendido + abonos_m - gastos_m - retiros_m
+            # Los saques ya se registran como Gasto, asi que no se restan aqui
+            # por separado para evitar doble descuento.
+            saldo_por_metodo[m] = vendido + abonos_m - gastos_m
 
     # --- PRODUCTOS / INVENTARIO ---
     inv_q = await db.execute(

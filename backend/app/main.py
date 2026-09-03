@@ -31,6 +31,9 @@ async def lifespan(app: FastAPI):
             "ALTER TABLE expenses ADD COLUMN IF NOT EXISTS distribution_category VARCHAR(30) NOT NULL DEFAULT 'costos'"
         ))
         await conn.execute(text(
+            "ALTER TABLE expenses ADD COLUMN IF NOT EXISTS retiro_id INTEGER REFERENCES retiros(id)"
+        ))
+        await conn.execute(text(
             "ALTER TABLE sale_distributions "
             "ADD COLUMN IF NOT EXISTS monto_recibido NUMERIC(12,2) NOT NULL DEFAULT 0"
         ))

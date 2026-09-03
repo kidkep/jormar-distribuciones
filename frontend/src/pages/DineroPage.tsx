@@ -35,6 +35,8 @@ export function DineroPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["retiros"] });
       queryClient.invalidateQueries({ queryKey: ["caja"] });
+      queryClient.invalidateQueries({ queryKey: ["expenses"] });
+      queryClient.invalidateQueries({ queryKey: ["expenses-total"] });
       setShowForm(false);
       setRetiroError(null);
       setForm({ amount: "", source_method: "nequi", description: "", retiro_date: new Date().toISOString().split("T")[0], reference: "", notes: "", distribution_category: "utilidad" });
