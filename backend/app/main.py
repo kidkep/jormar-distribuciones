@@ -150,43 +150,66 @@ async def lifespan(app: FastAPI):
             await db.commit()
 
     async with AsyncSessionLocal() as db:
+        from sqlalchemy import select as sa_select
         from sqlalchemy.orm import selectinload
         from app.models import Role, Permission
 
-        NEW_PERMISSIONS = [
-            ("sistema.exportar_db", "Exportar base de datos", "sistema"),
-            ("sistema.exportar", "Exportar datos", "sistema"),
-            ("tareas.view", "Ver tareas y recordatorios", "tareas"),
-            ("tareas.gestionar", "Gestionar tareas y recordatorios", "tareas"),
+        ALL_PERMISSIONS = [
+            ("productos.view", "Ver productos", "productos"),
+            ("productos.create", "Crear productos", "productos"),
+            ("productos.edit", "Editar productos", "productos"),
+            ("productos.delete", "Eliminar productos", "productos"),
             ("productos.toggle_status", "Activar/Desactivar productos", "productos"),
             ("productos.ver_compra", "Ver precio de compra de productos", "productos"),
+            ("clientes.view", "Ver clientes", "clientes"),
+            ("clientes.create", "Crear clientes", "clientes"),
+            ("clientes.edit", "Editar clientes", "clientes"),
+            ("clientes.delete", "Eliminar clientes", "clientes"),
+            ("proveedores.view", "Ver proveedores", "proveedores"),
+            ("proveedores.create", "Crear proveedores", "proveedores"),
+            ("proveedores.edit", "Editar proveedores", "proveedores"),
+            ("proveedores.delete", "Eliminar proveedores", "proveedores"),
             ("compras.view", "Ver solicitudes de pedido", "compras"),
             ("compras.create", "Crear solicitudes de pedido", "compras"),
             ("compras.edit", "Editar/actualizar solicitudes de pedido", "compras"),
+            ("inventario.view", "Ver inventario", "inventario"),
+            ("inventario.movimientos", "Registrar movimientos", "inventario"),
+            ("ventas.view", "Ver ventas", "ventas"),
+            ("ventas.create", "Crear ventas", "ventas"),
+            ("ventas.anular", "Anular ventas", "ventas"),
+            ("cotizaciones.view", "Ver cotizaciones", "cotizaciones"),
+            ("cotizaciones.create", "Crear cotizaciones", "cotizaciones"),
+            ("cotizaciones.edit", "Editar cotizaciones", "cotizaciones"),
+            ("deudores.view", "Ver deudores", "deudores"),
+            ("deudores.gestionar", "Gestionar deudores", "deudores"),
+            ("finanzas.view", "Ver finanzas", "finanzas"),
+            ("finanzas.movimientos", "Registrar movimientos financieros", "finanzas"),
+            ("finanzas.gastos", "Gestionar gastos y costos", "finanzas"),
+            ("reportes.ver", "Ver reportes", "reportes"),
+            ("tareas.view", "Ver tareas y recordatorios", "tareas"),
+            ("tareas.gestionar", "Gestionar tareas y recordatorios", "tareas"),
+            ("usuarios.gestionar", "Gestionar usuarios", "sistema"),
+            ("roles.gestionar", "Gestionar roles", "sistema"),
+            ("sistema.exportar_db", "Exportar base de datos", "sistema"),
+            ("sistema.exportar", "Exportar datos", "sistema"),
         ]
 
-        created_perms = []
-        for name, description, module in NEW_PERMISSIONS:
-            result = await db.execute(select(Permission).where(Permission.name == name))
-            perm = result.scalar_one_or_none()
-            if not perm:
-                perm = Permission(name=name, description=description, module=module)
-                db.add(perm)
-                created_perms.append(perm)
-        if created_perms:
-            await db.flush()
-            await db.commit()
+        for name, description, module in ALL_PERMISSIONS:
+            result = await db.execute(sa_select(Permission).where(Permission.name == name))
+            if not result.scalar_one_or_none():
+                db.add(Permission(name=name, description=description, module=module))
+        await db.commit()
 
         result = await db.execute(
-            select(Role)
+            sa_select(Role)
             .options(selectinload(Role.permissions))
             .where(Role.name == "admin")
         )
         admin_role = result.scalar_one_or_none()
         if admin_role:
-            all_new = await db.execute(select(Permission).where(Permission.name.in_([p[0] for p in NEW_PERMISSIONS])))
-            new_perm_set = all_new.scalars().all()
-            for perm in new_perm_set:
+            all_perms = await db.execute(sa_select(Permission))
+            all_perm_list = all_perms.scalars().all()
+            for perm in all_perm_list:
                 if perm not in admin_role.permissions:
                     admin_role.permissions.append(perm)
             await db.commit()
