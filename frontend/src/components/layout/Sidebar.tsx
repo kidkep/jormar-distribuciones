@@ -95,57 +95,69 @@ export function Sidebar({ isOpen, onClose }: Props) {
     <>
       {isOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+          className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm lg:hidden animate-fade"
           onClick={onClose}
         />
       )}
 
       <aside
         className={cn(
-          "fixed left-0 top-0 z-50 h-full w-64 bg-neutral-950 text-white transition-transform duration-200 ease-in-out",
-          isOpen ? "translate-x-0" : "-translate-x-full",
+          "glass-dark fixed left-0 top-0 z-50 flex h-full w-72 flex-col text-white transition-transform duration-300 ease-out",
+          isOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full",
           "lg:translate-x-0 lg:static lg:z-auto"
         )}
       >
-        <div className="flex items-center gap-3 border-b border-neutral-800 p-4">
-          <img src="/logo.png" alt="Jormar Distribuciones" className="h-10 w-10 rounded-lg object-contain ring-1 ring-gold-500/40" />
+        <div className="relative flex items-center gap-3 border-b border-white/10 p-5">
+          <div className="relative">
+            <div className="absolute inset-0 rounded-xl bg-gold-400/40 blur-md" />
+            <img src="/logo.png" alt="Jormar Distribuciones" className="relative h-11 w-11 rounded-xl object-contain ring-1 ring-gold-400/50" />
+          </div>
           <div>
-            <h1 className="text-sm font-bold text-gold-400">JORMAR</h1>
-            <p className="text-xs text-neutral-500">DISTRIBUCIONES</p>
+            <h1 className="text-base font-bold tracking-wide text-gold-400">JORMAR</h1>
+            <p className="text-[11px] uppercase tracking-[0.2em] text-white/50">Distribuciones</p>
           </div>
           <button
             onClick={onClose}
-            className="ml-auto lg:hidden"
+            className="ml-auto rounded-lg p-2 text-white/60 transition hover:bg-white/10 hover:text-white lg:hidden"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        <nav className="mt-4 space-y-1 px-3">
+        <nav className="mt-4 flex-1 space-y-1 overflow-y-auto px-4 pb-4">
           {[...visibleNavigation, ...(showAdmin ? adminNavigation : [])].map((item) =>
             item.children ? (
-              <div key={item.name} className="mb-4">
-                <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-gold-600/80">
+              <div key={item.name} className="mb-5">
+                <p className="mb-2 flex items-center gap-2 px-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-gold-500/90">
+                  <span className="h-px flex-1 bg-gradient-to-r from-transparent via-gold-500/50 to-transparent" />
                   {item.name}
+                  <span className="h-px flex-1 bg-gradient-to-r from-transparent via-gold-500/50 to-transparent" />
                 </p>
-                {item.children.map((child) => (
-                  <NavLink
-                    key={child.href}
-                    to={child.href}
-                    onClick={onClose}
-                    className={({ isActive }) =>
-                      cn(
-                        "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
-                        isActive
-                          ? "bg-gold-500 font-medium text-neutral-950"
-                          : "text-neutral-300 hover:bg-neutral-800 hover:text-white"
-                      )
-                    }
-                  >
-                    <child.icon className="h-4 w-4" />
-                    {child.name}
-                  </NavLink>
-                ))}
+                <div className="space-y-1">
+                  {item.children.map((child) => (
+                    <NavLink
+                      key={child.href}
+                      to={child.href}
+                      onClick={onClose}
+                      className={({ isActive }) =>
+                        cn(
+                          "nav-item flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm",
+                          isActive
+                            ? "is-active bg-gradient-to-r from-gold-500/25 to-transparent font-medium text-gold-300 shadow-[inset_0_0_0_1px_rgba(216,174,75,0.25)]"
+                            : "text-white/65 hover:bg-white/8 hover:text-white"
+                        )
+                      }
+                    >
+                      {({ isActive }) => (
+                        <>
+                          <span className="nav-indicator" />
+                          <child.icon className={cn("nav-icon h-4 w-4", isActive && "text-gold-400")} />
+                          {child.name}
+                        </>
+                      )}
+                    </NavLink>
+                  ))}
+                </div>
               </div>
             ) : (
               <NavLink
@@ -154,33 +166,38 @@ export function Sidebar({ isOpen, onClose }: Props) {
                 onClick={onClose}
                 className={({ isActive }) =>
                   cn(
-                    "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
+                    "nav-item flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm",
                     isActive
-                      ? "bg-gold-600 text-white"
-                      : "text-gray-300 hover:bg-gray-800 hover:text-white"
+                      ? "is-active bg-gradient-to-r from-gold-500/25 to-transparent font-medium text-gold-300 shadow-[inset_0_0_0_1px_rgba(216,174,75,0.25)]"
+                      : "text-white/65 hover:bg-white/8 hover:text-white"
                   )
                 }
               >
-                <item.icon className="h-4 w-4" />
-                {item.name}
+                {({ isActive }) => (
+                  <>
+                    <span className="nav-indicator" />
+                    <item.icon className={cn("nav-icon h-4 w-4", isActive && "text-gold-400")} />
+                    {item.name}
+                  </>
+                )}
               </NavLink>
             )
           )}
         </nav>
 
-        <div className="absolute bottom-0 left-0 right-0 border-t border-neutral-800 p-3">
+        <div className="border-t border-white/10 p-4">
           <a
             href="https://catalogo-vpfe.dian.gov.co/User/PersonLogin"
             target="_blank"
             rel="noopener noreferrer"
             onClick={onClose}
-            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-neutral-300 transition-colors hover:bg-neutral-800 hover:text-white"
+            className="nav-item flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-white/65 transition hover:bg-white/8 hover:text-white"
           >
-            <ExternalLink className="h-4 w-4" />
+            <ExternalLink className="nav-icon h-4 w-4" />
             Ir a la DIAN
           </a>
-          <p className="mt-2 flex items-center justify-between px-3 text-[11px] text-neutral-600">
-            <span>JC</span>
+          <p className="mt-3 flex items-center justify-between px-3 text-[11px] text-white/40">
+            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-gold-500/20 text-gold-300">JC</span>
             <span>v1.0</span>
           </p>
         </div>
