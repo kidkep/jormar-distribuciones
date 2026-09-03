@@ -12,13 +12,19 @@ class PrestamoRepository:
     async def get_by_id(self, prestamo_id: int) -> Prestamo | None:
         result = await self.db.execute(
             select(Prestamo)
-            .options(selectinload(Prestamo.pagos))
+            .options(
+                selectinload(Prestamo.user),
+                selectinload(Prestamo.pagos).selectinload(PrestamoPago.user),
+            )
             .where(Prestamo.id == prestamo_id)
         )
         return result.scalar_one_or_none()
 
     async def get_all(self, skip: int = 0, limit: int = 50, search: str = "", status: str = "") -> tuple[list[Prestamo], int]:
-        query = select(Prestamo).options(selectinload(Prestamo.pagos))
+        query = select(Prestamo).options(
+            selectinload(Prestamo.user),
+            selectinload(Prestamo.pagos).selectinload(PrestamoPago.user),
+        )
         count_query = select(func.count()).select_from(Prestamo)
 
         if search:

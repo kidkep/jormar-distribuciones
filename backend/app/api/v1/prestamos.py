@@ -91,7 +91,9 @@ async def create_prestamo(
     user: User = Depends(require_permission("finanzas.prestamos")),
 ):
     service = PrestamoService(db)
-    prestamo = await service.create_prestamo(data, user.id)
+    created = await service.create_prestamo(data, user.id)
+    # Recargar con relaciones (user, pagos) para construir la respuesta
+    prestamo = await service.get_prestamo(created.id)
     record_audit(
         db, user, "create", "prestamo",
         entity_id=prestamo.id,
