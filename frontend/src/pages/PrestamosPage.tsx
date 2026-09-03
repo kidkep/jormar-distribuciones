@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { prestamosApi, type Prestamo, type PrestamoResumen } from "@/api/prestamos.api";
+import { cajaApi, type CajaResumen } from "@/api/caja.api";
 import { formatCurrency } from "@/lib/utils";
-import { Landmark, Plus, X, DollarSign, Clock, CheckCircle, ArrowDownCircle, AlertTriangle, Search, Trash2 } from "lucide-react";
+import { Landmark, Plus, X, DollarSign, Clock, CheckCircle, ArrowDownCircle, AlertTriangle, Search, Trash2, Wallet, PieChart } from "lucide-react";
 
 export function PrestamosPage() {
   const queryClient = useQueryClient();
@@ -37,6 +38,11 @@ export function PrestamosPage() {
   const { data: prestamos, isLoading: loadingPrestamos } = useQuery({
     queryKey: ["prestamos", search, filterStatus],
     queryFn: () => prestamosApi.list(1, 100, search, filterStatus),
+  });
+
+  const { data: cajaData, isLoading: loadingCaja } = useQuery({
+    queryKey: ["caja"],
+    queryFn: cajaApi.getResumen,
   });
 
   const createMutation = useMutation({
@@ -78,17 +84,34 @@ export function PrestamosPage() {
     },
   });
 
-  if (loadingResumen || loadingPrestamos) {
+  if (loadingResumen || loadingPrestamos || loadingCaja) {
     return <div className="p-8 text-center text-gray-500">Cargando prestamos...</div>;
   }
 
   const r = resumen as PrestamoResumen;
   const lista = (prestamos || []) as Prestamo[];
+  const d = cajaData as CajaResumen | undefined;
 
   const catLabels: Record<string, string> = {
     utilidad: "Utilidad",
     inversion: "Inversion",
     costos: "Costos / Gastos",
+  };
+
+  const methodLabels: Record<string, string> = {
+    efectivo: "Efectivo",
+    nequi: "Nequi",
+    bancolombia: "Bancolombia",
+    bogota: "Banco de Bogota",
+    credito: "Credito",
+  };
+
+  const methodColors: Record<string, string> = {
+    efectivo: "bg-green-50 border-green-200 text-green-700",
+    nequi: "bg-purple-50 border-purple-200 text-purple-700",
+    bancolombia: "bg-yellow-50 border-yellow-200 text-yellow-700",
+    bogota: "bg-red-50 border-red-200 text-red-700",
+    credito: "bg-orange-50 border-orange-200 text-orange-700",
   };
 
   const catColors: Record<string, string> = {
@@ -107,13 +130,6 @@ export function PrestamosPage() {
     activo: "bg-yellow-100 text-yellow-700",
     pagado: "bg-green-100 text-green-700",
     cancelado: "bg-gray-100 text-gray-500",
-  };
-
-  const methodLabels: Record<string, string> = {
-    efectivo: "Efectivo",
-    nequi: "Nequi",
-    bancolombia: "Bancolombia",
-    bogota: "Bogota",
   };
 
   const handleCreate = () => {
@@ -161,6 +177,76 @@ export function PrestamosPage() {
           {showForm ? "Cancelar" : "Nuevo Prestamo"}
         </button>
       </div>
+
+      {/* Caja / Dinero disponible */}
+      {d && (
+        <div className="card-premium animate-fade-up rounded-xl border-2 border-green-200 bg-gradient-to-r from-green-50 to-emerald-50 p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="rounded-full bg-green-100 p-2">
+              <Wallet className="h-6 w-6 text-green-600" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-gray-800">Dinero Total en Caja</h2>
+              <p className="text-xs text-gray-500">Lo que hay disponible (ventas - gastos - saques + prestamos)</p>
+            </div>
+          </div>
+          <p className={`text-4xl font-extrabold ${d.saldo_total >= 0 ? "text-green-700" : "text-red-700"}`}>
+            {formatCurrency(d.saldo_total)}
+          </p>
+          <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-5">
+            {Object.entries(d.saldo_por_metodo).map(([key, val]) => (
+              <div key={key} className={`rounded-lg border p-3 ${methodColors[key] || "bg-gray-50 border-gray-200"}`}>
+                <p className="text-xs font-medium opacity-70">{methodLabels[key] || key}</p>
+                <p className={`text-lg font-bold ${val >= 0 ? "" : "text-red-600"}`}>
+                  {formatCurrency(val)}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Distribucion del dinero en caja */}
+      {d && (
+        <div className="card-premium animate-scale-in rounded-xl border p-5">
+          <div className="mb-4 flex items-center gap-2">
+            <PieChart className="h-5 w-5 text-gold-600" />
+            <h2 className="text-base font-semibold text-gray-800">De donde esta repartido el dinero en caja</h2>
+          </div>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <div className="rounded-lg border border-green-200 bg-green-50 p-4">
+              <p className="text-sm font-medium text-green-800">Utilidad</p>
+              <p className={`mt-1 text-2xl font-bold ${d.distribucion.utilidad >= 0 ? "text-green-700" : "text-red-600"}`}>
+                {formatCurrency(d.distribucion.utilidad)}
+              </p>
+              <p className="mt-1 text-xs text-green-600">
+                Total generado: {formatCurrency(d.distribucion_totales.utilidad)}
+              </p>
+            </div>
+            <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
+              <p className="text-sm font-medium text-blue-800">Inversion</p>
+              <p className={`mt-1 text-2xl font-bold ${d.distribucion.inversion >= 0 ? "text-blue-700" : "text-red-600"}`}>
+                {formatCurrency(d.distribucion.inversion)}
+              </p>
+              <p className="mt-1 text-xs text-blue-600">
+                Total generado: {formatCurrency(d.distribucion_totales.inversion)}
+              </p>
+            </div>
+            <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
+              <p className="text-sm font-medium text-amber-800">Costos / Gastos</p>
+              <p className={`mt-1 text-2xl font-bold ${d.distribucion.costos >= 0 ? "text-amber-700" : "text-red-600"}`}>
+                {formatCurrency(d.distribucion.costos)}
+              </p>
+              <p className="mt-1 text-xs text-amber-600">
+                Total generado: {formatCurrency(d.distribucion_totales.costos)}
+              </p>
+            </div>
+          </div>
+          <p className="mt-3 text-xs text-gray-500">
+            Al crear un prestamo, el monto sale de la categoria que elijas (utilidad, inversion o costos) y se descuenta del dinero en caja. Cada abono devuelve el dinero a esa categoria.
+          </p>
+        </div>
+      )}
 
       {/* Resumen */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 animate-fade-up-delay-1">
