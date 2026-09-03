@@ -20,6 +20,7 @@ import { TasksPage } from "@/pages/TasksPage";
 import { DineroPage } from "@/pages/DineroPage";
 import { DistribucionPage } from "@/pages/DistribucionPage";
 import { BalancePage } from "@/pages/BalancePage";
+import { PrestamosPage } from "@/pages/PrestamosPage";
 import { ConfigPage } from "@/pages/ConfigPage";
 import { UsersPage } from "@/pages/UsersPage";
 import { RolesPage } from "@/pages/RolesPage";
@@ -75,6 +76,7 @@ function AppRoutes() {
         <Route path="dinero" element={<DineroPage />} />
         <Route path="distribucion" element={<DistribucionPage />} />
         <Route path="balance" element={<BalancePage />} />
+        <Route path="prestamos" element={<PrestamosPage />} />
         <Route path="configuracion" element={<ConfigPage />} />
         <Route
           path="usuarios"

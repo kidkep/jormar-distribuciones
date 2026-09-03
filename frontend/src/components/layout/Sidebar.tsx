@@ -18,6 +18,7 @@ import {
   ShieldCheck,
   History,
   ListTodo,
+  Landmark,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -58,6 +59,7 @@ const navigation: NavItem[] = [
       { name: "Caja/Dinero", href: "/dinero", icon: Wallet, permission: "finanzas.view" },
       { name: "Distribucion", href: "/distribucion", icon: PieChart, permission: "finanzas.view" },
       { name: "Gastos", href: "/gastos", icon: BarChart3, permission: "finanzas.gastos" },
+      { name: "Prestamos", href: "/prestamos", icon: Landmark, permission: "finanzas.view" },
       { name: "Consultor Balance", href: "/balance", icon: ClipboardList, permission: "reportes.ver" },
     ],
   },

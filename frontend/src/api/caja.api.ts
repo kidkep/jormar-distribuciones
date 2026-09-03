@@ -32,6 +32,8 @@ export interface CajaResumen {
     inversion: number;
     costos: number;
   };
+  prestamos_desembolsados: number;
+  prestamos_abonados: number;
 }
 
 export const cajaApi = {

@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { cajaApi, type CajaResumen } from "@/api/caja.api";
 import { retirosApi, type Retiro } from "@/api/retiros.api";
 import { formatCurrency } from "@/lib/utils";
-import { TrendingUp, TrendingDown, DollarSign, CreditCard, ArrowDownCircle, ArrowUpCircle, Plus, X, Wallet, AlertTriangle } from "lucide-react";
+import { TrendingUp, TrendingDown, DollarSign, CreditCard, ArrowDownCircle, ArrowUpCircle, Plus, X, Wallet, AlertTriangle, Landmark } from "lucide-react";
 
 export function DineroPage() {
   const queryClient = useQueryClient();
@@ -203,12 +203,36 @@ export function DineroPage() {
 
         <div className="mt-4 flex items-center justify-between rounded-lg border-2 border-gray-300 bg-gray-50 px-4 py-3">
           <span className="text-sm font-semibold text-gray-700">
-            Total Distribución
+            Total Distribucion
           </span>
           <span className="text-xl font-extrabold text-gray-900">
             {formatCurrency(d.distribucion.utilidad + d.distribucion.inversion + d.distribucion.costos)}
           </span>
         </div>
+
+        {/* Prestamos */}
+        {(d.prestamos_desembolsados > 0 || d.prestamos_abonados > 0) && (
+          <div className="mt-3 rounded-lg border border-purple-200 bg-purple-50 p-3">
+            <div className="flex items-center gap-2 mb-2">
+              <Landmark className="h-4 w-4 text-purple-600" />
+              <span className="text-xs font-semibold text-purple-800">Prestamos</span>
+            </div>
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-gray-600">Desembolsados (salen):</span>
+              <span className="font-medium text-red-600">-{formatCurrency(d.prestamos_desembolsados)}</span>
+            </div>
+            <div className="flex items-center justify-between text-xs mt-1">
+              <span className="text-gray-600">Abonos recibidos (entran):</span>
+              <span className="font-medium text-green-600">+{formatCurrency(d.prestamos_abonados)}</span>
+            </div>
+            <div className="mt-2 flex items-center justify-between border-t border-purple-200 pt-2 text-xs">
+              <span className="font-semibold text-purple-800">Neto prestamos:</span>
+              <span className={`font-bold ${(d.prestamos_abonados - d.prestamos_desembolsados) >= 0 ? "text-green-700" : "text-red-700"}`}>
+                {formatCurrency(d.prestamos_abonados - d.prestamos_desembolsados)}
+              </span>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">

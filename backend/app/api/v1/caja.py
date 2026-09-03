@@ -12,6 +12,7 @@ from app.models.expense import Expense
 from app.models.payment import Payment
 from app.models.retiro import Retiro
 from app.models.distribution import SaleDistribution
+from app.models.prestamo import Prestamo, PrestamoPago
 
 router = APIRouter(prefix="/caja", tags=["Caja"])
 
@@ -141,6 +142,42 @@ async def get_caja_resumen(
     )
     total_retiros = float(total_retiro_q.scalar() or 0)
 
+    # Prestamos desembolsados por metodo (dinero que salio)
+    prestamos_por_metodo = {}
+    for m in methods:
+        if m == "credito":
+            prestamos_por_metodo[m] = 0.0
+            continue
+        r = await db.execute(
+            select(func.coalesce(func.sum(Prestamo.amount), 0)).where(
+                Prestamo.payment_method == m, Prestamo.status != "cancelado"
+            )
+        )
+        prestamos_por_metodo[m] = float(r.scalar() or 0)
+
+    total_prestamos_q = await db.execute(
+        select(func.coalesce(func.sum(Prestamo.amount), 0)).where(Prestamo.status != "cancelado")
+    )
+    total_prestamos_desembolsados = float(total_prestamos_q.scalar() or 0)
+
+    # Abonos de prestamos por metodo (dinero que entro de vuelta)
+    abonos_prestamos_por_metodo = {}
+    for m in methods:
+        if m == "credito":
+            abonos_prestamos_por_metodo[m] = 0.0
+            continue
+        r = await db.execute(
+            select(func.coalesce(func.sum(PrestamoPago.amount), 0))
+            .join(Prestamo, PrestamoPago.prestamo_id == Prestamo.id)
+            .where(PrestamoPago.payment_method == m)
+        )
+        abonos_prestamos_por_metodo[m] = float(r.scalar() or 0)
+
+    total_abonos_prestamos_q = await db.execute(
+        select(func.coalesce(func.sum(PrestamoPago.amount), 0))
+    )
+    total_abonos_prestamos = float(total_abonos_prestamos_q.scalar() or 0)
+
     # Total deuda pendiente (lo fiado a credito que aun no se ha pagado)
     total_debt_q = await db.execute(
         select(func.coalesce(func.sum(Sale.total), 0)).where(
@@ -161,7 +198,7 @@ async def get_caja_resumen(
     #           al dinero disponible. El dinero real del credito entra unicamente
     #           cuando el cliente abona, y ese abono ya se contabiliza en el metodo
     #           donde se recibio.
-    # Otros: vendido + abonos recibidos en ese metodo - gastos - retiros
+    # Otros: vendido + abonos recibidos + abonos de prestamos - gastos - prestamos desembolsados
     saldo_por_metodo = {}
     for m in methods:
         gastos_m = gastos_por_metodo.get(m, 0)
@@ -170,9 +207,9 @@ async def get_caja_resumen(
         else:
             vendido = total_por_metodo.get(m, 0)
             abonos_m = abonos_por_metodo.get(m, 0)
-            # Los saques ya se registran como Gasto, asi que no se restan aqui
-            # por separado para evitar doble descuento.
-            saldo_por_metodo[m] = vendido + abonos_m - gastos_m
+            prestamos_out = prestamos_por_metodo.get(m, 0)
+            prestamos_in = abonos_prestamos_por_metodo.get(m, 0)
+            saldo_por_metodo[m] = vendido + abonos_m + prestamos_in - gastos_m - prestamos_out
 
     # Dinero total disponible = suma de los metodos reales (Credito NO cuenta)
     total_general = sum(v for m, v in saldo_por_metodo.items() if m != "credito")
@@ -214,6 +251,9 @@ async def get_caja_resumen(
     recent_payments_q = await db.execute(
         select(Payment).order_by(Payment.created_at.desc()).limit(10)
     )
+    recent_prestamo_pagos_q = await db.execute(
+        select(PrestamoPago).order_by(PrestamoPago.created_at.desc()).limit(10)
+    )
 
     movimientos = []
     for s in recent_sales_q.scalars().all():
@@ -239,6 +279,14 @@ async def get_caja_resumen(
             "monto": float(e.amount),
             "metodo": e.payment_method,
             "fecha": (e.created_at or e.expense_date or datetime.min).isoformat(),
+        })
+    for pp in recent_prestamo_pagos_q.scalars().all():
+        movimientos.append({
+            "tipo": "ingreso",
+            "descripcion": f"Abono prestamo #{pp.prestamo_id}",
+            "monto": float(pp.amount),
+            "metodo": pp.payment_method,
+            "fecha": (pp.created_at or datetime.min).isoformat(),
         })
 
     movimientos.sort(key=lambda x: x["fecha"], reverse=True)
@@ -269,11 +317,31 @@ async def get_caja_resumen(
         )
         gastos_por_cat[cat] = float(r.scalar() or 0)
 
+    # Prestamos desembolsados por categoria (salen de la distribucion)
+    prestamos_por_cat = {}
+    for cat in ["utilidad", "inversion", "costos"]:
+        r = await db.execute(
+            select(func.coalesce(func.sum(Prestamo.amount), 0)).where(
+                Prestamo.distribution_category == cat, Prestamo.status != "cancelado"
+            )
+        )
+        prestamos_por_cat[cat] = float(r.scalar() or 0)
+
+    # Abonos de prestamos por categoria (entran a la distribucion)
+    abonos_prestamos_por_cat = {}
+    for cat in ["utilidad", "inversion", "costos"]:
+        r = await db.execute(
+            select(func.coalesce(func.sum(PrestamoPago.amount), 0))
+            .join(Prestamo, PrestamoPago.prestamo_id == Prestamo.id)
+            .where(Prestamo.distribution_category == cat)
+        )
+        abonos_prestamos_por_cat[cat] = float(r.scalar() or 0)
+
     # Los saques ya se registran como Gasto, asi que se descuentan aqui por
     # medio de gastos_por_cat (no por separado) para evitar doble descuento.
-    utilidad_neto = round(dist_utilidad - gastos_por_cat["utilidad"], 2)
-    inversion_neto = round(dist_inversion - gastos_por_cat["inversion"], 2)
-    costos_neto = round(dist_costos - gastos_por_cat["costos"], 2)
+    utilidad_neto = round(dist_utilidad - gastos_por_cat["utilidad"] - prestamos_por_cat["utilidad"] + abonos_prestamos_por_cat["utilidad"], 2)
+    inversion_neto = round(dist_inversion - gastos_por_cat["inversion"] - prestamos_por_cat["inversion"] + abonos_prestamos_por_cat["inversion"], 2)
+    costos_neto = round(dist_costos - gastos_por_cat["costos"] - prestamos_por_cat["costos"] + abonos_prestamos_por_cat["costos"], 2)
 
     distribucion = {
         "utilidad": utilidad_neto,
@@ -303,4 +371,6 @@ async def get_caja_resumen(
         "total_retiros": total_retiros,
         "distribucion": distribucion,
         "distribucion_totales": distribucion_totales,
+        "prestamos_desembolsados": total_prestamos_desembolsados,
+        "prestamos_abonados": total_abonos_prestamos,
     }
