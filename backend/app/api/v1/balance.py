@@ -15,6 +15,7 @@ from app.models.retiro import Retiro
 from app.models.product import Product
 from app.models.client import Client
 from app.models.prestamo import Prestamo, PrestamoPago
+from app.config import AJUSTE_INVERSION
 
 router = APIRouter(prefix="/balance", tags=["Balance"])
 
@@ -247,6 +248,10 @@ async def get_balance(
             # Los saques ya se registran como Gasto, asi que no se restan aqui
             # por separado para evitar doble descuento.
             saldo_por_metodo[m] = vendido + abonos_m + prestamos_in - gastos_m - prestamos_out
+
+    # AJUSTE: venta anterior no contabilizada que se muestra directamente en
+    # Efectivo (consistente con el ajuste aplicado en caja/dinero).
+    saldo_por_metodo["efectivo"] = saldo_por_metodo.get("efectivo", 0) + AJUSTE_INVERSION
 
     # --- PRODUCTOS / INVENTARIO ---
     inv_q = await db.execute(
