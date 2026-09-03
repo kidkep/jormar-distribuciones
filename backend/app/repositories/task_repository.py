@@ -17,9 +17,13 @@ class TaskRepository:
         )
         return result.unique().scalar_one_or_none()
 
-    async def get_all(self, skip: int = 0, limit: int = 50, status: str = "", search: str = "") -> tuple[list[Task], int]:
+    async def get_all(self, skip: int = 0, limit: int = 50, status: str = "", search: str = "", user_id: int | None = None) -> tuple[list[Task], int]:
         query = select(Task).options(selectinload(Task.client), selectinload(Task.assignee), selectinload(Task.creator))
         count_query = select(func.count()).select_from(Task)
+
+        if user_id is not None:
+            query = query.where(Task.user_id == user_id)
+            count_query = count_query.where(Task.user_id == user_id)
 
         if status:
             query = query.where(Task.status == status)

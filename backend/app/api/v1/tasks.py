@@ -19,31 +19,31 @@ async def list_tasks(
     status: str = Query("", max_length=50),
     search: str = Query("", max_length=100),
     db: AsyncSession = Depends(get_db),
-    _user: User = Depends(require_permission("tareas.view")),
+    user: User = Depends(require_permission("tareas.view")),
 ):
     service = TaskService(db)
     skip = (page - 1) * size
-    tasks, total = await service.get_tasks(skip, size, status, search)
+    tasks, total = await service.get_tasks(skip, size, status, search, user)
     return tasks
 
 
 @router.get("/overdue", response_model=list[dict])
 async def overdue_reminders(
     db: AsyncSession = Depends(get_db),
-    _user: User = Depends(require_permission("tareas.view")),
+    user: User = Depends(require_permission("tareas.view")),
 ):
     service = TaskService(db)
-    return await service.get_overdue_debtor_reminders()
+    return await service.get_overdue_debtor_reminders(user)
 
 
 @router.get("/{task_id}", response_model=TaskResponse)
 async def get_task(
     task_id: int,
     db: AsyncSession = Depends(get_db),
-    _user: User = Depends(require_permission("tareas.view")),
+    user: User = Depends(require_permission("tareas.view")),
 ):
     service = TaskService(db)
-    return await service.get_task(task_id)
+    return await service.get_task(task_id, user)
 
 
 @router.post("", response_model=TaskResponse, status_code=201)
@@ -53,7 +53,7 @@ async def create_task(
     user: User = Depends(require_permission("tareas.gestionar")),
 ):
     service = TaskService(db)
-    task = await service.create_task(data, user.id)
+    task = await service.create_task(data, user.id, user)
     record_audit(db, user, "create", "task", entity_id=task.id, new_values={"title": task.title})
     return task
 
@@ -63,11 +63,11 @@ async def update_task(
     task_id: int,
     data: TaskUpdate,
     db: AsyncSession = Depends(get_db),
-    _user: User = Depends(require_permission("tareas.gestionar")),
+    user: User = Depends(require_permission("tareas.gestionar")),
 ):
     service = TaskService(db)
-    task = await service.update_task(task_id, data)
-    record_audit(db, _user, "update", "task", entity_id=task_id, new_values={"title": task.title})
+    task = await service.update_task(task_id, data, user)
+    record_audit(db, user, "update", "task", entity_id=task_id, new_values={"title": task.title})
     return task
 
 
@@ -75,9 +75,9 @@ async def update_task(
 async def delete_task(
     task_id: int,
     db: AsyncSession = Depends(get_db),
-    _user: User = Depends(require_permission("tareas.gestionar")),
+    user: User = Depends(require_permission("tareas.gestionar")),
 ):
     service = TaskService(db)
-    await service.delete_task(task_id)
-    record_audit(db, _user, "delete", "task", entity_id=task_id)
+    await service.delete_task(task_id, user)
+    record_audit(db, user, "delete", "task", entity_id=task_id)
     return MessageResponse(message="Tarea eliminada correctamente")

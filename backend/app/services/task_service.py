@@ -4,6 +4,7 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 
 from app.models.task import Task
+from app.models.user import User
 from app.repositories.task_repository import TaskRepository
 from app.schemas.task import TaskCreate, TaskUpdate
 from app.exceptions import NotFoundException
@@ -14,22 +15,36 @@ class TaskService:
         self.db = db
         self.repo = TaskRepository(db)
 
-    async def get_task(self, task_id: int) -> Task:
+    async def get_task(self, task_id: int, user: User | None = None) -> Task:
         task = await self.repo.get_by_id(task_id)
         if not task:
             raise NotFoundException("Tarea", task_id)
+        self._ensure_owned(task, user)
         return task
 
-    async def get_tasks(self, skip: int = 0, limit: int = 50, status: str = "", search: str = "") -> tuple[list[Task], int]:
-        return await self.repo.get_all(skip, limit, status, search)
+    @staticmethod
+    def _ensure_owned(task: Task, user: User | None) -> None:
+        if user is not None and user.is_superuser:
+            return
+        if user is not None and task.user_id is not None and task.user_id == user.id:
+            return
+        raise NotFoundException("Tarea", task.id)
 
-    async def create_task(self, data: TaskCreate, created_by: int) -> Task:
+    async def get_tasks(self, skip: int = 0, limit: int = 50, status: str = "", search: str = "", user: User | None = None) -> tuple[list[Task], int]:
+        user_id = None if (user is not None and user.is_superuser) else (user.id if user is not None else None)
+        return await self.repo.get_all(skip, limit, status, search, user_id)
+
+    async def create_task(self, data: TaskCreate, created_by: int, user: User | None = None) -> Task:
+        assign_user_id = data.user_id
+        if assign_user_id is None:
+            assign_user_id = user.id if user is not None else created_by
+
         task = Task(
             title=data.title,
             description=data.description,
             task_type=data.task_type,
             client_id=data.client_id,
-            user_id=data.user_id,
+            user_id=assign_user_id,
             due_date=data.due_date,
             priority=data.priority,
             status="pendiente",
@@ -37,8 +52,8 @@ class TaskService:
         )
         return await self.repo.create(task)
 
-    async def update_task(self, task_id: int, data: TaskUpdate) -> Task:
-        task = await self.get_task(task_id)
+    async def update_task(self, task_id: int, data: TaskUpdate, user: User | None = None) -> Task:
+        task = await self.get_task(task_id, user)
 
         update_fields = data.model_dump(exclude_unset=True)
         for field, value in update_fields.items():
@@ -46,15 +61,16 @@ class TaskService:
 
         return await self.repo.update(task)
 
-    async def delete_task(self, task_id: int) -> None:
-        task = await self.get_task(task_id)
+    async def delete_task(self, task_id: int, user: User | None = None) -> None:
+        task = await self.get_task(task_id, user)
         await self.repo.delete(task)
 
-    async def get_overdue_debtor_reminders(self) -> list[dict]:
+    async def get_overdue_debtor_reminders(self, user: User | None = None) -> list[dict]:
         today = datetime.now(ZoneInfo("America/Bogota")).replace(tzinfo=None)
-        result = await self.db.execute(
-            select(Task).where(Task.task_type == "deudor", Task.status == "pendiente", Task.due_date.isnot(None), Task.due_date < today)
-        )
+        query = select(Task).where(Task.task_type == "deudor", Task.status == "pendiente", Task.due_date.isnot(None), Task.due_date < today)
+        if user is not None and not user.is_superuser:
+            query = query.where(Task.user_id == user.id)
+        result = await self.db.execute(query)
         overdue = list(result.scalars().all())
         return [
             {
