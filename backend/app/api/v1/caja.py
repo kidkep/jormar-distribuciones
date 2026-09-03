@@ -219,6 +219,21 @@ async def get_caja_resumen(
     )
     total_abonos_prestamos = float(total_abonos_prestamos_q.scalar() or 0)
 
+    # Colchon financiero: prestar NO toca el metodo (solo baja el colchon).
+    # Al ABONAR al colchon, el dinero sale del metodo donde esta el fondo
+    # (bancolombia), por eso se descuenta de ahi.
+    colchon_abonos_por_metodo = {}
+    for m in methods:
+        if m == "credito":
+            colchon_abonos_por_metodo[m] = 0.0
+            continue
+        r2 = await db.execute(
+            select(func.coalesce(func.sum(ColchonPago.amount), 0)).where(
+                ColchonPago.payment_method == m
+            )
+        )
+        colchon_abonos_por_metodo[m] = float(r2.scalar() or 0)
+
     # Total deuda pendiente (lo fiado a credito que aun no se ha pagado)
     total_debt_q = await db.execute(
         select(func.coalesce(func.sum(Sale.total), 0)).where(
@@ -250,6 +265,9 @@ async def get_caja_resumen(
             abonos_m = abonos_por_metodo.get(m, 0)
             prestamos_out = prestamos_por_metodo.get(m, 0)
             prestamos_in = abonos_prestamos_por_metodo.get(m, 0)
+            # Colchon financiero: prestar NO toca el metodo (solo baja el colchon).
+            # Al ABONAR al colchon, el dinero sale de ese metodo (bancolombia).
+            prestamos_out += colchon_abonos_por_metodo.get(m, 0)
             saldo_por_metodo[m] = vendido + abonos_m + prestamos_in - gastos_m - prestamos_out
 
     # AJUSTE: venta anterior no contabilizada que se muestra directamente en

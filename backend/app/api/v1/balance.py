@@ -15,6 +15,7 @@ from app.models.retiro import Retiro
 from app.models.product import Product
 from app.models.client import Client
 from app.models.prestamo import Prestamo, PrestamoPago
+from app.models.colchon import ColchonPago
 from app.config import AJUSTE_INVERSION
 
 router = APIRouter(prefix="/balance", tags=["Balance"])
@@ -210,6 +211,20 @@ async def get_balance(
         )
         abonos_prestamos_por_metodo[m] = float(r.scalar() or 0)
 
+    # Colchon financiero: al ABONAR al colchon, el dinero sale del metodo donde
+    # esta el fondo (bancolombia), por eso se descuenta de ahi.
+    colchon_abonos_por_metodo = {}
+    for m in methods:
+        if m == "credito":
+            colchon_abonos_por_metodo[m] = 0.0
+            continue
+        r2 = await db.execute(
+            select(func.coalesce(func.sum(ColchonPago.amount), 0)).where(
+                ColchonPago.payment_method == m
+            )
+        )
+        colchon_abonos_por_metodo[m] = float(r2.scalar() or 0)
+
     # Total abonos historial
     total_abonos_hist_q = await db.execute(
         select(func.coalesce(func.sum(Payment.amount), 0))
@@ -247,6 +262,8 @@ async def get_balance(
             prestamos_in = abonos_prestamos_por_metodo.get(m, 0)
             # Los saques ya se registran como Gasto, asi que no se restan aqui
             # por separado para evitar doble descuento.
+            # Al ABONAR al colchon, el dinero sale de ese metodo (bancolombia).
+            prestamos_out += colchon_abonos_por_metodo.get(m, 0)
             saldo_por_metodo[m] = vendido + abonos_m + prestamos_in - gastos_m - prestamos_out
 
     # AJUSTE: venta anterior no contabilizada que se muestra directamente en
