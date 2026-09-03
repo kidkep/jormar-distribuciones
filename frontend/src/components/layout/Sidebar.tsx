@@ -109,12 +109,12 @@ export function Sidebar({ isOpen, onClose }: Props) {
       >
         <div className="relative flex items-center gap-3 border-b border-white/10 p-5">
           <div className="relative">
-            <div className="absolute inset-0 rounded-xl bg-gold-400/40 blur-md" />
-            <img src="/logo.png" alt="Jormar Distribuciones" className="relative h-11 w-11 rounded-xl object-contain ring-1 ring-gold-400/50" />
+            <div className="absolute inset-0 rounded-xl bg-gold-400/50 blur-lg" />
+            <img src="/logo.png" alt="Jormar Distribuciones" className="relative h-11 w-11 rounded-xl object-contain ring-2 ring-gold-400/60 drop-shadow-[0_0_8px_rgba(216,174,75,0.4)]" />
           </div>
           <div>
             <h1 className="text-base font-bold tracking-wide text-gold-400">JORMAR</h1>
-            <p className="text-[11px] uppercase tracking-[0.2em] text-white/50">Distribuciones</p>
+            <p className="text-[11px] uppercase tracking-[0.25em] text-white/50">Distribuciones</p>
           </div>
           <button
             onClick={onClose}
@@ -196,10 +196,22 @@ export function Sidebar({ isOpen, onClose }: Props) {
             <ExternalLink className="nav-icon h-4 w-4" />
             Ir a la DIAN
           </a>
-          <p className="mt-3 flex items-center justify-between px-3 text-[11px] text-white/40">
-            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-gold-500/20 text-gold-300">JC</span>
-            <span>v1.0</span>
-          </p>
+
+          {/* Perfil del usuario */}
+          <div className="mt-3 flex items-center gap-3 rounded-xl bg-white/5 p-3 ring-1 ring-white/10">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-gold-400 to-gold-600 text-xs font-bold text-neutral-950">
+              {user?.full_name?.trim()?.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase() || user?.username?.slice(0, 2).toUpperCase() || "JC"}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-semibold text-white/90">
+                {user?.full_name || user?.username || "Usuario"}
+              </p>
+              {user?.is_superuser && (
+                <span className="text-[10px] font-medium uppercase tracking-wider text-gold-400">Administrador</span>
+              )}
+            </div>
+            <span className="text-[10px] text-white/40">v1.0</span>
+          </div>
         </div>
       </aside>
     </>

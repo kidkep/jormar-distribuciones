@@ -12,6 +12,7 @@ import {
   XCircle,
   Wifi,
   Palette,
+  Settings,
 } from "lucide-react";
 
 export function ConfigPage() {
@@ -24,22 +25,28 @@ export function ConfigPage() {
   const { theme, setTheme } = useTheme();
 
   return (
-    <div className="space-y-8">
-      <h1 className="text-2xl font-bold text-gray-900">Configuracion</h1>
+    <div className="space-y-6">
+      <div className="animate-fade-up">
+        <h1 className="flex items-center gap-2 text-2xl font-bold text-gray-900">
+          <Settings className="h-6 w-6 text-gold-600" />
+          Configuración
+        </h1>
+        <p className="mt-1 text-sm text-gray-600">Personaliza la aplicación y monitorea el estado del sistema</p>
+      </div>
 
       {/* Temas de color */}
-      <div className="rounded-xl border bg-white p-6 shadow-sm">
-        <h2 className="mb-1 flex items-center gap-2 text-lg font-semibold"><Palette className="h-5 w-5" /> Tema de Color</h2>
-        <p className="mb-4 text-sm text-gray-500">Elige el color de acento de la aplicacion. Se guarda en este dispositivo.</p>
+      <div className="card-premium animate-fade-up-delay-1 p-6">
+        <h2 className="mb-1 flex items-center gap-2 text-lg font-semibold text-gray-900"><Palette className="h-5 w-5 text-gold-600" /> Tema de Color</h2>
+        <p className="mb-4 text-sm text-gray-500">Elige el color de acento de la aplicación. Se guarda en este dispositivo.</p>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
           {THEMES.map((t) => (
             <button
               key={t.name}
               onClick={() => setTheme(t.name)}
               className={cn(
-                "flex items-center gap-3 rounded-lg border p-3 text-sm transition-colors",
+                "flex items-center gap-3 rounded-xl border p-3 text-sm transition-all",
                 theme === t.name
-                  ? "border-gold-500 bg-gold-50 font-semibold text-gold-700"
+                  ? "border-gold-500 bg-gold-50 font-semibold text-gold-700 shadow-sm ring-2 ring-gold-500/20"
                   : "border-gray-200 hover:bg-gray-50"
               )}
             >
@@ -54,16 +61,16 @@ export function ConfigPage() {
       </div>
 
       {/* Monitor de estado */}
-      <div className="rounded-xl border bg-white p-6 shadow-sm">
+      <div className="card-premium animate-fade-up-delay-2 p-6">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <h2 className="flex items-center gap-2 text-lg font-semibold"><Activity className="h-5 w-5" /> Estado del Sistema</h2>
+          <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-900"><Activity className="h-5 w-5 text-gold-600" /> Estado del Sistema</h2>
           <div className="flex items-center gap-3">
             <span className="text-xs text-gray-500">
               {monitor?.checked_at
-                ? `Ultima revision: ${new Date(monitor.checked_at).toLocaleTimeString("es-CO")}`
+                ? `Última revisión: ${new Date(monitor.checked_at).toLocaleTimeString("es-CO")}`
                 : isFetching ? "Comprobando..." : "Sin datos"}
             </span>
-            <button onClick={() => refetch()} disabled={isFetching} className="flex items-center gap-1 rounded-lg border px-3 py-1.5 text-sm font-medium hover:bg-gray-50 disabled:opacity-50">
+            <button onClick={() => refetch()} disabled={isFetching} className="btn-outline disabled:opacity-50">
               <RefreshCw className={cn("h-4 w-4", isFetching && "animate-spin")} /> Comprobar ahora
             </button>
           </div>
@@ -81,41 +88,41 @@ export function ConfigPage() {
         </div>
 
         <div className="mt-4 grid grid-cols-2 gap-3">
-          <div>
+          <div className="rounded-xl bg-gray-50 p-4">
             <p className="text-xs text-gray-500">Disponibilidad hoy</p>
-            <p className="text-lg font-bold">{monitor?.uptime_today != null ? `${monitor.uptime_today}%` : "--"}</p>
+            <p className="text-lg font-bold text-gray-900">{monitor?.uptime_today != null ? `${monitor.uptime_today}%` : "--"}</p>
           </div>
-          <div>
-            <p className="text-xs text-gray-500">Ultimos 7 dias</p>
-            <p className="text-lg font-bold">{monitor?.uptime_7d != null ? `${monitor.uptime_7d}%` : "--"}</p>
+          <div className="rounded-xl bg-gray-50 p-4">
+            <p className="text-xs text-gray-500">Últimos 7 días</p>
+            <p className="text-lg font-bold text-gray-900">{monitor?.uptime_7d != null ? `${monitor.uptime_7d}%` : "--"}</p>
           </div>
         </div>
 
         <div className="mt-4">
-          <p className="mb-2 text-xs text-gray-500">Ultimas comprobaciones ({monitor?.recent_checks.length ?? 0})</p>
+          <p className="mb-2 text-xs text-gray-500">Últimas comprobaciones ({monitor?.recent_checks.length ?? 0})</p>
           <div className="flex items-end gap-1">
             {[...(monitor?.recent_checks ?? [])].reverse().map((c) => (
               <div
                 key={c.id}
-                title={`${new Date(c.created_at).toLocaleString("es-CO")} - ${c.status === "up" ? "En linea" : "Caido"}${c.latency_ms != null ? ` (${c.latency_ms} ms)` : ""}`}
+                title={`${new Date(c.created_at).toLocaleString("es-CO")} - ${c.status === "up" ? "En línea" : "Caído"}${c.latency_ms != null ? ` (${c.latency_ms} ms)` : ""}`}
                 className={cn("h-7 w-2.5 rounded-sm", c.status === "up" ? "bg-green-500" : "bg-red-500")}
               />
             ))}
             {(monitor?.recent_checks.length ?? 0) === 0 && (
-              <span className="text-xs text-gray-400">Todavia no hay registros. Haz clic en "Comprobar ahora".</span>
+              <span className="text-xs text-gray-400">Todavía no hay registros. Haz clic en "Comprobar ahora".</span>
             )}
           </div>
         </div>
       </div>
 
       {/* Info empresa */}
-      <div className="rounded-xl border bg-white p-6 shadow-sm">
-        <h2 className="mb-4 text-lg font-semibold">Informacion de la Empresa</h2>
+      <div className="card-premium animate-fade-up-delay-3 p-6">
+        <h2 className="mb-4 text-lg font-semibold text-gray-900">Información de la Empresa</h2>
         <div className="grid grid-cols-2 gap-4 text-sm">
-          <div><span className="text-gray-500">Nombre:</span> <strong>JORMAR DISTRIBUCIONES</strong></div>
-          <div><span className="text-gray-500">NIT:</span> <strong>931814237</strong></div>
-          <div><span className="text-gray-500">Ubicacion:</span> Mariquita, Tolima, Colombia</div>
-          <div><span className="text-gray-500">Actividad:</span> Comercializacion de EPP (Equipo de Proteccion Personal)</div>
+          <div className="rounded-xl bg-gray-50 p-4"><span className="block text-xs text-gray-500">Nombre</span> <strong className="text-gray-900">JORMAR DISTRIBUCIONES</strong></div>
+          <div className="rounded-xl bg-gray-50 p-4"><span className="block text-xs text-gray-500">NIT</span> <strong className="text-gray-900">931814237</strong></div>
+          <div className="rounded-xl bg-gray-50 p-4"><span className="block text-xs text-gray-500">Ubicación</span> Mariquita, Tolima, Colombia</div>
+          <div className="rounded-xl bg-gray-50 p-4"><span className="block text-xs text-gray-500">Actividad</span> Comercialización de EPP (Equipo de Protección Personal)</div>
         </div>
       </div>
     </div>

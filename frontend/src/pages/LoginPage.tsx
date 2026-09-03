@@ -45,32 +45,35 @@ export function LoginPage() {
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.5)_100%)]" />
       <div className="pointer-events-none absolute inset-0 z-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 bg-[radial-gradient(400px_circle_at_var(--bg-x)_var(--bg-y),rgba(199,154,50,0.14),transparent_65%)]" />
 
-      <div className="relative w-full max-w-md">
+      <div className="relative w-full max-w-md animate-scale-in">
         <div
           ref={cardRef}
           onMouseMove={handleMouseMove}
           style={{ "--spot-x": "50%", "--spot-y": "50%" } as React.CSSProperties}
-          className="group relative rounded-2xl border border-gold-500/25 bg-neutral-900/70 p-8 shadow-[0_0_60px_rgba(199,154,50,0.15)] backdrop-blur transition-colors duration-300 hover:border-gold-500/50"
+          className="group relative rounded-2xl border border-gold-500/25 bg-neutral-900/80 p-8 shadow-[0_0_60px_rgba(199,154,50,0.15)] backdrop-blur-xl transition-colors duration-300 hover:border-gold-500/50"
         >
           <div className="mb-6 text-center">
-            <img
-              src="/logo.png"
-              alt="Jormar Distribuciones"
-              className="mx-auto mb-4 h-20 w-20 rounded-full object-contain ring-2 ring-gold-500/50"
-            />
+            <div className="relative mx-auto mb-4 h-20 w-20">
+              <div className="absolute inset-0 animate-glow-pulse rounded-full bg-gold-500/30 blur-xl" />
+              <img
+                src="/logo.png"
+                alt="Jormar Distribuciones"
+                className="relative h-20 w-20 rounded-full object-contain ring-2 ring-gold-500/60 drop-shadow-[0_0_12px_rgba(216,174,75,0.4)]"
+              />
+            </div>
             <h1 className="text-2xl font-bold tracking-tight text-gold-400">JORMAR DISTRIBUCIONES</h1>
-            <p className="mt-1 text-sm text-neutral-400">Gestor de Negocio</p>
+            <p className="mt-1 text-sm text-neutral-400">Sistema de Gestión de Negocio</p>
           </div>
 
           <div className="mb-6 flex items-center gap-3">
             <div className="h-px flex-1 bg-gradient-to-r from-transparent to-gold-500/50" />
-            <span className="text-xs uppercase tracking-widest text-gold-500/90">Iniciar Sesion</span>
+            <span className="text-xs uppercase tracking-widest text-gold-500/90">Iniciar Sesión</span>
             <div className="h-px flex-1 bg-gradient-to-l from-transparent to-gold-500/50" />
           </div>
 
           {loginError && (
-            <div className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-400">
-              Usuario o contrasena incorrectos
+            <div className="animate-fade mb-4 rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-400">
+              Usuario o contraseña incorrectos
             </div>
           )}
 
@@ -83,7 +86,7 @@ export function LoginPage() {
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="w-full rounded-lg border border-neutral-700 bg-neutral-800/60 px-4 py-2.5 text-sm text-white placeholder:text-neutral-500 focus:border-gold-400 focus:outline-none focus:ring-2 focus:ring-gold-400/20"
+                className="w-full rounded-lg border border-neutral-700 bg-neutral-800/60 px-4 py-2.5 text-sm text-white placeholder:text-neutral-500 transition-colors focus:border-gold-400 focus:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-gold-400/20"
                 placeholder="Ingrese su usuario"
                 required
               />
@@ -91,21 +94,21 @@ export function LoginPage() {
 
             <div>
               <label className="mb-1.5 block text-sm font-medium text-neutral-300">
-                Contrasena
+                Contraseña
               </label>
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full rounded-lg border border-neutral-700 bg-neutral-800/60 px-4 py-2.5 pr-10 text-sm text-white placeholder:text-neutral-500 focus:border-gold-400 focus:outline-none focus:ring-2 focus:ring-gold-400/20"
-                  placeholder="Ingrese su contrasena"
+                  className="w-full rounded-lg border border-neutral-700 bg-neutral-800/60 px-4 py-2.5 pr-10 text-sm text-white placeholder:text-neutral-500 transition-colors focus:border-gold-400 focus:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-gold-400/20"
+                  placeholder="Ingrese su contraseña"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-gold-400"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 transition-colors hover:text-gold-400"
                 >
                   {showPassword ? (
                     <EyeOff className="h-4 w-4" />
@@ -119,7 +122,7 @@ export function LoginPage() {
             <button
               type="submit"
               disabled={isLoginLoading}
-              className="w-full rounded-lg bg-gradient-to-r from-gold-500 to-gold-400 py-2.5 text-sm font-semibold text-neutral-950 transition hover:from-gold-400 hover:to-gold-300 focus:outline-none focus:ring-2 focus:ring-gold-400/50 disabled:opacity-50"
+              className="w-full rounded-lg bg-gradient-to-r from-gold-500 to-gold-400 py-2.5 text-sm font-semibold text-neutral-950 shadow-lg shadow-gold-500/20 transition hover:from-gold-400 hover:to-gold-300 hover:shadow-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-400/50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoginLoading ? "Ingresando..." : "Ingresar"}
             </button>

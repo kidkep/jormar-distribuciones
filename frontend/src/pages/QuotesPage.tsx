@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { quotesApi, type Quote, type QuoteCreate } from "@/api/quotes.api";
 import { productsApi, type Product } from "@/api/products.api";
 import { clientsApi, type Client } from "@/api/clients.api";
-import { Plus, Search, Eye, Trash2, Send, CheckCircle, XCircle, FileText, Download } from "lucide-react";
+import { Plus, Search, Eye, Trash2, Send, CheckCircle, XCircle, FileText, Download, X } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { ClientPicker } from "@/components/common/ClientPicker";
 
@@ -160,38 +160,46 @@ export function QuotesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Cotizaciones</h1>
+      <div className="flex animate-fade-up items-center justify-between">
+        <div>
+          <h1 className="flex items-center gap-2 text-2xl font-bold text-gray-900">
+            <FileText className="h-6 w-6 text-gold-600" />
+            Cotizaciones
+          </h1>
+          <p className="mt-1 text-sm text-gray-600">Gestiona tus cotizaciones</p>
+        </div>
         <button
           onClick={() => { resetForm(); setShowForm(true); }}
-          className="flex items-center gap-2 rounded-lg bg-gold-600 px-4 py-2 text-sm text-white hover:bg-gold-700"
+          className="btn-gold"
         >
           <Plus className="h-4 w-4" />
           Nueva Cotizacion
         </button>
       </div>
 
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-        <input
-          type="text"
-          placeholder="Buscar por numero de cotizacion o nombre del cliente..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full rounded-lg border border-gray-300 py-2.5 pl-10 pr-4 text-sm focus:border-gold-500 focus:outline-none"
-        />
+      <div className="animate-fade-up-delay-1">
+        <div className="relative">
+          <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Buscar por numero de cotizacion o nombre del cliente..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="input-premium pl-10"
+          />
+        </div>
       </div>
 
-      <div className="overflow-x-auto rounded-xl border bg-white shadow-sm">
-        <table className="w-full text-left text-sm">
-          <thead className="border-b bg-gray-50 text-xs uppercase text-gray-600">
+      <div className="card-premium animate-scale-in overflow-x-auto p-0">
+        <table className="table-premium w-full text-left text-sm">
+          <thead className="text-xs uppercase">
             <tr>
-              <th className="px-4 py-3">Cotizacion</th>
-              <th className="px-4 py-3">Fecha</th>
-              <th className="px-4 py-3">Cliente</th>
-              <th className="px-4 py-3">Total</th>
-              <th className="px-4 py-3">Estado</th>
-              <th className="px-4 py-3">Acciones</th>
+              <th className="px-5 py-3">Cotizacion</th>
+              <th className="px-5 py-3">Fecha</th>
+              <th className="px-5 py-3">Cliente</th>
+              <th className="px-5 py-3">Total</th>
+              <th className="px-5 py-3">Estado</th>
+              <th className="px-5 py-3">Acciones</th>
             </tr>
           </thead>
           <tbody className="divide-y">
@@ -202,40 +210,40 @@ export function QuotesPage() {
             ) : (
               quotes.map((q) => (
                 <tr key={q.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 font-mono text-xs font-bold">{q.quote_number}</td>
-                  <td className="px-4 py-3">{formatDate(q.quote_date)}</td>
-                  <td className="px-4 py-3">{q.client_name || q.client?.name || "Sin cliente"}</td>
-                  <td className="px-4 py-3 font-medium">{formatCurrency(Number(q.total))}</td>
-                  <td className="px-4 py-3">
-                    <span className={`rounded-full px-2 py-1 text-xs ${STATUS_COLORS[q.status] || ""}`}>
+                  <td className="px-5 py-3.5 font-mono text-xs font-semibold text-gold-700">{q.quote_number}</td>
+                  <td className="px-5 py-3.5">{formatDate(q.quote_date)}</td>
+                  <td className="px-5 py-3.5">{q.client_name || q.client?.name || "Sin cliente"}</td>
+                  <td className="px-5 py-3.5 font-medium">{formatCurrency(Number(q.total))}</td>
+                  <td className="px-5 py-3.5">
+                    <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${STATUS_COLORS[q.status] || ""}`}>
                       {STATUS_LABELS[q.status] || q.status}
                     </span>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-5 py-3.5">
                     <div className="flex gap-2">
-                      <button onClick={() => setShowDetail(q)} className="rounded p-1 text-gold-600 hover:bg-gold-50">
+                      <button onClick={() => setShowDetail(q)} className="rounded-lg p-1.5 text-gold-600 transition hover:bg-gold-50">
                         <Eye className="h-4 w-4" />
                       </button>
-                      <button onClick={() => downloadQuotePdf(q.id)} className="rounded p-1 text-green-600 hover:bg-green-50" title="Descargar PDF">
+                      <button onClick={() => downloadQuotePdf(q.id)} className="rounded-lg p-1.5 text-green-600 transition hover:bg-green-50" title="Descargar PDF">
                         <Download className="h-4 w-4" />
                       </button>
                       {q.status === "borrador" && (
-                        <button onClick={() => statusMutation.mutate({ id: q.id, status: "enviada" })} className="rounded p-1 text-gold-500 hover:bg-gold-50" title="Enviar">
+                        <button onClick={() => statusMutation.mutate({ id: q.id, status: "enviada" })} className="rounded-lg p-1.5 text-gold-500 transition hover:bg-gold-50" title="Enviar">
                           <Send className="h-4 w-4" />
                         </button>
                       )}
                       {q.status === "enviada" && (
-                        <button onClick={() => statusMutation.mutate({ id: q.id, status: "aceptada" })} className="rounded p-1 text-green-600 hover:bg-green-50" title="Aceptar">
+                        <button onClick={() => statusMutation.mutate({ id: q.id, status: "aceptada" })} className="rounded-lg p-1.5 text-green-600 transition hover:bg-green-50" title="Aceptar">
                           <CheckCircle className="h-4 w-4" />
                         </button>
                       )}
                       {q.status !== "aceptada" && q.status !== "rechazada" && (
-                        <button onClick={() => statusMutation.mutate({ id: q.id, status: "rechazada" })} className="rounded p-1 text-red-600 hover:bg-red-50" title="Rechazar">
+                        <button onClick={() => statusMutation.mutate({ id: q.id, status: "rechazada" })} className="rounded-lg p-1.5 text-red-600 transition hover:bg-red-50" title="Rechazar">
                           <XCircle className="h-4 w-4" />
                         </button>
                       )}
                       {(q.status === "borrador" || q.status === "rechazada") && (
-                        <button onClick={() => deleteMutation.mutate(q.id)} className="rounded p-1 text-red-500 hover:bg-red-50" title="Eliminar">
+                        <button onClick={() => deleteMutation.mutate(q.id)} className="rounded-lg p-1.5 text-red-500 transition hover:bg-red-50" title="Eliminar">
                           <Trash2 className="h-4 w-4" />
                         </button>
                       )}
@@ -248,35 +256,39 @@ export function QuotesPage() {
         </table>
       </div>
 
-      {/* Formulario nueva cotizacion */}
       {showForm && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/50 py-10">
-          <div className="w-full max-w-3xl rounded-xl bg-white p-6 shadow-2xl">
-            <h2 className="mb-4 text-lg font-semibold">Nueva Cotizacion</h2>
+        <div className="modal-backdrop fixed inset-0 z-50 flex items-start justify-center overflow-y-auto py-10">
+          <div className="modal-content w-full max-w-3xl rounded-2xl p-6">
+            <div className="mb-5 flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-gray-900">Nueva Cotizacion</h2>
+              <button onClick={resetForm} className="rounded-lg p-1.5 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
 
             <div className="grid grid-cols-3 gap-4 mb-4">
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">Cliente</label>
+                <label className="mb-1.5 block text-sm font-medium text-gray-700">Cliente</label>
                 <ClientPicker clients={clients} value={clientName} onChange={handleClientChange} />
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">Validez hasta</label>
-                <input type="date" value={validUntil} onChange={(e) => setValidUntil(e.target.value)} className="w-full rounded-lg border px-3 py-2 text-sm" />
+                <label className="mb-1.5 block text-sm font-medium text-gray-700">Validez hasta</label>
+                <input type="date" value={validUntil} onChange={(e) => setValidUntil(e.target.value)} className="input-premium" />
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">Descuento (%)</label>
-                <input type="text" inputMode="decimal" value={discount} onChange={(e) => setDiscount(Number(e.target.value))} className="w-full rounded-lg border px-3 py-2 text-sm" placeholder="0" />
+                <label className="mb-1.5 block text-sm font-medium text-gray-700">Descuento (%)</label>
+                <input type="text" inputMode="decimal" value={discount} onChange={(e) => setDiscount(Number(e.target.value))} className="input-premium" placeholder="0" />
               </div>
             </div>
 
             <div className="relative mb-4">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+              <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
                 placeholder="Buscar producto por nombre o SKU..."
                 value={productSearch}
                 onChange={(e) => setProductSearch(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 py-2.5 pl-10 pr-4 text-sm focus:border-gold-500 focus:outline-none"
+                className="input-premium pl-10"
               />
               {productSearch && filteredProducts.length > 0 && (
                 <div className="absolute z-10 mt-1 max-h-48 w-full overflow-y-auto rounded-lg border bg-white shadow-lg">
@@ -307,10 +319,10 @@ export function QuotesPage() {
                       <tr key={item.product.id}>
                         <td className="px-2 py-2 font-mono text-xs font-bold">{item.product.sku} <span className="font-normal text-gray-700">{item.product.name}</span></td>
                         <td className="px-2 py-2 text-center">
-                          <input type="text" inputMode="numeric" value={item.quantity} onChange={(e) => updateCartItem(item.product.id, e.target.value)} className="w-16 rounded border px-2 py-1 text-center text-sm" />
+                          <input type="text" inputMode="numeric" value={item.quantity} onChange={(e) => updateCartItem(item.product.id, e.target.value)} className="input-premium w-16 text-center" />
                         </td>
                         <td className="px-2 py-2 text-right">
-                          <input type="text" inputMode="decimal" value={item.unit_price} onChange={(e) => setCart(cart.map((c) => c.product.id === item.product.id ? { ...c, unit_price: Number(e.target.value) } : c))} className="w-24 rounded border px-2 py-1 text-right text-sm" />
+                          <input type="text" inputMode="decimal" value={item.unit_price} onChange={(e) => setCart(cart.map((c) => c.product.id === item.product.id ? { ...c, unit_price: Number(e.target.value) } : c))} className="input-premium w-24 text-right" />
                         </td>
                         <td className="px-2 py-2 text-right font-medium">{formatCurrency(item.unit_price * (Number(item.quantity) || 0))}</td>
                         <td className="px-2 py-2">
@@ -331,13 +343,13 @@ export function QuotesPage() {
             </div>
 
             <div className="mb-4">
-              <label className="mb-1 block text-sm font-medium text-gray-700">Observaciones</label>
-              <textarea value={notes} onChange={(e) => setNotes(e.target.value)} className="w-full rounded-lg border px-3 py-2 text-sm" rows={2} />
+              <label className="mb-1.5 block text-sm font-medium text-gray-700">Observaciones</label>
+              <textarea value={notes} onChange={(e) => setNotes(e.target.value)} className="input-premium" rows={2} />
             </div>
 
-            <div className="flex justify-end gap-3">
-              <button onClick={resetForm} className="rounded-lg border px-4 py-2 text-sm">Cancelar</button>
-              <button onClick={handleSubmit} disabled={cart.length === 0 || createMutation.isPending} className="rounded-lg bg-green-600 px-4 py-2 text-sm text-white hover:bg-green-700 disabled:opacity-50">
+            <div className="flex justify-end gap-3 pt-2">
+              <button onClick={resetForm} className="btn-outline">Cancelar</button>
+              <button onClick={handleSubmit} disabled={cart.length === 0 || createMutation.isPending} className="btn-gold disabled:opacity-50">
                 {createMutation.isPending ? "Guardando..." : "Crear Cotizacion"}
               </button>
             </div>
@@ -345,26 +357,27 @@ export function QuotesPage() {
         </div>
       )}
 
-      {/* Detalle de cotizacion */}
       {showDetail && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="w-full max-w-lg rounded-xl bg-white p-6 shadow-2xl">
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="flex items-center gap-2 text-lg font-semibold">
-                <FileText className="h-5 w-5" />
+        <div className="modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="modal-content w-full max-w-lg rounded-2xl p-6">
+            <div className="mb-5 flex items-center justify-between">
+              <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-900">
+                <FileText className="h-5 w-5 text-gold-600" />
                 {showDetail.quote_number}
               </h2>
               <div className="flex items-center gap-2">
-                <button onClick={() => downloadQuotePdf(showDetail.id)} className="text-green-600 hover:text-green-700" title="Descargar PDF">
+                <button onClick={() => downloadQuotePdf(showDetail.id)} className="rounded-lg p-1.5 text-green-600 transition hover:bg-green-50" title="Descargar PDF">
                   <Download className="h-5 w-5" />
                 </button>
-                <button onClick={() => setShowDetail(null)} className="text-gray-400 hover:text-gray-600"><XCircle className="h-5 w-5" /></button>
+                <button onClick={() => setShowDetail(null)} className="rounded-lg p-1.5 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600">
+                  <X className="h-5 w-5" />
+                </button>
               </div>
             </div>
             <div className="mb-4 grid grid-cols-2 gap-2 text-sm">
               <div><span className="text-gray-500">Fecha:</span> {formatDate(showDetail.quote_date)}</div>
               <div><span className="text-gray-500">Cliente:</span> {showDetail.client_name || showDetail.client?.name || "Sin cliente"}</div>
-              <div><span className="text-gray-500">Estado:</span> <span className={`rounded-full px-2 py-0.5 text-xs ${STATUS_COLORS[showDetail.status]}`}>{STATUS_LABELS[showDetail.status]}</span></div>
+              <div><span className="text-gray-500">Estado:</span> <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_COLORS[showDetail.status]}`}>{STATUS_LABELS[showDetail.status]}</span></div>
               {showDetail.valid_until && <div><span className="text-gray-500">Validez:</span> {formatDate(showDetail.valid_until)}</div>}
             </div>
             <table className="mb-4 w-full text-sm">

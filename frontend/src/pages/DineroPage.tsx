@@ -91,10 +91,18 @@ export function DineroPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900">Caja / Dinero</h1>
+      <div className="flex animate-fade-up items-center justify-between">
+        <div>
+          <h1 className="flex items-center gap-2 text-2xl font-bold text-gray-900">
+            <Wallet className="h-6 w-6 text-gold-600" />
+            Caja / Dinero
+          </h1>
+          <p className="mt-1 text-sm text-gray-600">Control de caja, dinero y saques</p>
+        </div>
+      </div>
 
       {/* SALDO TOTAL */}
-      <div className="rounded-xl border-2 border-green-200 bg-gradient-to-r from-green-50 to-emerald-50 p-6 shadow-sm">
+      <div className="card-premium rounded-xl border-2 border-green-200 bg-gradient-to-r from-green-50 to-emerald-50 p-6 animate-fade-up">
         <div className="flex items-center gap-3 mb-4">
           <div className="rounded-full bg-green-100 p-2">
             <Wallet className="h-6 w-6 text-green-600" />
@@ -127,7 +135,7 @@ export function DineroPage() {
       </div>
 
       {/* Tarjetas resumen hoy */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 animate-fade-up-delay-1">
         <Card title="Ventas Hoy" value={d.ventas_hoy} icon={<TrendingUp className="h-5 w-5 text-green-600" />} color="bg-green-50 border-green-200" textColor="text-green-700" />
         <Card title="Gastos Hoy" value={d.gastos_hoy} icon={<TrendingDown className="h-5 w-5 text-red-600" />} color="bg-red-50 border-red-200" textColor="text-red-700" />
         <Card title="Ganancia Neta Hoy" value={d.ganancia_neta_hoy} icon={<DollarSign className="h-5 w-5 text-gold-600" />} color="bg-gold-50 border-gold-200" textColor="text-gold-700" />
@@ -135,14 +143,14 @@ export function DineroPage() {
       </div>
 
       {/* Tarjetas resumen mes */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 animate-fade-up-delay-1">
         <Card title="Ventas Mes" value={d.ventas_mes} icon={<TrendingUp className="h-5 w-5 text-green-600" />} color="bg-green-50 border-green-200" textColor="text-green-700" />
         <Card title="Gastos Mes" value={d.gastos_mes} icon={<TrendingDown className="h-5 w-5 text-red-600" />} color="bg-red-50 border-red-200" textColor="text-red-700" />
         <Card title="Ganancia Neta Mes" value={d.ganancia_neta_mes} icon={<DollarSign className="h-5 w-5 text-gold-600" />} color="bg-gold-50 border-gold-200" textColor="text-gold-700" />
       </div>
 
       {/* Distribucion del dinero */}
-      <div className="rounded-xl border bg-white p-5 shadow-sm">
+      <div className="card-premium animate-scale-in p-5">
         <div className="mb-4 flex items-center justify-between">
           <div>
             <h2 className="text-base font-semibold text-gray-800">Distribución del Dinero</h2>
@@ -205,7 +213,7 @@ export function DineroPage() {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Metodos de pago */}
-        <div className="rounded-xl border bg-white p-5 shadow-sm">
+        <div className="card-premium p-5">
           <h2 className="mb-4 text-base font-semibold text-gray-800">Ventas Hoy por Metodo</h2>
           <div className="space-y-3">
             {Object.entries(d.por_metodo).map(([key, val]) => (
@@ -222,7 +230,7 @@ export function DineroPage() {
         </div>
 
         {/* Saques / Retiros */}
-        <div className="rounded-xl border bg-white p-5 shadow-sm">
+        <div className="card-premium p-5">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-base font-semibold text-gray-800">Saques / Retiros</h2>
             <button
@@ -244,7 +252,7 @@ export function DineroPage() {
                     inputMode="decimal"
                     value={form.amount}
                     onChange={(e) => setForm({ ...form, amount: e.target.value })}
-                    className="w-full rounded-lg border px-3 py-2 text-sm"
+                    className="input-premium"
                     placeholder="0"
                   />
                   {d && (
@@ -258,7 +266,7 @@ export function DineroPage() {
                   <select
                     value={form.source_method}
                     onChange={(e) => setForm({ ...form, source_method: e.target.value })}
-                    className="w-full rounded-lg border px-3 py-2 text-sm"
+                    className="input-premium"
                   >
                     <option value="nequi">Nequi</option>
                     <option value="bancolombia">Bancolombia</option>
@@ -271,7 +279,7 @@ export function DineroPage() {
                   <select
                     value={form.distribution_category}
                     onChange={(e) => setForm({ ...form, distribution_category: e.target.value })}
-                    className="w-full rounded-lg border px-3 py-2 text-sm"
+                    className="input-premium"
                   >
                     <option value="utilidad">Utilidad</option>
                     <option value="inversion">Inversión</option>
@@ -285,7 +293,7 @@ export function DineroPage() {
                   type="text"
                   value={form.description}
                   onChange={(e) => setForm({ ...form, description: e.target.value })}
-                  className="w-full rounded-lg border px-3 py-2 text-sm"
+                  className="input-premium"
                   placeholder="Ej: Pago proveedor, Recarga, etc."
                 />
               </div>
@@ -296,7 +304,7 @@ export function DineroPage() {
                     type="date"
                     value={form.retiro_date}
                     onChange={(e) => setForm({ ...form, retiro_date: e.target.value })}
-                    className="w-full rounded-lg border px-3 py-2 text-sm"
+                    className="input-premium"
                   />
                 </div>
                 <div>
@@ -305,7 +313,7 @@ export function DineroPage() {
                     type="text"
                     value={form.reference}
                     onChange={(e) => setForm({ ...form, reference: e.target.value })}
-                    className="w-full rounded-lg border px-3 py-2 text-sm"
+                    className="input-premium"
                     placeholder="Opcional"
                   />
                 </div>
@@ -316,7 +324,7 @@ export function DineroPage() {
                   type="text"
                   value={form.notes}
                   onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                  className="w-full rounded-lg border px-3 py-2 text-sm"
+                  className="input-premium"
                   placeholder="Algo mas que quieras recordar"
                 />
               </div>

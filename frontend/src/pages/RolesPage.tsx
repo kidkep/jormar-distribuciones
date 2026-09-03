@@ -2,7 +2,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { rolesApi } from "@/api/roles.api";
 import type { Permission, Role } from "@/api/types";
-import { Plus, Edit, Trash2, KeyRound } from "lucide-react";
+import { Plus, Edit, Trash2, KeyRound, ShieldCheck, X } from "lucide-react";
 
 interface FormState {
   name: string;
@@ -102,11 +102,17 @@ export function RolesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Roles y Permisos</h1>
+      <div className="flex animate-fade-up items-center justify-between">
+        <div>
+          <h1 className="flex items-center gap-2 text-2xl font-bold text-gray-900">
+            <ShieldCheck className="h-6 w-6 text-gold-600" />
+            Roles y Permisos
+          </h1>
+          <p className="mt-1 text-sm text-gray-600">Administra los roles y permisos del sistema</p>
+        </div>
         <button
           onClick={() => { setEditing(null); setForm(emptyForm); setErrorMsg(null); setShowModal(true); }}
-          className="flex items-center gap-2 rounded-lg bg-gold-600 px-4 py-2 text-sm text-white hover:bg-gold-700"
+          className="btn-gold"
         >
           <Plus className="h-4 w-4" />
           Nuevo Rol
@@ -120,17 +126,17 @@ export function RolesPage() {
           <p className="text-sm text-gray-500">No hay roles creados</p>
         ) : (
           roles.map((role) => (
-            <div key={role.id} className="rounded-xl border bg-white p-4 shadow-sm">
+            <div key={role.id} className="card-premium p-4">
               <div className="mb-2 flex items-center justify-between">
                 <h3 className="flex items-center gap-2 font-semibold text-gray-900">
                   <KeyRound className="h-4 w-4 text-gold-600" />
                   {role.name}
                 </h3>
                 <div className="flex gap-2">
-                  <button onClick={() => openEdit(role)} className="rounded p-1 text-gold-600 hover:bg-gold-50">
+                  <button onClick={() => openEdit(role)} className="rounded-lg p-1.5 text-gold-600 transition hover:bg-gold-50">
                     <Edit className="h-4 w-4" />
                   </button>
-                  <button onClick={() => deleteMutation.mutate(role.id)} className="rounded p-1 text-red-600 hover:bg-red-50">
+                  <button onClick={() => deleteMutation.mutate(role.id)} className="rounded-lg p-1.5 text-red-600 transition hover:bg-red-50">
                     <Trash2 className="h-4 w-4" />
                   </button>
                 </div>
@@ -153,9 +159,14 @@ export function RolesPage() {
       </div>
 
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-xl bg-white p-6 shadow-2xl">
-            <h2 className="mb-4 text-lg font-semibold">{editing ? "Editar Rol" : "Nuevo Rol"}</h2>
+        <div className="modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="modal-content max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl p-6">
+            <div className="mb-5 flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-gray-900">{editing ? "Editar Rol" : "Nuevo Rol"}</h2>
+              <button onClick={() => setShowModal(false)} className="rounded-lg p-1.5 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
             <form onSubmit={handleSubmit} className="space-y-4">
               {errorMsg && (
                 <div className="rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-700">{errorMsg}</div>
@@ -166,17 +177,17 @@ export function RolesPage() {
                   type="text"
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  className="w-full rounded-lg border px-3 py-2 text-sm"
+                  className="input-premium"
                   placeholder="Ej: Vendedor, Administrador, Bodeguero"
                 />
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">DescripciÃ³n</label>
+                <label className="mb-1 block text-sm font-medium text-gray-700">Descripción</label>
                 <input
                   type="text"
                   value={form.description}
                   onChange={(e) => setForm({ ...form, description: e.target.value })}
-                  className="w-full rounded-lg border px-3 py-2 text-sm"
+                  className="input-premium"
                 />
               </div>
 
@@ -207,8 +218,8 @@ export function RolesPage() {
               </div>
 
               <div className="flex justify-end gap-3 pt-2">
-                <button type="button" onClick={() => setShowModal(false)} className="rounded-lg border px-4 py-2 text-sm">Cancelar</button>
-                <button type="submit" className="rounded-lg bg-gold-600 px-4 py-2 text-sm text-white hover:bg-gold-700">
+                <button type="button" onClick={() => setShowModal(false)} className="btn-outline">Cancelar</button>
+                <button type="submit" className="btn-gold">
                   {editing ? "Guardar Cambios" : "Crear Rol"}
                 </button>
               </div>

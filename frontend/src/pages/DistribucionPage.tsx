@@ -15,6 +15,7 @@ import {
   Filter,
   Calendar,
   RotateCcw,
+  PieChart,
 } from "lucide-react";
 
 export function DistribucionPage() {
@@ -61,10 +62,14 @@ export function DistribucionPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">
-          Distribucion del Dinero
-        </h1>
+      <div className="flex animate-fade-up items-center justify-between">
+        <div>
+          <h1 className="flex items-center gap-2 text-2xl font-bold text-gray-900">
+            <PieChart className="h-6 w-6 text-gold-600" />
+            Distribucion del Dinero
+          </h1>
+          <p className="mt-1 text-sm text-gray-600">Reparto de cada venta entre utilidad, gastos e inversion</p>
+        </div>
         <div className="flex items-center gap-2 text-xs text-gray-500">
           <span className="rounded bg-gold-100 px-2 py-1 text-gold-700">
             Utilidad: {summary?.pct_utilidad ?? 20}%
@@ -79,7 +84,7 @@ export function DistribucionPage() {
       </div>
 
       {/* Filtros de fecha */}
-      <div className="flex flex-wrap items-end gap-3 rounded-xl border bg-white p-4 shadow-sm">
+      <div className="animate-fade-up-delay-1 flex flex-wrap items-end gap-3 rounded-xl border bg-white p-4 shadow-sm">
         <div className="flex items-center gap-2">
           <Calendar className="h-4 w-4 text-gray-400" />
           <span className="text-sm font-medium text-gray-600">Filtrar por fechas:</span>
@@ -90,7 +95,7 @@ export function DistribucionPage() {
             type="date"
             value={fechaInicio}
             onChange={(e) => setFechaInicio(e.target.value)}
-            className="rounded-lg border px-3 py-1.5 text-sm"
+            className="input-premium"
           />
         </div>
         <div>
@@ -99,13 +104,13 @@ export function DistribucionPage() {
             type="date"
             value={fechaFin}
             onChange={(e) => setFechaFin(e.target.value)}
-            className="rounded-lg border px-3 py-1.5 text-sm"
+            className="input-premium"
           />
         </div>
         {(fechaInicio || fechaFin) && (
           <button
             onClick={clearFilters}
-            className="flex items-center gap-1 rounded-lg border px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-50"
+            className="btn-outline"
           >
             <RotateCcw className="h-3 w-3" />
             Limpiar
@@ -114,8 +119,8 @@ export function DistribucionPage() {
       </div>
 
       {/* Tarjetas de acumulados */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-xl border-2 border-gold-200 bg-gradient-to-br from-gold-50 to-gold-50 p-5 shadow-sm">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 animate-fade-up-delay-1">
+        <div className="card-premium rounded-xl border-2 border-gold-200 bg-gradient-to-br from-gold-50 to-gold-50 p-5">
           <div className="mb-3 flex items-center gap-3">
             <div className="rounded-full bg-gold-100 p-2">
               <DollarSign className="h-5 w-5 text-gold-600" />
@@ -132,7 +137,7 @@ export function DistribucionPage() {
           </p>
         </div>
 
-        <div className="rounded-xl border-2 border-emerald-200 bg-gradient-to-br from-emerald-50 to-green-50 p-5 shadow-sm">
+        <div className="card-premium rounded-xl border-2 border-emerald-200 bg-gradient-to-br from-emerald-50 to-green-50 p-5">
           <div className="mb-3 flex items-center gap-3">
             <div className="rounded-full bg-emerald-100 p-2">
               <TrendingUp className="h-5 w-5 text-emerald-600" />
@@ -151,7 +156,7 @@ export function DistribucionPage() {
           </p>
         </div>
 
-        <div className="rounded-xl border-2 border-red-200 bg-gradient-to-br from-red-50 to-rose-50 p-5 shadow-sm">
+        <div className="card-premium rounded-xl border-2 border-red-200 bg-gradient-to-br from-red-50 to-rose-50 p-5">
           <div className="mb-3 flex items-center gap-3">
             <div className="rounded-full bg-red-100 p-2">
               <TrendingDown className="h-5 w-5 text-red-600" />
@@ -170,7 +175,7 @@ export function DistribucionPage() {
           </p>
         </div>
 
-        <div className="rounded-xl border-2 border-amber-200 bg-gradient-to-br from-amber-50 to-yellow-50 p-5 shadow-sm">
+        <div className="card-premium rounded-xl border-2 border-amber-200 bg-gradient-to-br from-amber-50 to-yellow-50 p-5">
           <div className="mb-3 flex items-center gap-3">
             <div className="rounded-full bg-amber-100 p-2">
               <PiggyBank className="h-5 w-5 text-amber-600" />
@@ -192,7 +197,7 @@ export function DistribucionPage() {
 
       {/* Barras de porcentajes */}
       {summary && summary.total_ventas > 0 && (
-        <div className="rounded-xl border bg-white p-5 shadow-sm">
+        <div className="card-premium animate-scale-in p-5">
           <h2 className="mb-4 text-sm font-semibold text-gray-800">
             Distribucion Porcentual
           </h2>
@@ -250,7 +255,7 @@ export function DistribucionPage() {
       )}
 
       {/* Historial de distribuciones */}
-      <div className="rounded-xl border bg-white p-5 shadow-sm">
+      <div className="card-premium p-5">
         <h2 className="mb-4 text-sm font-semibold text-gray-800">
           Historial de Distribuciones
         </h2>
@@ -260,7 +265,7 @@ export function DistribucionPage() {
           </p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
+            <table className="table-premium w-full text-left text-sm">
               <thead>
                 <tr className="border-b text-xs text-gray-500">
                   <th className="pb-2 pr-4 font-medium">Remision</th>

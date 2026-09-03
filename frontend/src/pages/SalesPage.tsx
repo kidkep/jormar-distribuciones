@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { salesApi, type Sale, type SaleCreate } from "@/api/sales.api";
 import { productsApi, type Product } from "@/api/products.api";
 import { clientsApi, type Client } from "@/api/clients.api";
-import { Plus, Search, Eye, XCircle, ShoppingCart, Trash2, Download, AlertTriangle } from "lucide-react";
+import { Plus, Search, Eye, XCircle, ShoppingCart, Trash2, Download, AlertTriangle, X } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { ClientPicker } from "@/components/common/ClientPicker";
 
@@ -153,39 +153,47 @@ export function SalesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Ventas</h1>
+      <div className="flex animate-fade-up items-center justify-between">
+        <div>
+          <h1 className="flex items-center gap-2 text-2xl font-bold text-gray-900">
+            <ShoppingCart className="h-6 w-6 text-gold-600" />
+            Ventas
+          </h1>
+          <p className="mt-1 text-sm text-gray-600">Gestiona tus ventas y remisiones</p>
+        </div>
         <button
           onClick={() => { resetForm(); setSaleError(null); setShowForm(true); }}
-          className="flex items-center gap-2 rounded-lg bg-gold-600 px-4 py-2 text-sm text-white hover:bg-gold-700"
+          className="btn-gold"
         >
           <Plus className="h-4 w-4" />
           Nueva Venta
         </button>
       </div>
 
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-        <input
-          type="text"
-          placeholder="Buscar por numero de remision..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full rounded-lg border border-gray-300 py-2.5 pl-10 pr-4 text-sm focus:border-gold-500 focus:outline-none"
-        />
+      <div className="animate-fade-up-delay-1">
+        <div className="relative">
+          <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Buscar por numero de remision..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="input-premium pl-10"
+          />
+        </div>
       </div>
 
-      <div className="overflow-x-auto rounded-xl border bg-white shadow-sm">
-        <table className="w-full text-left text-sm">
-          <thead className="border-b bg-gray-50 text-xs uppercase text-gray-600">
+      <div className="card-premium animate-scale-in overflow-x-auto p-0">
+        <table className="table-premium w-full text-left text-sm">
+          <thead className="text-xs uppercase">
             <tr>
-              <th className="px-4 py-3">Remision</th>
-              <th className="px-4 py-3">Fecha</th>
-              <th className="px-4 py-3">Cliente</th>
-              <th className="px-4 py-3">Total</th>
-              <th className="px-4 py-3">Metodo Pago</th>
-              <th className="px-4 py-3">Estado</th>
-              <th className="px-4 py-3">Acciones</th>
+              <th className="px-5 py-3">Remision</th>
+              <th className="px-5 py-3">Fecha</th>
+              <th className="px-5 py-3">Cliente</th>
+              <th className="px-5 py-3">Total</th>
+              <th className="px-5 py-3">Metodo Pago</th>
+              <th className="px-5 py-3">Estado</th>
+              <th className="px-5 py-3">Acciones</th>
             </tr>
           </thead>
           <tbody className="divide-y">
@@ -196,13 +204,13 @@ export function SalesPage() {
             ) : (
               sales.map((s) => (
                 <tr key={s.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 font-mono text-xs font-bold">{s.invoice_number}</td>
-                  <td className="px-4 py-3">{formatDate(s.sale_date)}</td>
-                  <td className="px-4 py-3">{s.client_name || s.client?.name || "Sin cliente"}</td>
-                  <td className="px-4 py-3 font-medium">{formatCurrency(Number(s.total))}</td>
-                  <td className="px-4 py-3 capitalize">{s.payment_method}</td>
-                  <td className="px-4 py-3">
-                    <span className={`rounded-full px-2 py-1 text-xs ${
+                  <td className="px-5 py-3.5 font-mono text-xs font-semibold text-gold-700">{s.invoice_number}</td>
+                  <td className="px-5 py-3.5">{formatDate(s.sale_date)}</td>
+                  <td className="px-5 py-3.5">{s.client_name || s.client?.name || "Sin cliente"}</td>
+                  <td className="px-5 py-3.5 font-medium">{formatCurrency(Number(s.total))}</td>
+                  <td className="px-5 py-3.5 capitalize">{s.payment_method}</td>
+                  <td className="px-5 py-3.5">
+                    <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${
                       s.status === "pagada" ? "bg-green-100 text-green-700"
                       : s.status === "pendiente" || s.status === "credito" ? "bg-amber-100 text-amber-700"
                       : "bg-red-100 text-red-700"
@@ -210,16 +218,16 @@ export function SalesPage() {
                       {s.status === "pendiente" || s.status === "credito" ? "Pendiente" : s.status}
                     </span>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-5 py-3.5">
                     <div className="flex gap-2">
-                      <button onClick={() => setShowDetail(s)} className="rounded p-1 text-gold-600 hover:bg-gold-50">
+                      <button onClick={() => setShowDetail(s)} className="rounded-lg p-1.5 text-gold-600 transition hover:bg-gold-50">
                         <Eye className="h-4 w-4" />
                       </button>
-                      <button onClick={() => downloadInvoice(s.invoice_number)} className="rounded p-1 text-green-600 hover:bg-green-50" title="Descargar PDF">
+                      <button onClick={() => downloadInvoice(s.invoice_number)} className="rounded-lg p-1.5 text-green-600 transition hover:bg-green-50" title="Descargar PDF">
                         <Download className="h-4 w-4" />
                       </button>
                       {s.status !== "anulada" && (
-                        <button onClick={() => cancelMutation.mutate(s.id)} className="rounded p-1 text-red-600 hover:bg-red-50">
+                        <button onClick={() => cancelMutation.mutate(s.id)} className="rounded-lg p-1.5 text-red-600 transition hover:bg-red-50">
                           <XCircle className="h-4 w-4" />
                         </button>
                       )}
@@ -232,20 +240,24 @@ export function SalesPage() {
         </table>
       </div>
 
-      {/* Formulario nueva venta */}
       {showForm && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/50 py-10">
-          <div className="w-full max-w-3xl rounded-xl bg-white p-6 shadow-2xl">
-            <h2 className="mb-4 text-lg font-semibold">Nueva Venta</h2>
+        <div className="modal-backdrop fixed inset-0 z-50 flex items-start justify-center overflow-y-auto py-10">
+          <div className="modal-content w-full max-w-3xl rounded-2xl p-6">
+            <div className="mb-5 flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-gray-900">Nueva Venta</h2>
+              <button onClick={resetForm} className="rounded-lg p-1.5 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
 
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">Cliente</label>
+                <label className="mb-1.5 block text-sm font-medium text-gray-700">Cliente</label>
                 <ClientPicker clients={clients} value={clientName} onChange={handleClientChange} />
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">Metodo de Pago</label>
-                <select value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)} className="w-full rounded-lg border px-3 py-2 text-sm">
+                <label className="mb-1.5 block text-sm font-medium text-gray-700">Metodo de Pago</label>
+                <select value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)} className="input-premium">
                   <option value="efectivo">Efectivo</option>
                   <option value="nequi">Nequi</option>
                   <option value="bancolombia">Bancolombia</option>
@@ -254,36 +266,35 @@ export function SalesPage() {
                 </select>
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">Direccion de Entrega</label>
+                <label className="mb-1.5 block text-sm font-medium text-gray-700">Direccion de Entrega</label>
                 <input
                   type="text"
                   value={deliveryAddress}
                   onChange={(e) => setDeliveryAddress(e.target.value)}
-                  className="w-full rounded-lg border px-3 py-2 text-sm"
+                  className="input-premium"
                   placeholder="Direccion donde se entrega"
                 />
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">Quien Entrega</label>
+                <label className="mb-1.5 block text-sm font-medium text-gray-700">Quien Entrega</label>
                 <input
                   type="text"
                   value={deliveredBy}
                   onChange={(e) => setDeliveredBy(e.target.value)}
-                  className="w-full rounded-lg border px-3 py-2 text-sm"
+                  className="input-premium"
                   placeholder="Nombre de quien entrega"
                 />
               </div>
             </div>
 
-            {/* Buscar producto */}
             <div className="relative mb-4">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+              <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
                 placeholder="Buscar producto por nombre o SKU..."
                 value={productSearch}
                 onChange={(e) => setProductSearch(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 py-2.5 pl-10 pr-4 text-sm focus:border-gold-500 focus:outline-none"
+                className="input-premium pl-10"
               />
               {productSearch && filteredProducts.length > 0 && (
                 <div className="absolute z-10 mt-1 max-h-48 w-full overflow-y-auto rounded-lg border bg-white shadow-lg">
@@ -301,7 +312,6 @@ export function SalesPage() {
               )}
             </div>
 
-            {/* Carrito */}
             {cart.length > 0 && (
               <div className="mb-4">
                 <table className="w-full text-sm">
@@ -324,7 +334,7 @@ export function SalesPage() {
                             inputMode="numeric"
                             value={item.quantity}
                             onChange={(e) => updateCartItem(item.product.id, e.target.value)}
-                            className="w-16 rounded border px-2 py-1 text-center text-sm"
+                            className="input-premium w-16 text-center"
                           />
                         </td>
                         <td className="px-2 py-2 text-right">
@@ -337,7 +347,7 @@ export function SalesPage() {
                                 c.product.id === item.product.id ? { ...c, unit_price: Number(e.target.value) } : c
                               ))
                             }
-                            className="w-24 rounded border px-2 py-1 text-right text-sm"
+                            className="input-premium w-24 text-right"
                           />
                         </td>
                         <td className="px-2 py-2 text-right font-medium">{formatCurrency(item.unit_price * (Number(item.quantity) || 0))}</td>
@@ -353,29 +363,28 @@ export function SalesPage() {
               </div>
             )}
 
-            {/* Totales */}
             <div className="mb-4 flex justify-end">
               <div className="w-64 space-y-1 text-sm">
                 <div className="flex justify-between"><span>Subtotal:</span><span>{formatCurrency(subtotal)}</span></div>
                 <div className="flex justify-between">
                   <span>Descuento (%):</span>
-                  <input type="text" inputMode="decimal" value={discount} onChange={(e) => setDiscount(Number(e.target.value))} className="w-24 rounded border px-2 py-1 text-right text-sm" placeholder="0" />
+                  <input type="text" inputMode="decimal" value={discount} onChange={(e) => setDiscount(Number(e.target.value))} className="input-premium w-24 text-right" placeholder="0" />
                 </div>
                 <div className="flex justify-between border-t pt-1 text-base font-bold"><span>Total:</span><span>{formatCurrency(total)}</span></div>
               </div>
             </div>
 
             <div className="mb-4">
-              <label className="mb-1 block text-sm font-medium text-gray-700">Observaciones</label>
-              <textarea value={notes} onChange={(e) => setNotes(e.target.value)} className="w-full rounded-lg border px-3 py-2 text-sm" rows={2} />
+              <label className="mb-1.5 block text-sm font-medium text-gray-700">Observaciones</label>
+              <textarea value={notes} onChange={(e) => setNotes(e.target.value)} className="input-premium" rows={2} />
             </div>
 
-            <div className="flex justify-end gap-3">
-              <button onClick={resetForm} className="rounded-lg border px-4 py-2 text-sm">Cancelar</button>
+            <div className="flex justify-end gap-3 pt-2">
+              <button onClick={resetForm} className="btn-outline">Cancelar</button>
               <button
                 onClick={handleSubmit}
                 disabled={cart.length === 0 || createMutation.isPending}
-                className="rounded-lg bg-green-600 px-4 py-2 text-sm text-white hover:bg-green-700 disabled:opacity-50"
+                className="btn-gold disabled:opacity-50"
               >
                 {createMutation.isPending ? "Procesando..." : "Confirmar Venta"}
               </button>
@@ -390,18 +399,17 @@ export function SalesPage() {
         </div>
       )}
 
-      {/* Detalle de venta */}
       {showDetail && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="w-full max-w-lg rounded-xl bg-white p-6 shadow-2xl">
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-lg font-semibold">{showDetail.invoice_number}</h2>
-              <div className="flex gap-2">
-                <button onClick={() => downloadInvoice(showDetail.invoice_number)} className="text-green-600 hover:text-green-700" title="Descargar PDF">
+        <div className="modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="modal-content w-full max-w-lg rounded-2xl p-6">
+            <div className="mb-5 flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-gray-900">{showDetail.invoice_number}</h2>
+              <div className="flex items-center gap-2">
+                <button onClick={() => downloadInvoice(showDetail.invoice_number)} className="rounded-lg p-1.5 text-green-600 transition hover:bg-green-50" title="Descargar PDF">
                   <Download className="h-5 w-5" />
                 </button>
-                <button onClick={() => setShowDetail(null)} className="text-gray-400 hover:text-gray-600">
-                  <XCircle className="h-5 w-5" />
+                <button onClick={() => setShowDetail(null)} className="rounded-lg p-1.5 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600">
+                  <X className="h-5 w-5" />
                 </button>
               </div>
             </div>

@@ -30,6 +30,7 @@ import {
   ArrowUpCircle,
   Search,
   Wallet,
+  Scale,
 } from "lucide-react";
 
 export function BalancePage() {
@@ -78,17 +79,25 @@ export function BalancePage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900">Consultor de Balance</h1>
+      <div className="flex animate-fade-up items-center justify-between">
+        <div>
+          <h1 className="flex items-center gap-2 text-2xl font-bold text-gray-900">
+            <Scale className="h-6 w-6 text-gold-600" />
+            Consultor de Balance
+          </h1>
+          <p className="mt-1 text-sm text-gray-600">Consulta el balance general del negocio</p>
+        </div>
+      </div>
 
       {/* Filtros de fecha */}
-      <div className="flex flex-wrap items-end gap-4 rounded-xl border bg-white p-4 shadow-sm">
+      <div className="animate-fade-up-delay-1 flex flex-wrap items-end gap-4 rounded-xl border bg-white p-4 shadow-sm">
         <div>
           <label className="mb-1 block text-sm font-medium text-gray-700">Fecha Inicio</label>
           <input
             type="date"
             value={fechaInicio}
             onChange={(e) => setFechaInicio(e.target.value)}
-            className="rounded-lg border px-3 py-2 text-sm"
+            className="input-premium"
           />
         </div>
         <div>
@@ -97,19 +106,19 @@ export function BalancePage() {
             type="date"
             value={fechaFin}
             onChange={(e) => setFechaFin(e.target.value)}
-            className="rounded-lg border px-3 py-2 text-sm"
+            className="input-premium"
           />
         </div>
         <button
           onClick={() => refetch()}
-          className="flex items-center gap-2 rounded-lg bg-gold-600 px-4 py-2 text-sm text-white hover:bg-gold-700"
+          className="btn-gold"
         >
           <Search className="h-4 w-4" />
           Consultar
         </button>
         <button
           onClick={() => { setFechaInicio(""); setFechaFin(""); }}
-          className="rounded-lg border px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
+          className="btn-outline"
         >
           Limpiar
         </button>
@@ -119,7 +128,7 @@ export function BalancePage() {
       </div>
 
       {/* RESUMEN GENERAL */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 animate-fade-up-delay-1">
         <SummaryCard
           title="Total Ventas"
           value={d.ventas.total}
@@ -151,7 +160,7 @@ export function BalancePage() {
       </div>
 
       {/* SEGUNDA FILA */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 animate-fade-up-delay-1">
         <SummaryCard
           title="Productos"
           value={d.inventario.total_productos}
@@ -188,7 +197,7 @@ export function BalancePage() {
 
       {/* GRAFICAS DE VENTAS */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <div className="rounded-xl border bg-white p-5 shadow-sm">
+        <div className="card-premium p-5">
           <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-gray-800">
             <TrendingUp className="h-4 w-4 text-green-600" />
             Ventas por Dia
@@ -221,7 +230,7 @@ export function BalancePage() {
           )}
         </div>
 
-        <div className="rounded-xl border bg-white p-5 shadow-sm">
+        <div className="card-premium p-5">
           <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-gray-800">
             <TrendingUp className="h-4 w-4 text-gold-600" />
             Distribucion por Metodo de Pago
@@ -253,7 +262,7 @@ export function BalancePage() {
 
       {/* TOP PRODUCTOS (grafica) */}
       {d.top_productos.length > 0 && (
-        <div className="rounded-xl border bg-white p-5 shadow-sm">
+        <div className="card-premium p-5">
           <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-gray-800">
             <Package className="h-4 w-4 text-orange-600" />
             Top 5 Productos Mas Vendidos (Grafica)
@@ -299,7 +308,7 @@ export function BalancePage() {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* VENTAS POR METODO */}
-        <div className="rounded-xl border bg-white p-5 shadow-sm">
+        <div className="card-premium p-5">
           <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-gray-800">
             <TrendingUp className="h-4 w-4 text-green-600" />
             Ventas por Metodo de Pago
@@ -323,7 +332,7 @@ export function BalancePage() {
         </div>
 
         {/* GASTOS POR CATEGORIA */}
-        <div className="rounded-xl border bg-white p-5 shadow-sm">
+        <div className="card-premium p-5">
           <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-gray-800">
             <TrendingDown className="h-4 w-4 text-red-600" />
             Gastos por Categoria
@@ -354,7 +363,7 @@ export function BalancePage() {
       </div>
 
       {/* ABONOS POR METODO */}
-      <div className="rounded-xl border bg-white p-5 shadow-sm">
+      <div className="card-premium p-5">
         <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-gray-800">
           <ArrowDownCircle className="h-4 w-4 text-purple-600" />
           Abonos Recibidos por Metodo (Historial Completo)
@@ -375,28 +384,28 @@ export function BalancePage() {
 
       {/* TOP PRODUCTOS */}
       {d.top_productos.length > 0 && (
-        <div className="rounded-xl border bg-white p-5 shadow-sm">
+        <div className="card-premium p-5">
           <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-gray-800">
             <Package className="h-4 w-4 text-orange-600" />
             Top 5 Productos Mas Vendidos
           </h2>
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="border-b text-xs uppercase text-gray-500">
+            <table className="table-premium w-full text-left text-sm">
+              <thead className="text-xs uppercase">
                 <tr>
-                  <th className="px-3 py-2 text-left">#</th>
-                  <th className="px-3 py-2 text-left">Producto</th>
-                  <th className="px-3 py-2 text-right">Unidades</th>
-                  <th className="px-3 py-2 text-right">Total Generado</th>
+                  <th className="px-3 py-3 text-left">#</th>
+                  <th className="px-3 py-3 text-left">Producto</th>
+                  <th className="px-3 py-3 text-right">Unidades</th>
+                  <th className="px-3 py-3 text-right">Total Generado</th>
                 </tr>
               </thead>
               <tbody className="divide-y">
                 {d.top_productos.map((p, i) => (
                   <tr key={i} className="hover:bg-gray-50">
-                    <td className="px-3 py-2 font-bold text-gray-400">{i + 1}</td>
-                    <td className="px-3 py-2 font-medium">{p.producto}</td>
-                    <td className="px-3 py-2 text-right">{p.unidades_vendidas}</td>
-                    <td className="px-3 py-2 text-right font-medium">{formatCurrency(p.total_generado)}</td>
+                    <td className="px-3 py-3 font-bold text-gray-400">{i + 1}</td>
+                    <td className="px-3 py-3 font-medium text-gray-800">{p.producto}</td>
+                    <td className="px-3 py-3 text-right">{p.unidades_vendidas}</td>
+                    <td className="px-3 py-3 text-right font-medium">{formatCurrency(p.total_generado)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -406,7 +415,7 @@ export function BalancePage() {
       )}
 
       {/* DEUDORES */}
-      <div className="rounded-xl border bg-white p-5 shadow-sm">
+      <div className="card-premium p-5">
         <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-gray-800">
           <AlertTriangle className="h-4 w-4 text-red-600" />
           Deudores - Creditos Pendientes

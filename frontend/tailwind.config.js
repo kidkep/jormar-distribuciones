@@ -52,6 +52,18 @@ export default {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      boxShadow: {
+        "glass": "0 4px 24px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04)",
+        "glass-lg": "0 8px 32px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04)",
+        "gold-sm": "0 2px 8px rgba(216, 174, 75, 0.25)",
+        "gold-md": "0 4px 16px rgba(216, 174, 75, 0.3)",
+        "gold-lg": "0 8px 32px rgba(216, 174, 75, 0.35)",
+      },
+      animation: {
+        "fade-up": "fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) both",
+        "scale-in": "scale-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) both",
+        "float": "float 4s ease-in-out infinite",
+      },
     },
   },
   plugins: [require("tailwindcss-animate")],
