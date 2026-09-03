@@ -157,6 +157,9 @@ export function TasksPage() {
                       <span className="rounded-full bg-gray-100 px-2 py-0.5">{TASK_TYPES.find((x) => x.value === t.task_type)?.label || t.task_type}</span>
                       {t.priority === "alta" && <span className="rounded-full bg-red-100 px-2 py-0.5 text-red-700">Alta</span>}
                       {t.priority === "baja" && <span className="rounded-full bg-gray-100 px-2 py-0.5">Baja</span>}
+                      {t.creator_name && (
+                        <span className="flex items-center gap-1 text-gray-600"><User className="h-3 w-3" />Creada por {t.creator_name}</span>
+                      )}
                       {t.client_name && (
                         <span className="flex items-center gap-1"><User className="h-3 w-3" />{t.client_name}</span>
                       )}

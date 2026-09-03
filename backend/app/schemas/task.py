@@ -36,6 +36,7 @@ class TaskResponse(BaseModel):
     status: str
     priority: str
     created_by: int
+    creator_name: str | None = None
     created_at: datetime
     updated_at: datetime
 

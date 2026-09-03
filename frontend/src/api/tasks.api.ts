@@ -13,6 +13,7 @@ export interface Task {
   status: string;
   priority: string;
   created_by: number;
+  creator_name: string | null;
   created_at: string;
   updated_at: string;
 }

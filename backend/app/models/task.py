@@ -39,3 +39,9 @@ class Task(Base, TimestampMixin):
         if self.assignee is None:
             return None
         return self.assignee.full_name or self.assignee.username
+
+    @property
+    def creator_name(self) -> str | None:
+        if self.creator is None:
+            return None
+        return self.creator.full_name or self.creator.username
