@@ -14,6 +14,7 @@ from app.models.payment import Payment
 from app.models.retiro import Retiro
 from app.models.product import Product
 from app.models.client import Client
+from app.models.prestamo import Prestamo, PrestamoPago
 
 router = APIRouter(prefix="/balance", tags=["Balance"])
 
@@ -182,6 +183,32 @@ async def get_balance(
     )
     retiros_hist_por_metodo = {row[0]: float(row[1]) for row in retiros_q.all()}
 
+    # Prestamos desembolsados por metodo (dinero que salio)
+    prestamos_out_por_metodo = {}
+    for m in methods:
+        if m == "credito":
+            prestamos_out_por_metodo[m] = 0.0
+            continue
+        r = await db.execute(
+            select(func.coalesce(func.sum(Prestamo.amount), 0)).where(
+                Prestamo.payment_method == m, Prestamo.status != "cancelado"
+            )
+        )
+        prestamos_out_por_metodo[m] = float(r.scalar() or 0)
+
+    # Abonos de prestamos por metodo (dinero que entro de vuelta)
+    abonos_prestamos_por_metodo = {}
+    for m in methods:
+        if m == "credito":
+            abonos_prestamos_por_metodo[m] = 0.0
+            continue
+        r = await db.execute(
+            select(func.coalesce(func.sum(PrestamoPago.amount), 0))
+            .join(Prestamo, PrestamoPago.prestamo_id == Prestamo.id)
+            .where(PrestamoPago.payment_method == m)
+        )
+        abonos_prestamos_por_metodo[m] = float(r.scalar() or 0)
+
     # Total abonos historial
     total_abonos_hist_q = await db.execute(
         select(func.coalesce(func.sum(Payment.amount), 0))
@@ -215,9 +242,11 @@ async def get_balance(
         else:
             vendido = total_ventas_por_metodo.get(m, 0)
             abonos_m = abonos_por_metodo.get(m, 0)
+            prestamos_out = prestamos_out_por_metodo.get(m, 0)
+            prestamos_in = abonos_prestamos_por_metodo.get(m, 0)
             # Los saques ya se registran como Gasto, asi que no se restan aqui
             # por separado para evitar doble descuento.
-            saldo_por_metodo[m] = vendido + abonos_m - gastos_m
+            saldo_por_metodo[m] = vendido + abonos_m + prestamos_in - gastos_m - prestamos_out
 
     # --- PRODUCTOS / INVENTARIO ---
     inv_q = await db.execute(

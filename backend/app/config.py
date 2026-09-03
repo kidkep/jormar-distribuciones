@@ -2,6 +2,12 @@ from pydantic_settings import BaseSettings
 from functools import lru_cache
 
 
+# Ajuste puntual: venta anterior no contabilizada correspondiente a inversion.
+# Al sumar aqui, la distribucion de inversion refleja este monto sin alterar
+# el saldo total de caja.
+AJUSTE_INVERSION: float = 140000.0
+
+
 class Settings(BaseSettings):
     DATABASE_URL: str = "sqlite+aiosqlite:///./jormar.db"
     SECRET_KEY: str = "dev-secret-key-change-in-production"

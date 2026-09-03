@@ -13,6 +13,7 @@ from app.models.payment import Payment
 from app.models.retiro import Retiro
 from app.models.distribution import SaleDistribution
 from app.models.prestamo import Prestamo, PrestamoPago
+from app.config import AJUSTE_INVERSION
 
 router = APIRouter(prefix="/caja", tags=["Caja"])
 
@@ -339,8 +340,7 @@ async def get_caja_resumen(
 
     # Los saques ya se registran como Gasto, asi que se descuentan aqui por
     # medio de gastos_por_cat (no por separado) para evitar doble descuento.
-    # AJUSTE PUNTUAL: venta anterior no contabilizada correspondiente a inversion (+140,000).
-    AJUSTE_INVERSION = 140000.0
+    # AJUSTE: venta anterior no contabilizada correspondiente a inversion.
     utilidad_neto = round(dist_utilidad - gastos_por_cat["utilidad"] - prestamos_por_cat["utilidad"] + abonos_prestamos_por_cat["utilidad"], 2)
     inversion_neto = round(dist_inversion - gastos_por_cat["inversion"] - prestamos_por_cat["inversion"] + abonos_prestamos_por_cat["inversion"] + AJUSTE_INVERSION, 2)
     costos_neto = round(dist_costos - gastos_por_cat["costos"] - prestamos_por_cat["costos"] + abonos_prestamos_por_cat["costos"], 2)

@@ -3,6 +3,7 @@ from sqlalchemy import select, func
 from datetime import datetime
 
 from app.models.distribution import SaleDistribution
+from app.config import AJUSTE_INVERSION
 
 
 class DistributionRepository:
@@ -52,7 +53,8 @@ class DistributionRepository:
         total_ventas = sum(float(d.monto_recibido) for d in distributions)
         total_utilidad = sum(float(d.monto_utilidad) for d in distributions)
         total_gastos = sum(float(d.monto_gastos) for d in distributions)
-        total_inversion = sum(float(d.monto_inversion) for d in distributions)
+        # Ajuste puntual de inversion (venta anterior no contabilizada)
+        total_inversion = sum(float(d.monto_inversion) for d in distributions) + AJUSTE_INVERSION
 
         return {
             "total_ventas": round(total_ventas, 2),
