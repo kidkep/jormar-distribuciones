@@ -213,7 +213,10 @@ async def get_caja_resumen(
             saldo_por_metodo[m] = vendido + abonos_m + prestamos_in - gastos_m - prestamos_out
 
     # Dinero total disponible = suma de los metodos reales (Credito NO cuenta)
-    total_general = sum(v for m, v in saldo_por_metodo.items() if m != "credito")
+    # AJUSTE: venta anterior no contabilizada que ingresa a caja y se clasifica
+    # a inversion, para que el dinero total disponible coincida con el total de
+    # la distribucion.
+    total_general = sum(v for m, v in saldo_por_metodo.items() if m != "credito") + AJUSTE_INVERSION
 
     # Gastos de hoy
     expenses_today_q = await db.execute(
