@@ -25,7 +25,10 @@ class ColchonService:
     async def get_resumen(self) -> dict:
         config = await self.repo.get_config()
         totales = await self.repo.get_totales()
-        saldo_disponible = round(float(config.monto_base) - totales["total_prestado"], 2)
+        # El disponible del colchon solo se reduce por lo que esta pendiente de
+        # cobrar (prestamos activos). Al recuperar abonos, el dinero vuelve al
+        # colchon y aumenta el disponible (rotacion).
+        saldo_disponible = round(float(config.monto_base) - totales["total_pendiente"], 2)
         return {
             "monto_base": float(config.monto_base),
             "saldo_disponible": saldo_disponible,
