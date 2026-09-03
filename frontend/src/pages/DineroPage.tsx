@@ -2,11 +2,15 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { cajaApi, type CajaResumen } from "@/api/caja.api";
 import { retirosApi, type Retiro } from "@/api/retiros.api";
+import { colchonApi, type ColchonResumen } from "@/api/colchon.api";
 import { formatCurrency } from "@/lib/utils";
-import { TrendingUp, TrendingDown, DollarSign, CreditCard, ArrowDownCircle, ArrowUpCircle, Plus, X, Wallet, AlertTriangle, Landmark } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { TrendingUp, TrendingDown, DollarSign, CreditCard, ArrowDownCircle, ArrowUpCircle, Plus, X, Wallet, AlertTriangle, Landmark, PiggyBank } from "lucide-react";
 
 export function DineroPage() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const canColchon = user?.is_superuser || (user?.permissions || []).includes("finanzas.colchon");
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({
     amount: "",
@@ -28,6 +32,12 @@ export function DineroPage() {
   const { data: retirosData, isLoading: loadingRetiros } = useQuery({
     queryKey: ["retiros"],
     queryFn: retirosApi.getAll,
+  });
+
+  const { data: colchonData } = useQuery({
+    queryKey: ["colchon-resumen"],
+    queryFn: colchonApi.getResumen,
+    enabled: canColchon,
   });
 
   const createMutation = useMutation({
@@ -53,6 +63,7 @@ export function DineroPage() {
 
   const d = cajaData as CajaResumen;
   const retiros = (retirosData || []) as Retiro[];
+  const colchon = colchonData as ColchonResumen | undefined;
 
   const methodLabels: Record<string, string> = {
     efectivo: "Efectivo",
@@ -257,6 +268,22 @@ export function DineroPage() {
               <span className="font-semibold text-purple-800">Neto prestamos:</span>
               <span className={`font-bold ${(d.prestamos_abonados - d.prestamos_desembolsados) >= 0 ? "text-green-700" : "text-red-700"}`}>
                 {formatCurrency(d.prestamos_abonados - d.prestamos_desembolsados)}
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* Colchon financiero (sutil) */}
+        {colchon && (
+          <div className="mt-3 flex items-center justify-between rounded-lg border border-blue-100 bg-blue-50/60 px-3 py-2">
+            <div className="flex items-center gap-2">
+              <PiggyBank className="h-3.5 w-3.5 text-blue-500" />
+              <span className="text-xs font-medium text-blue-700">Colchon Financiero</span>
+            </div>
+            <div className="text-right">
+              <span className="text-xs font-semibold text-blue-800">{formatCurrency(colchon.monto_base)}</span>
+              <span className="ml-2 text-[11px] text-blue-500">
+                disp. {formatCurrency(colchon.saldo_disponible)}
               </span>
             </div>
           </div>
