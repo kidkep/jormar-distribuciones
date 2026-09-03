@@ -13,9 +13,49 @@ from app.models.payment import Payment
 from app.models.retiro import Retiro
 from app.models.distribution import SaleDistribution
 from app.models.prestamo import Prestamo, PrestamoPago
+from app.models.colchon import ColchonPago
 from app.config import AJUSTE_INVERSION
 
 router = APIRouter(prefix="/caja", tags=["Caja"])
+
+
+async def compute_inversion_neta(db: AsyncSession) -> float:
+    """Inversion neta disponible en la distribucion, incluyendo los abonos del
+    colchon financiero que se descuentan de la categoria inversion."""
+    dist_q = await db.execute(
+        select(
+            func.coalesce(func.sum(SaleDistribution.monto_inversion), 0),
+        ).where(SaleDistribution.status == "activa")
+    )
+    dist_inversion = float(dist_q.scalar_one() or 0)
+
+    gastos_inv_q = await db.execute(
+        select(func.coalesce(func.sum(Expense.amount), 0)).where(Expense.distribution_category == "inversion")
+    )
+    gastos_inversion = float(gastos_inv_q.scalar() or 0)
+
+    prestamos_inv_q = await db.execute(
+        select(func.coalesce(func.sum(Prestamo.amount), 0)).where(
+            Prestamo.distribution_category == "inversion", Prestamo.status != "cancelado"
+        )
+    )
+    prestamos_inversion = float(prestamos_inv_q.scalar() or 0)
+
+    abonos_inv_q = await db.execute(
+        select(func.coalesce(func.sum(PrestamoPago.amount), 0))
+        .join(Prestamo, PrestamoPago.prestamo_id == Prestamo.id)
+        .where(Prestamo.distribution_category == "inversion")
+    )
+    abonos_prestamos_inversion = float(abonos_inv_q.scalar() or 0)
+
+    colchon_pagos_q = await db.execute(select(func.coalesce(func.sum(ColchonPago.amount), 0)))
+    colchon_pagos = float(colchon_pagos_q.scalar() or 0)
+
+    return round(
+        dist_inversion - gastos_inversion - prestamos_inversion
+        + abonos_prestamos_inversion + AJUSTE_INVERSION - colchon_pagos,
+        2,
+    )
 
 
 @router.get("/resumen")
@@ -344,10 +384,12 @@ async def get_caja_resumen(
     # Los saques ya se registran como Gasto, asi que se descuentan aqui por
     # medio de gastos_por_cat (no por separado) para evitar doble descuento.
     # AJUSTE: venta anterior no contabilizada correspondiente a inversion.
+    # Los abonos del colchon financiero descuentan de inversion.
     utilidad_neto = round(dist_utilidad - gastos_por_cat["utilidad"] - prestamos_por_cat["utilidad"] + abonos_prestamos_por_cat["utilidad"], 2)
-    inversion_neto = round(dist_inversion - gastos_por_cat["inversion"] - prestamos_por_cat["inversion"] + abonos_prestamos_por_cat["inversion"] + AJUSTE_INVERSION, 2)
+    colchon_pagos_q = await db.execute(select(func.coalesce(func.sum(ColchonPago.amount), 0)))
+    colchon_pagos = float(colchon_pagos_q.scalar() or 0)
+    inversion_neto = round(dist_inversion - gastos_por_cat["inversion"] - prestamos_por_cat["inversion"] + abonos_prestamos_por_cat["inversion"] + AJUSTE_INVERSION - colchon_pagos, 2)
     costos_neto = round(dist_costos - gastos_por_cat["costos"] - prestamos_por_cat["costos"] + abonos_prestamos_por_cat["costos"], 2)
-
     distribucion = {
         "utilidad": utilidad_neto,
         "inversion": inversion_neto,

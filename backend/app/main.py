@@ -89,6 +89,42 @@ async def lifespan(app: FastAPI):
             "updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()"
             ")"
         ))
+        await conn.execute(text(
+            "CREATE TABLE IF NOT EXISTS colchon_config ("
+            "id SERIAL PRIMARY KEY, "
+            "monto_base NUMERIC(12,2) NOT NULL DEFAULT 1000000, "
+            "created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), "
+            "updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()"
+            ")"
+        ))
+        await conn.execute(text(
+            "CREATE TABLE IF NOT EXISTS colchon_prestamos ("
+            "id SERIAL PRIMARY KEY, "
+            "person_name VARCHAR(255) NOT NULL, "
+            "amount NUMERIC(12,2) NOT NULL, "
+            "remaining NUMERIC(12,2) NOT NULL, "
+            "payment_method VARCHAR(30) NOT NULL DEFAULT 'efectivo', "
+            "description VARCHAR(255) NOT NULL, "
+            "status VARCHAR(20) NOT NULL DEFAULT 'activo', "
+            "notes TEXT, "
+            "user_id INTEGER REFERENCES users(id), "
+            "created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), "
+            "updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()"
+            ")"
+        ))
+        await conn.execute(text(
+            "CREATE TABLE IF NOT EXISTS colchon_pagos ("
+            "id SERIAL PRIMARY KEY, "
+            "colchon_prestamo_id INTEGER NOT NULL REFERENCES colchon_prestamos(id) ON DELETE CASCADE, "
+            "amount NUMERIC(12,2) NOT NULL, "
+            "payment_method VARCHAR(30) NOT NULL DEFAULT 'efectivo', "
+            "payment_date TIMESTAMP NOT NULL DEFAULT NOW(), "
+            "notes TEXT, "
+            "user_id INTEGER REFERENCES users(id), "
+            "created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), "
+            "updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()"
+            ")"
+        ))
 
     from sqlalchemy import select
     from app.database import AsyncSessionLocal
@@ -130,6 +166,7 @@ async def lifespan(app: FastAPI):
                 ("finanzas.movimientos", "Registrar movimientos financieros", "finanzas"),
                 ("finanzas.gastos", "Gestionar gastos y costos", "finanzas"),
                 ("finanzas.prestamos", "Gestionar prestamos internos", "finanzas"),
+                ("finanzas.colchon", "Gestionar colchon financiero", "finanzas"),
                 ("reportes.ver", "Ver reportes", "reportes"),
                 ("tareas.view", "Ver tareas y recordatorios", "tareas"),
                 ("tareas.gestionar", "Gestionar tareas y recordatorios", "tareas"),
@@ -217,6 +254,7 @@ async def lifespan(app: FastAPI):
             ("finanzas.movimientos", "Registrar movimientos financieros", "finanzas"),
             ("finanzas.gastos", "Gestionar gastos y costos", "finanzas"),
             ("finanzas.prestamos", "Gestionar prestamos internos", "finanzas"),
+            ("finanzas.colchon", "Gestionar colchon financiero", "finanzas"),
             ("reportes.ver", "Ver reportes", "reportes"),
             ("tareas.view", "Ver tareas y recordatorios", "tareas"),
             ("tareas.gestionar", "Gestionar tareas y recordatorios", "tareas"),

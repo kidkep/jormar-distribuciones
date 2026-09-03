@@ -21,6 +21,7 @@ import { DineroPage } from "@/pages/DineroPage";
 import { DistribucionPage } from "@/pages/DistribucionPage";
 import { BalancePage } from "@/pages/BalancePage";
 import { PrestamosPage } from "@/pages/PrestamosPage";
+import { ColchonPage } from "@/pages/ColchonPage";
 import { ConfigPage } from "@/pages/ConfigPage";
 import { UsersPage } from "@/pages/UsersPage";
 import { RolesPage } from "@/pages/RolesPage";
@@ -77,6 +78,7 @@ function AppRoutes() {
         <Route path="distribucion" element={<DistribucionPage />} />
         <Route path="balance" element={<BalancePage />} />
         <Route path="prestamos" element={<PrestamosPage />} />
+        <Route path="colchon" element={<PermissionRoute permission="finanzas.colchon"><ColchonPage /></PermissionRoute>} />
         <Route path="configuracion" element={<ConfigPage />} />
         <Route
           path="usuarios"

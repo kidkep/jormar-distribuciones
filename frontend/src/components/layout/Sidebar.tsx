@@ -19,6 +19,7 @@ import {
   History,
   ListTodo,
   Landmark,
+  PiggyBank,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -60,6 +61,7 @@ const navigation: NavItem[] = [
       { name: "Distribucion", href: "/distribucion", icon: PieChart, permission: "finanzas.view" },
       { name: "Gastos", href: "/gastos", icon: BarChart3, permission: "finanzas.gastos" },
       { name: "Prestamos", href: "/prestamos", icon: Landmark, permission: "finanzas.view" },
+      { name: "Colchon Financiero", href: "/colchon", icon: PiggyBank, permission: "finanzas.colchon" },
       { name: "Consultor Balance", href: "/balance", icon: ClipboardList, permission: "reportes.ver" },
     ],
   },
