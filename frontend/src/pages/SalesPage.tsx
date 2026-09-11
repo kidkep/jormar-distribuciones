@@ -6,6 +6,7 @@ import { clientsApi, type Client } from "@/api/clients.api";
 import { Plus, Search, Eye, XCircle, ShoppingCart, Trash2, Download, AlertTriangle, X } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { ClientPicker } from "@/components/common/ClientPicker";
+import { AutoResizeTextarea } from "@/components/common/AutoResizeTextarea";
 
 type CartItem = {
   product: Product;
@@ -376,7 +377,7 @@ export function SalesPage() {
 
             <div className="mb-4">
               <label className="mb-1.5 block text-sm font-medium text-gray-700">Observaciones</label>
-              <textarea value={notes} onChange={(e) => setNotes(e.target.value)} className="input-premium" rows={2} />
+              <AutoResizeTextarea value={notes} onChange={setNotes} className="input-premium" />
             </div>
 
             <div className="flex justify-end gap-3 pt-2">

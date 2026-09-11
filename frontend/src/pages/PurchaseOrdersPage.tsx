@@ -5,6 +5,7 @@ import { productsApi, type Product } from "@/api/products.api";
 import { Plus, Search, Eye, Trash2, Send, CheckCircle, XCircle, FileText, Download, ClipboardList, X } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { SupplierPicker } from "@/components/common/SupplierPicker";
+import { AutoResizeTextarea } from "@/components/common/AutoResizeTextarea";
 import { useAuth } from "@/hooks/useAuth";
 
 type CartItem = {
@@ -343,7 +344,7 @@ export function PurchaseOrdersPage() {
 
             <div className="mb-4">
               <label className="mb-1 block text-sm font-medium text-gray-700">Observaciones</label>
-              <textarea value={notes} onChange={(e) => setNotes(e.target.value)} className="input-premium" rows={2} />
+              <AutoResizeTextarea value={notes} onChange={setNotes} className="input-premium" />
             </div>
 
             <div className="flex justify-end gap-3">
