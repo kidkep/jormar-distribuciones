@@ -156,6 +156,40 @@ class JormarPDF(FPDF):
         self.set_text_color(90, 90, 90)
         self.cell(0, 6, text, new_x="LMARGIN", new_y="NEXT", align="C")
 
+    def add_payment_info(self, rows):
+        """Dibuja una caja con los datos de pago (bancos, Nequi...)."""
+        self.ln(4)
+        x0, w = 12, 186
+        box_h = len(rows) * 6.4 + 9
+        if self.get_y() + box_h > self.page_break_trigger - 12:
+            self.add_page()
+        self.set_fill_color(*LIGHT)
+        self.set_draw_color(*GOLD)
+        self.set_line_width(0.6)
+        start_y = self.get_y()
+        x0, w = 12, 186
+        self.rect(x0, start_y, w, len(rows) * 6.4 + 9, "DF")
+
+        self.set_xy(x0, start_y + 1)
+        self.set_font("Helvetica", "B", 10)
+        self.set_text_color(*GOLD_DARK)
+        self.cell(w, 6, "DATOS PARA EL PAGO", align="C")
+        self.set_text_color(*DARK)
+        self.ln(8)
+
+        for label, value in rows:
+            self.set_x(x0 + 6)
+            self.set_font("Helvetica", "B", 9)
+            self.set_text_color(120, 120, 120)
+            wl = 34
+            self.cell(wl, 6.4, label, align="L")
+            self.set_font("Helvetica", "B", 9.5)
+            self.set_text_color(*DARK)
+            self.cell(w - wl - 12, 6.4, value, align="L")
+            self.ln(6.4)
+
+        self.set_y(self.get_y() + 2)
+
 
 def _document_info_rows(pairs):
     return [(k, v) for k, v in pairs if v]
@@ -211,6 +245,12 @@ def generate_invoice_pdf_bytes(sale) -> bytes:
 
     pdf.add_item_table(headers, col_widths, sale.items, get_row)
     pdf.add_impactes(float(sale.subtotal), float(sale.discount), float(sale.total))
+
+    pdf.add_payment_info([
+        ("Bancolombia", "Ahorros 389-000354-27"),
+        ("Llave", "@marisol5418"),
+        ("Nequi", "3203398997"),
+    ])
 
     return pdf.output()
 
