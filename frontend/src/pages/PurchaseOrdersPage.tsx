@@ -152,9 +152,8 @@ export function PurchaseOrdersPage() {
 
   const filteredProducts = products.filter(
     (p) =>
-      p.is_active &&
-      (p.name.toLowerCase().includes(productSearch.toLowerCase()) ||
-        p.sku.toLowerCase().includes(productSearch.toLowerCase()))
+      p.name.toLowerCase().includes(productSearch.toLowerCase()) ||
+        p.sku.toLowerCase().includes(productSearch.toLowerCase())
   );
 
   return (
