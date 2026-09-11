@@ -13,6 +13,15 @@ MID_GRAY = (230, 230, 230)
 
 class JormarPDF(FPDF):
     def header(self):
+        # Marca de agua diagonal (JORMAR DISTRIBUCIONES) al 35% de opacidad
+        # Gray 166 = negro (0) al 35% sobre blanco + 65% blanco
+        self.set_font("Helvetica", "B", 44)
+        self.set_text_color(166, 166, 166)
+        cx, cy = 105, 148.5
+        with self.rotation(45, x=cx, y=cy):
+            for y in range(-170, 320, 32):
+                self.text(0, y, "JORMAR DISTRIBUCIONES")
+
         # Barra superior dorada
         self.set_fill_color(*GOLD)
         self.rect(0, 0, 210, 3, "F")
