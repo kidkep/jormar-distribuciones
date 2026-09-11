@@ -147,6 +147,7 @@ export function SalesPage() {
   const filteredProducts = products.filter(
     (p) =>
       p.is_active &&
+      p.current_stock > 0 &&
       (p.name.toLowerCase().includes(productSearch.toLowerCase()) ||
         p.sku.toLowerCase().includes(productSearch.toLowerCase()))
   );

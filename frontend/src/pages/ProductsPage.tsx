@@ -1,16 +1,13 @@
 ﻿import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { productsApi, type Product, type ProductCreate } from "@/api/products.api";
-import { Plus, Search, Edit, Power, Eye, EyeOff, X, Package } from "lucide-react";
+import { Plus, Search, Edit, Eye, EyeOff, X, Package } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
-
-type StatusFilter = "all" | "active" | "inactive";
 
 export function ProductsPage() {
   const { user } = useAuth();
   const [search, setSearch] = useState("");
-  const [status, setStatus] = useState<StatusFilter>("all");
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
   const [showPurchase, setShowPurchase] = useState(false);
@@ -26,14 +23,13 @@ export function ProductsPage() {
 
   const isAdmin = user?.is_superuser;
   const perms = user?.permissions ?? [];
-  const canToggle = isAdmin || perms.includes("productos.toggle_status");
   const canViewPurchase = isAdmin || perms.includes("productos.ver_compra");
   const canEdit = isAdmin || perms.includes("productos.edit");
   const canCreate = isAdmin || perms.includes("productos.create");
 
   const { data: products = [], isLoading } = useQuery({
-    queryKey: ["products", search, status],
-    queryFn: () => productsApi.list(1, 1000, search, status),
+    queryKey: ["products", search],
+    queryFn: () => productsApi.list(1, 1000, search),
   });
 
   const { data: nextSku } = useQuery({
@@ -60,11 +56,6 @@ export function ProductsPage() {
       setEditing(null);
       resetForm();
     },
-  });
-
-  const toggleMutation = useMutation({
-    mutationFn: productsApi.toggleStatus,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["products"] }),
   });
 
   const resetForm = () => {
@@ -94,13 +85,6 @@ export function ProductsPage() {
     setShowModal(true);
   };
 
-  const handleToggle = (product: Product) => {
-    const action = product.is_active ? "desactivar" : "reactivar";
-    if (window.confirm(`¿Seguro que deseas ${action} el producto "${product.name}"?`)) {
-      toggleMutation.mutate(product.id);
-    }
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex animate-fade-up items-center justify-between">
@@ -122,29 +106,18 @@ export function ProductsPage() {
         )}
       </div>
 
-      <div className="animate-fade-up-delay-1 flex flex-col gap-3 sm:flex-row sm:items-center">
-        <div className="relative flex-1">
-          <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Buscar por nombre o SKU..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="input-premium pl-10"
-          />
+      <div className="animate-fade-up-delay-1">
+          <div className="relative flex-1">
+            <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Buscar por nombre o SKU..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="input-premium pl-10"
+            />
+          </div>
         </div>
-        <div className="flex rounded-xl border border-gray-200 bg-white p-1 text-sm shadow-sm">
-          {(["all", "active", "inactive"] as StatusFilter[]).map((s) => (
-            <button
-              key={s}
-              onClick={() => setStatus(s)}
-              className={`rounded-lg px-4 py-1.5 transition ${status === s ? "bg-gradient-to-r from-gold-500 to-gold-600 text-white shadow-md shadow-gold-500/30" : "text-gray-600 hover:bg-gray-100"}`}
-            >
-              {s === "all" ? "Todos" : s === "active" ? "Activos" : "Inactivos"}
-            </button>
-          ))}
-        </div>
-      </div>
 
       <div className="card-premium animate-scale-in overflow-x-auto p-0">
         <table className="table-premium w-full text-left text-sm">
@@ -168,18 +141,17 @@ export function ProductsPage() {
               </th>
               <th className="px-5 py-3">Precio Venta</th>
               <th className="px-5 py-3">Stock</th>
-              <th className="px-5 py-3">Estado</th>
               <th className="px-5 py-3">Acciones</th>
             </tr>
           </thead>
           <tbody className="divide-y">
             {isLoading ? (
-              <tr><td colSpan={7} className="px-4 py-8 text-center text-gray-500">Cargando...</td></tr>
+              <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-500">Cargando...</td></tr>
             ) : products.length === 0 ? (
-              <tr><td colSpan={7} className="px-4 py-8 text-center text-gray-500">No se encontraron productos</td></tr>
+              <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-500">No se encontraron productos</td></tr>
             ) : (
               products.map((p) => (
-                <tr key={p.id} className={`hover:bg-gray-50 ${p.is_active ? "" : "bg-gray-50/60 opacity-70"}`}>
+                <tr key={p.id} className="hover:bg-gray-50">
                   <td className="px-5 py-3.5 font-mono text-xs font-semibold text-gold-700">{p.sku}</td>
                   <td className="px-5 py-3.5 font-medium text-gray-800">{p.name}</td>
                   <td className="px-5 py-3.5">
@@ -192,21 +164,7 @@ export function ProductsPage() {
                     </span>
                   </td>
                   <td className="px-5 py-3.5">
-                    <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${p.is_active ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
-                      {p.is_active ? "Activo" : "Inactivo"}
-                    </span>
-                  </td>
-                  <td className="px-5 py-3.5">
                     <div className="flex gap-2">
-                      {canToggle && (
-                        <button
-                          onClick={() => handleToggle(p)}
-                          title={p.is_active ? "Desactivar" : "Reactivar"}
-                          className={`rounded-lg p-1.5 transition hover:bg-gray-100 ${p.is_active ? "text-red-600" : "text-green-600"}`}
-                        >
-                          <Power className="h-4 w-4" />
-                        </button>
-                      )}
                       {canEdit && (
                         <button onClick={() => openEdit(p)} className="rounded-lg p-1.5 text-gold-600 transition hover:bg-gold-50">
                           <Edit className="h-4 w-4" />
