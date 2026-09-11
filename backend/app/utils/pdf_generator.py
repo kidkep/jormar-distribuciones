@@ -19,7 +19,7 @@ class JormarPDF(FPDF):
         self.set_text_color(251, 248, 240)
         cx, cy = 105, 148.5
         with self.rotation(45, x=cx, y=cy):
-            for y in range(-120, 260, 80):
+            for y in range(-180, 340, 45):
                 self.text(80, y, "JORMAR DISTRIBUCIONES")
 
         # Barra superior dorada
