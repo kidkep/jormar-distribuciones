@@ -31,9 +31,9 @@
     min-height: 100%;
     background-color: #f8f6f1;
     background-image:
-      radial-gradient(80rem 80rem at 110% -10%, rgba(216, 174, 75, 0.12), transparent 55%),
-      radial-gradient(60rem 60rem at -10% 110%, rgba(199, 154, 50, 0.10), transparent 55%),
-      radial-gradient(50rem 50rem at 50% 120%, rgba(216, 174, 75, 0.06), transparent 55%);
+      radial-gradient(80rem 80rem at 110% -10%, rgb(var(--gold-400) / 0.12), transparent 55%),
+      radial-gradient(60rem 60rem at -10% 110%, rgb(var(--gold-500) / 0.10), transparent 55%),
+      radial-gradient(50rem 50rem at 50% 120%, rgb(var(--gold-400) / 0.06), transparent 55%);
   }
 
   /* ---- Glass panel (light) ---- */
@@ -73,7 +73,7 @@
     box-shadow:
       0 2px 8px rgba(0, 0, 0, 0.06),
       0 8px 32px rgba(0, 0, 0, 0.06);
-    border-color: rgba(216, 174, 75, 0.2);
+    border-color: rgb(var(--gold-500) / 0.2);
     transform: translateY(-1px);
   }
 
@@ -106,7 +106,7 @@
     transition: background-color 0.2s ease, transform 0.15s ease;
   }
   .table-premium tbody tr:hover {
-    background-color: rgba(216, 174, 75, 0.04);
+    background-color: rgb(var(--gold-400) / 0.05);
   }
   .table-premium tbody tr:not(:last-child) td {
     border-bottom: 1px solid rgba(0, 0, 0, 0.04);
@@ -153,8 +153,8 @@
   }
   .input-premium:focus {
     outline: none;
-    border-color: #d8ae4b;
-    box-shadow: 0 0 0 3px rgba(216, 174, 75, 0.12);
+    border-color: rgb(var(--gold-400));
+    box-shadow: 0 0 0 3px rgb(var(--gold-400) / 0.12);
     background: #fff;
   }
 
@@ -164,24 +164,24 @@
     align-items: center;
     gap: 0.5rem;
     border-radius: 0.625rem;
-    background: linear-gradient(135deg, #d8ae4b, #c79a32);
+    background: linear-gradient(135deg, rgb(var(--gold-400)), rgb(var(--gold-500)));
     padding: 0.5rem 1.25rem;
     font-size: 0.875rem;
     font-weight: 600;
     color: #1a1612;
-    box-shadow: 0 2px 8px rgba(216, 174, 75, 0.3), 0 1px 2px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 2px 8px rgb(var(--gold-500) / 0.3), 0 1px 2px rgba(0, 0, 0, 0.06);
     transition: all 0.25s ease;
     border: none;
     cursor: pointer;
   }
   .btn-gold:hover {
-    background: linear-gradient(135deg, #e0b854, #d8ae4b);
-    box-shadow: 0 4px 16px rgba(216, 174, 75, 0.4), 0 2px 4px rgba(0, 0, 0, 0.08);
+    background: linear-gradient(135deg, rgb(var(--gold-300)), rgb(var(--gold-400)));
+    box-shadow: 0 4px 16px rgb(var(--gold-500) / 0.4), 0 2px 4px rgba(0, 0, 0, 0.08);
     transform: translateY(-1px);
   }
   .btn-gold:active {
     transform: translateY(0);
-    box-shadow: 0 1px 4px rgba(216, 174, 75, 0.3);
+    box-shadow: 0 1px 4px rgb(var(--gold-500) / 0.3);
   }
 
   .btn-outline {
@@ -225,7 +225,7 @@
     bottom: 25%;
     width: 3px;
     border-radius: 9999px;
-    background: linear-gradient(180deg, #d8ae4b, #c79a32);
+    background: linear-gradient(180deg, rgb(var(--gold-400)), rgb(var(--gold-500)));
     opacity: 0;
     transform: scaleY(0.2);
     transition: opacity 0.3s ease, transform 0.3s ease;
@@ -284,8 +284,8 @@
 
   /* ---- Ring pulse for logo ---- */
   @keyframes ring-pulse {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(216, 174, 75, 0.3); }
-    50% { box-shadow: 0 0 0 12px rgba(216, 174, 75, 0); }
+    0%, 100% { box-shadow: 0 0 0 0 rgb(var(--gold-500) / 0.3); }
+    50% { box-shadow: 0 0 0 12px rgb(var(--gold-500) / 0); }
   }
   .animate-ring-pulse {
     animation: ring-pulse 3s ease-in-out infinite;
@@ -293,7 +293,7 @@
 
   /* ---- Gradient text ---- */
   .text-gradient-gold {
-    background: linear-gradient(135deg, #d8ae4b, #c79a32, #d8ae4b);
+    background: linear-gradient(135deg, rgb(var(--gold-400)), rgb(var(--gold-500)), rgb(var(--gold-400)));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -391,6 +391,95 @@
     --gold-700: 190 18 60;
     --gold-800: 159 18 57;
     --gold-900: 136 19 55;
+  }
+[data-theme="red"] {
+    --primary: 0 72% 51%;
+    --ring: 0 84% 60%;
+    --gold-50: 254 242 242;
+    --gold-100: 254 226 226;
+    --gold-200: 254 202 202;
+    --gold-300: 252 165 165;
+    --gold-400: 248 113 113;
+    --gold-500: 239 68 68;
+    --gold-600: 220 38 38;
+    --gold-700: 185 28 28;
+    --gold-800: 153 27 27;
+    --gold-900: 127 29 29;
+  }
+
+  [data-theme="orange"] {
+    --primary: 25 95% 48%;
+    --ring: 32 96% 61%;
+    --gold-50: 255 247 237;
+    --gold-100: 255 237 213;
+    --gold-200: 254 215 170;
+    --gold-300: 253 186 116;
+    --gold-400: 251 146 60;
+    --gold-500: 249 115 22;
+    --gold-600: 234 88 12;
+    --gold-700: 194 65 12;
+    --gold-800: 154 52 18;
+    --gold-900: 124 45 18;
+  }
+
+  [data-theme="teal"] {
+    --primary: 174 84% 32%;
+    --ring: 170 76% 40%;
+    --gold-50: 240 253 250;
+    --gold-100: 204 251 241;
+    --gold-200: 153 246 228;
+    --gold-300: 94 234 212;
+    --gold-400: 45 212 191;
+    --gold-500: 20 184 166;
+    --gold-600: 13 148 136;
+    --gold-700: 15 118 110;
+    --gold-800: 17 94 89;
+    --gold-900: 19 78 74;
+  }
+
+  [data-theme="indigo"] {
+    --primary: 245 58% 51%;
+    --ring: 239 84% 67%;
+    --gold-50: 238 242 255;
+    --gold-100: 224 231 255;
+    --gold-200: 199 210 254;
+    --gold-300: 165 180 252;
+    --gold-400: 129 140 248;
+    --gold-500: 99 102 241;
+    --gold-600: 79 70 229;
+    --gold-700: 67 56 202;
+    --gold-800: 55 48 163;
+    --gold-900: 49 46 129;
+  }
+
+  [data-theme="fuchsia"] {
+    --primary: 293 69% 49%;
+    --ring: 305 88% 73%;
+    --gold-50: 253 244 255;
+    --gold-100: 250 232 255;
+    --gold-200: 245 208 254;
+    --gold-300: 240 171 252;
+    --gold-400: 232 121 249;
+    --gold-500: 217 70 239;
+    --gold-600: 192 38 211;
+    --gold-700: 162 28 175;
+    --gold-800: 134 25 143;
+    --gold-900: 112 26 117;
+  }
+
+  [data-theme="cyan"] {
+    --primary: 190 91% 36%;
+    --ring: 189 94% 43%;
+    --gold-50: 236 254 255;
+    --gold-100: 207 250 254;
+    --gold-200: 165 243 252;
+    --gold-300: 103 232 249;
+    --gold-400: 34 211 238;
+    --gold-500: 6 182 212;
+    --gold-600: 8 145 178;
+    --gold-700: 14 116 144;
+    --gold-800: 21 94 117;
+    --gold-900: 22 78 99;
   }
 }
 

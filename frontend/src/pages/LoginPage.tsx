@@ -58,7 +58,7 @@ export function LoginPage() {
               <img
                 src="/logo.png"
                 alt="Jormar Distribuciones"
-                className="relative h-20 w-20 rounded-full object-contain ring-2 ring-gold-500/60 drop-shadow-[0_0_12px_rgba(216,174,75,0.4)]"
+                className="relative h-20 w-20 rounded-full object-contain ring-2 ring-gold-500/60 drop-shadow-[0_0_12px_rgb(var(--gold-400)/0.4)]"
               />
             </div>
             <h1 className="text-2xl font-bold tracking-tight text-gold-400">JORMAR DISTRIBUCIONES</h1>

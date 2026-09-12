@@ -7,7 +7,19 @@ from app.schemas.user import UserCreate, UserUpdate, UserChangePassword, UserUpd
 from app.utils.security import get_password_hash, verify_password
 from app.exceptions import NotFoundException, ConflictException, BadRequestException
 
-VALID_THEMES = {"gold", "emerald", "blue", "purple", "rose"}
+VALID_THEMES = {
+    "gold",
+    "emerald",
+    "teal",
+    "blue",
+    "indigo",
+    "purple",
+    "fuchsia",
+    "rose",
+    "red",
+    "orange",
+    "cyan",
+}
 
 
 class UserService:

@@ -114,7 +114,7 @@ export function Sidebar({ isOpen, onClose }: Props) {
         <div className="relative flex items-center gap-3 border-b border-white/10 p-5">
           <div className="relative">
             <div className="absolute inset-0 rounded-xl bg-gold-400/50 blur-lg" />
-            <img src="/logo.png" alt="Jormar Distribuciones" className="relative h-11 w-11 rounded-xl object-contain ring-2 ring-gold-400/60 drop-shadow-[0_0_8px_rgba(216,174,75,0.4)]" />
+            <img src="/logo.png" alt="Jormar Distribuciones" className="relative h-11 w-11 rounded-xl object-contain ring-2 ring-gold-400/60 drop-shadow-[0_0_8px_rgb(var(--gold-400)/0.4)]" />
           </div>
           <div>
             <h1 className="text-base font-bold tracking-wide text-gold-400">JORMAR</h1>
@@ -147,7 +147,7 @@ export function Sidebar({ isOpen, onClose }: Props) {
                         cn(
                           "nav-item flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm",
                           isActive
-                            ? "is-active bg-gradient-to-r from-gold-500/25 to-transparent font-medium text-gold-300 shadow-[inset_0_0_0_1px_rgba(216,174,75,0.25)]"
+                            ? "is-active bg-gradient-to-r from-gold-500/25 to-transparent font-medium text-gold-300 shadow-[inset_0_0_0_1px_rgb(var(--gold-400)/0.25)]"
                             : "text-white/65 hover:bg-white/8 hover:text-white"
                         )
                       }
@@ -172,7 +172,7 @@ export function Sidebar({ isOpen, onClose }: Props) {
                   cn(
                     "nav-item flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm",
                     isActive
-                      ? "is-active bg-gradient-to-r from-gold-500/25 to-transparent font-medium text-gold-300 shadow-[inset_0_0_0_1px_rgba(216,174,75,0.25)]"
+                      ? "is-active bg-gradient-to-r from-gold-500/25 to-transparent font-medium text-gold-300 shadow-[inset_0_0_0_1px_rgb(var(--gold-400)/0.25)]"
                       : "text-white/65 hover:bg-white/8 hover:text-white"
                   )
                 }
