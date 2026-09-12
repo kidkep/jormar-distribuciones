@@ -345,7 +345,13 @@ export function PurchaseOrdersPage() {
 
             <div className="mb-4">
               <label className="mb-1 block text-sm font-medium text-gray-700">Observaciones</label>
-              <AutoResizeTextarea value={notes} onChange={setNotes} className="input-premium" />
+              <AutoResizeTextarea
+                value={notes}
+                onChange={setNotes}
+                placeholder="Condiciones de compra, plazos de entrega, forma de pago..."
+                maxLength={500}
+                className="input-premium"
+              />
             </div>
 
             <div className="flex justify-end gap-3">

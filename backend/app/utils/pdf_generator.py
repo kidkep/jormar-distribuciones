@@ -156,6 +156,29 @@ class JormarPDF(FPDF):
         self.set_text_color(90, 90, 90)
         self.cell(0, 6, text, new_x="LMARGIN", new_y="NEXT", align="C")
 
+    def add_notes_box(self, title, text):
+        """Caja con observaciones que envuelve el texto en varias lineas."""
+        if not text or not text.strip():
+            return
+        text = " ".join(text.strip().split())
+        if self.get_y() + 16 > self.page_break_trigger - 4:
+            self.add_page()
+        self.ln(3)
+        x0 = 12
+        self.set_x(x0)
+        self.set_font("Helvetica", "B", 9.5)
+        self.set_text_color(*GOLD_DARK)
+        self.cell(0, 6, title.upper(), new_x="LMARGIN", new_y="NEXT", align="L")
+        self.set_font("Helvetica", "", 9.5)
+        self.set_text_color(*DARK)
+        self.set_fill_color(*LIGHT)
+        self.set_draw_color(*MID_GRAY)
+        self.set_line_width(0.4)
+        self.set_xy(x0, self.get_y() + 0.6)
+        self.multi_cell(186, 5, text, fill=True)
+        self.set_x(x0)
+        self.ln(3)
+
     def add_payment_info(self, rows):
         """Dibuja una caja con los datos de pago (bancos, Nequi...)."""
         self.ln(4)
@@ -246,6 +269,8 @@ def generate_invoice_pdf_bytes(sale) -> bytes:
     pdf.add_item_table(headers, col_widths, sale.items, get_row)
     pdf.add_impactes(float(sale.subtotal), float(sale.discount), float(sale.total))
 
+    pdf.add_notes_box("Observaciones", sale.notes)
+
     pdf.add_payment_info([
         ("Bancolombia", "Ahorros 389-000354-27"),
         ("Llave", "@marisol5418"),
@@ -277,7 +302,6 @@ def generate_quote_pdf_bytes(quote) -> bytes:
         ("Cliente", client_name),
         ("Documento", client_doc),
         ("Estado", status_labels.get(quote.status, quote.status)),
-        ("Notas", quote.notes or None),
     ]
     pdf.add_document_info(_document_info_rows(info))
     pdf.ln(5)
@@ -302,6 +326,8 @@ def generate_quote_pdf_bytes(quote) -> bytes:
     pdf.add_item_table(headers, col_widths, quote.items, get_row)
     pdf.add_impactes(float(quote.subtotal), float(quote.discount), float(quote.total))
 
+    pdf.add_notes_box("Observaciones", quote.notes)
+
     return pdf.output()
 
 
@@ -325,7 +351,6 @@ def generate_purchase_order_pdf_bytes(order) -> bytes:
         ("Fecha esperada", order.expected_date.strftime("%d/%m/%Y") if order.expected_date else None),
         ("Proveedor", supplier_name),
         ("Estado", status_labels.get(order.status, order.status)),
-        ("Notas", order.notes or None),
     ]
     pdf.add_document_info(_document_info_rows(info))
     pdf.ln(5)
@@ -349,5 +374,7 @@ def generate_purchase_order_pdf_bytes(order) -> bytes:
 
     pdf.add_item_table(headers, col_widths, order.items, get_row)
     pdf.add_impactes(float(order.subtotal), float(order.discount), float(order.total))
+
+    pdf.add_notes_box("Observaciones", order.notes)
 
     return pdf.output()
