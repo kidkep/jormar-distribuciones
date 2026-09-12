@@ -156,28 +156,77 @@ class JormarPDF(FPDF):
         self.set_text_color(90, 90, 90)
         self.cell(0, 6, text, new_x="LMARGIN", new_y="NEXT", align="C")
 
+    def _wrap_text_lines(self, text, width):
+        lines = []
+        for para in str(text).split("\n"):
+            para = para.strip()
+            if not para:
+                lines.append("")
+                continue
+            words = para.split()
+            current = ""
+            for word in words:
+                probe = f"{current} {word}".strip()
+                if self.get_string_width(probe) <= width:
+                    current = probe
+                    continue
+                if current:
+                    lines.append(current)
+                    current = ""
+                while self.get_string_width(word) > width:
+                    lo, hi = 1, len(word)
+                    while lo <= hi:
+                        mid = (lo + hi) // 2
+                        if self.get_string_width(word[:mid]) <= width:
+                            lo = mid + 1
+                        else:
+                            hi = mid - 1
+                    cut = max(1, hi)
+                    lines.append(word[:cut])
+                    word = word[cut:]
+                current = word
+            if current:
+                lines.append(current)
+        while lines and lines[-1] == "":
+            lines.pop()
+        return lines
+
     def add_notes_box(self, title, text):
-        """Caja con observaciones que envuelve el texto en varias lineas."""
         if not text or not text.strip():
             return
-        text = " ".join(text.strip().split())
-        if self.get_y() + 16 > self.page_break_trigger - 4:
-            self.add_page()
         self.ln(3)
-        x0 = 12
+        x0, box_w = 12, 186
+        inner_x = x0 + 5
+        inner_w = box_w - 10
         self.set_x(x0)
         self.set_font("Helvetica", "B", 9.5)
         self.set_text_color(*GOLD_DARK)
         self.cell(0, 6, title.upper(), new_x="LMARGIN", new_y="NEXT", align="L")
+
         self.set_font("Helvetica", "", 9.5)
-        self.set_text_color(*DARK)
+        lines = self._wrap_text_lines(text, inner_w)
+        content_h = len(lines) * 4.8 + 5
+
+        if self.get_y() + content_h + 8 > self.page_break_trigger - 4:
+            self.add_page()
+            self.set_x(x0)
+            self.set_font("Helvetica", "B", 9.5)
+            self.set_text_color(*GOLD_DARK)
+            self.cell(0, 6, title.upper(), new_x="LMARGIN", new_y="NEXT", align="L")
+            self.set_font("Helvetica", "", 9.5)
+
+        box_y = self.get_y() + 0.8
         self.set_fill_color(*LIGHT)
-        self.set_draw_color(*MID_GRAY)
-        self.set_line_width(0.4)
-        self.set_xy(x0, self.get_y() + 0.6)
-        self.multi_cell(186, 5, text, fill=True)
-        self.set_x(x0)
-        self.ln(3)
+        self.set_draw_color(*GOLD)
+        self.set_line_width(0.5)
+        self.rect(x0, box_y, box_w, content_h, "DF")
+
+        self.set_text_color(*DARK)
+        self.set_xy(inner_x, box_y + 2.5)
+        for ln in lines:
+            self.set_x(inner_x)
+            self.cell(inner_w, 4.8, ln, align="L")
+        self.set_y(box_y + content_h + 2)
 
     def add_payment_info(self, rows):
         """Dibuja una caja con los datos de pago (bancos, Nequi...)."""
