@@ -19,7 +19,7 @@ async def download_report(
     fecha_inicio: str = Query("", description="YYYY-MM-DD"),
     fecha_fin: str = Query("", description="YYYY-MM-DD"),
     db: AsyncSession = Depends(get_db),
-    _user: User = Depends(require_permission("reportes.ver")),
+    _user: User = Depends(require_permission("reportes.descargar")),
 ):
     data = await build_analytics(db, fecha_inicio, fecha_fin)
     docx_bytes = generate_report_docx_bytes(data)

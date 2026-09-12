@@ -49,7 +49,7 @@ export function DashboardPage() {
   });
 
   const firstName = user?.full_name?.trim()?.split(" ")[0] || user?.username || "";
-  const canSeeReports = isAdmin || perms.includes("reportes.ver");
+  const canDownloadReport = isAdmin || perms.includes("reportes.descargar");
 
   const handleDescargarInforme = async () => {
     try {
@@ -75,7 +75,7 @@ export function DashboardPage() {
             Así va el estado de tu negocio hoy.
           </p>
         </div>
-        {canSeeReports && (
+        {canDownloadReport && (
           <button
             onClick={handleDescargarInforme}
             disabled={descargandoInforme}

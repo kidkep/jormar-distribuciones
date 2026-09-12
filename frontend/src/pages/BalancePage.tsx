@@ -34,11 +34,17 @@ import {
   Download,
 } from "lucide-react";
 import { downloadReport } from "@/api/reports.api";
+import { useAuth } from "@/hooks/useAuth";
 
 export function BalancePage() {
+  const { user } = useAuth();
   const [fechaInicio, setFechaInicio] = useState("");
   const [fechaFin, setFechaFin] = useState("");
   const [descargando, setDescargando] = useState(false);
+
+  const isAdmin = user?.is_superuser;
+  const perms = user?.permissions ?? [];
+  const canDownloadReport = isAdmin || perms.includes("reportes.descargar");
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: ["balance", fechaInicio, fechaFin],
@@ -155,14 +161,16 @@ export function BalancePage() {
         >
           Limpiar
         </button>
-        <button
-          onClick={handleDescargarInforme}
-          disabled={descargando}
-          className="btn-gold"
-        >
-          <Download className="h-4 w-4" />
-          {descargando ? "Generando informe..." : "Descargar Informe Word"}
-        </button>
+        {canDownloadReport && (
+          <button
+            onClick={handleDescargarInforme}
+            disabled={descargando}
+            className="btn-gold"
+          >
+            <Download className="h-4 w-4" />
+            {descargando ? "Generando informe..." : "Descargar Informe Word"}
+          </button>
+        )}
         <span className="ml-auto text-xs text-gray-400">
           Periodo: {d.periodo.inicio} al {d.periodo.fin}
         </span>
