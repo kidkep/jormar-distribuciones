@@ -17,10 +17,14 @@ import {
   Boxes,
   ArrowRight,
   HandCoins,
+  FileDown,
 } from "lucide-react";
+import { useState } from "react";
+import { downloadReport } from "@/api/reports.api";
 
 export function DashboardPage() {
   const { user } = useAuth();
+  const [descargandoInforme, setDescargandoInforme] = useState(false);
   const { data: stats, isLoading } = useQuery({
     queryKey: ["dashboard"],
     queryFn: dashboardApi.getStats,
@@ -45,18 +49,42 @@ export function DashboardPage() {
   });
 
   const firstName = user?.full_name?.trim()?.split(" ")[0] || user?.username || "";
+  const canSeeReports = isAdmin || perms.includes("reportes.ver");
+
+  const handleDescargarInforme = async () => {
+    try {
+      setDescargandoInforme(true);
+      await downloadReport();
+    } catch {
+      alert("No se pudo generar el informe. Intenta de nuevo o revisa tus permisos de reportes.");
+    } finally {
+      setDescargandoInforme(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
       {/* Header de bienvenida */}
-      <div className="animate-fade-up">
-        <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">
-          {firstName ? `Hola, ${firstName} ` : "Dashboard "}
-          <span className="text-gold-600">👋</span>
-        </h1>
-        <p className="mt-1 text-sm text-gray-600">
-          Así va el estado de tu negocio hoy.
-        </p>
+      <div className="animate-fade-up flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">
+            {firstName ? `Hola, ${firstName} ` : "Dashboard "}
+            <span className="text-gold-600">👋</span>
+          </h1>
+          <p className="mt-1 text-sm text-gray-600">
+            Así va el estado de tu negocio hoy.
+          </p>
+        </div>
+        {canSeeReports && (
+          <button
+            onClick={handleDescargarInforme}
+            disabled={descargandoInforme}
+            className="btn-gold"
+          >
+            <FileDown className="h-4 w-4" />
+            {descargandoInforme ? "Generando informe..." : "Descargar Informe Word"}
+          </button>
+        )}
       </div>
 
       {isLoading ? (

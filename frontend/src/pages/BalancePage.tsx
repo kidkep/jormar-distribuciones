@@ -31,16 +31,30 @@ import {
   Search,
   Wallet,
   Scale,
+  Download,
 } from "lucide-react";
+import { downloadReport } from "@/api/reports.api";
 
 export function BalancePage() {
   const [fechaInicio, setFechaInicio] = useState("");
   const [fechaFin, setFechaFin] = useState("");
+  const [descargando, setDescargando] = useState(false);
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: ["balance", fechaInicio, fechaFin],
     queryFn: () => balanceApi.get(fechaInicio, fechaFin),
   });
+
+  const handleDescargarInforme = async () => {
+    try {
+      setDescargando(true);
+      await downloadReport(fechaInicio, fechaFin);
+    } catch {
+      alert("No se pudo generar el informe. Intenta de nuevo o revisa tus permisos de reportes.");
+    } finally {
+      setDescargando(false);
+    }
+  };
 
   if (isLoading) {
     return <div className="p-8 text-center text-gray-500">Cargando balance...</div>;
@@ -121,6 +135,14 @@ export function BalancePage() {
           className="btn-outline"
         >
           Limpiar
+        </button>
+        <button
+          onClick={handleDescargarInforme}
+          disabled={descargando}
+          className="btn-gold"
+        >
+          <Download className="h-4 w-4" />
+          {descargando ? "Generando informe..." : "Descargar Informe Word"}
         </button>
         <span className="ml-auto text-xs text-gray-400">
           Periodo: {d.periodo.inicio} al {d.periodo.fin}
