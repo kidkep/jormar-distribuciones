@@ -504,6 +504,8 @@
    ============================================================ */
 .dark {
   --background: 0 0% 7%;
+  --foreground: 0 0% 95%;
+  --muted-foreground: 215 16% 68%;
   color-scheme: dark;
 }
 
