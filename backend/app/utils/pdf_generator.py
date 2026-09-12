@@ -41,8 +41,9 @@ class JormarPDF(FPDF):
         # Datos legales
         self.set_font("Helvetica", "", 9)
         self.set_text_color(90, 90, 90)
-        self.cell(0, 5, "NIT 931814237 - Mariquita, Tolima  |  Comercializacion de EPP", new_x="LMARGIN", new_y="NEXT", align="C")
-        self.cell(0, 6, "", new_x="LMARGIN", new_y="NEXT")
+        self.cell(0, 5, "Cra 8 N 3-33, Barrio Dorado Alto - Mariquita, Tolima", new_x="LMARGIN", new_y="NEXT", align="C")
+        self.cell(0, 5, "NIT 931814237  |  Tel: +57 302 2628888  |  Comercializacion de EPP", new_x="LMARGIN", new_y="NEXT", align="C")
+        self.cell(0, 5, "", new_x="LMARGIN", new_y="NEXT")
 
         # Línea doble decorativa
         self.set_draw_color(*GOLD)
