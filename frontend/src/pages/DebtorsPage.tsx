@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { debtorsApi, type Debtor } from "@/api/debtors.api";
 import { AlertCircle, DollarSign, Eye, Download, X, Wallet } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { SkeletonRows, EmptyTableRow } from "@/components/common/TableStates";
 
 export function DebtorsPage() {
   const [showDetail, setShowDetail] = useState<Debtor | null>(null);
@@ -77,14 +78,9 @@ export function DebtorsPage() {
           </thead>
           <tbody className="divide-y">
             {isLoading ? (
-              <tr><td colSpan={7} className="px-4 py-8 text-center text-gray-500">Cargando...</td></tr>
+              <SkeletonRows colSpan={7} />
             ) : debtors.length === 0 ? (
-              <tr>
-                <td colSpan={7} className="px-4 py-10 text-center text-gray-500">
-                  <AlertCircle className="mx-auto mb-2 h-10 w-10 text-gray-300" />
-                  No hay deudores pendientes
-                </td>
-              </tr>
+              <EmptyTableRow colSpan={7} icon={AlertCircle} title="No hay deudores pendientes" description="Cuando vendas a crédito, aquí verás quién te debe" />
             ) : (
               debtors.map((d) => (
                 <tr key={d.sale_id} className="hover:bg-gray-50">

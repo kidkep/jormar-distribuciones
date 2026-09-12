@@ -497,3 +497,176 @@
     scroll-behavior: smooth;
   }
 }
+
+/* ============================================================
+   MODO OSCURO
+   Overrides sin capa para ganarle a las utilidades de Tailwind
+   ============================================================ */
+.dark {
+  --background: 0 0% 7%;
+  color-scheme: dark;
+}
+
+/* Fondo general */
+.dark .app-bg {
+  background-color: #0e0e11;
+  background-image:
+    radial-gradient(80rem 80rem at 110% -10%, rgb(var(--gold-400) / 0.1), transparent 55%),
+    radial-gradient(60rem 60rem at -10% 110%, rgb(var(--gold-500) / 0.08), transparent 55%),
+    radial-gradient(50rem 50rem at 50% 120%, rgb(var(--gold-400) / 0.04), transparent 55%);
+}
+
+/* Superficies */
+.dark .card-premium {
+  background: rgba(26, 26, 30, 0.85);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35), 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+.dark .card-premium:hover {
+  border-color: rgb(var(--gold-500) / 0.35);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), 0 8px 32px rgba(0, 0, 0, 0.35);
+}
+.dark .glass-panel {
+  background: rgba(22, 22, 26, 0.8);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+.dark .modal-content {
+  background: rgba(28, 28, 32, 0.97);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Tablas */
+.dark .table-premium thead {
+  background: linear-gradient(180deg, rgba(24, 24, 27, 0.9), rgba(20, 20, 23, 0.92));
+}
+.dark .table-premium thead th {
+  color: #9ca3af;
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+.dark .table-premium tbody tr:hover {
+  background-color: rgb(var(--gold-400) / 0.08);
+}
+.dark .table-premium tbody tr:not(:last-child) td {
+  border-bottom-color: rgba(255, 255, 255, 0.06);
+}
+
+/* Formularios */
+.dark .input-premium {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #e4e4e7;
+}
+.dark .input-premium::placeholder {
+  color: #6b7280;
+}
+.dark .input-premium:focus {
+  border-color: rgb(var(--gold-400) / 0.7);
+  box-shadow: 0 0 0 3px rgb(var(--gold-400) / 0.15);
+  background: rgba(39, 39, 42, 0.9);
+}
+
+/* Botones */
+.dark .btn-outline {
+  background: rgba(255, 255, 255, 0.05);
+  color: #d4d4d8;
+  border-color: rgba(255, 255, 255, 0.14);
+}
+.dark .btn-outline:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.24);
+}
+
+/* Utilidades grises */
+.dark .bg-white { background-color: #18181b; }
+.dark .bg-white\/70 { background-color: rgba(39, 39, 46, 0.72); }
+.dark .bg-gray-50 { background-color: rgba(255, 255, 255, 0.05); }
+.dark .bg-gray-100 { background-color: rgba(255, 255, 255, 0.09); }
+.dark .bg-gray-200 { background-color: rgba(255, 255, 255, 0.16); }
+.dark .text-gray-900, .dark .text-gray-800 { color: #e8e8ea; }
+.dark .text-gray-700 { color: #d4d4d8; }
+.dark .text-neutral-700 { color: #d4d4d8; }
+.dark .text-gray-600 { color: #a3a3ad; }
+.dark .text-gray-500 { color: #8f8f98; }
+.dark .text-gray-400 { color: #71717a; }
+.dark .text-gray-300 { color: #52525b; }
+.dark .border-gray-100 { border-color: rgba(255, 255, 255, 0.08); }
+.dark .border-gray-200 { border-color: rgba(255, 255, 255, 0.12); }
+.dark .border-gray-300 { border-color: rgba(255, 255, 255, 0.18); }
+.dark .hover\:bg-gray-50:hover { background-color: rgba(255, 255, 255, 0.06); }
+.dark .hover\:bg-gray-100:hover { background-color: rgba(255, 255, 255, 0.09); }
+.dark .ring-white\/70 { --tw-ring-color: rgba(255, 255, 255, 0.12); }
+
+/* Chips de estado (fondo suave) */
+.dark .bg-green-50 { background-color: rgba(16, 185, 129, 0.13); }
+.dark .bg-green-100 { background-color: rgba(16, 185, 129, 0.2); }
+.dark .bg-red-50 { background-color: rgba(239, 68, 68, 0.13); }
+.dark .bg-red-50\/50 { background-color: rgba(239, 68, 68, 0.1); }
+.dark .bg-red-100 { background-color: rgba(239, 68, 68, 0.2); }
+.dark .bg-amber-50 { background-color: rgba(245, 158, 11, 0.13); }
+.dark .bg-amber-100 { background-color: rgba(245, 158, 11, 0.2); }
+.dark .bg-yellow-50 { background-color: rgba(234, 179, 8, 0.13); }
+.dark .bg-yellow-100 { background-color: rgba(234, 179, 8, 0.2); }
+.dark .bg-blue-50 { background-color: rgba(59, 130, 246, 0.13); }
+.dark .bg-blue-100 { background-color: rgba(59, 130, 246, 0.2); }
+.dark .bg-purple-50 { background-color: rgba(168, 85, 247, 0.13); }
+.dark .bg-purple-100 { background-color: rgba(168, 85, 247, 0.2); }
+.dark .bg-orange-50 { background-color: rgba(249, 115, 22, 0.13); }
+.dark .bg-orange-100 { background-color: rgba(249, 115, 22, 0.2); }
+.dark .bg-rose-50 { background-color: rgba(244, 63, 94, 0.13); }
+.dark .bg-rose-100 { background-color: rgba(244, 63, 94, 0.2); }
+.dark .bg-teal-50 { background-color: rgba(20, 184, 166, 0.13); }
+.dark .bg-teal-100 { background-color: rgba(20, 184, 166, 0.2); }
+.dark .bg-indigo-50 { background-color: rgba(99, 102, 241, 0.13); }
+.dark .bg-indigo-100 { background-color: rgba(99, 102, 241, 0.2); }
+.dark .bg-gold-50 { background-color: rgb(var(--gold-500) / 0.15); }
+.dark .bg-gold-100 { background-color: rgb(var(--gold-500) / 0.22); }
+
+/* Texto de chips de estado */
+.dark .text-green-600 { color: #34d399; }
+.dark .text-green-700 { color: #6ee7b7; }
+.dark .text-green-800 { color: #a7f3d0; }
+.dark .text-red-600 { color: #f87171; }
+.dark .text-red-700 { color: #fca5a5; }
+.dark .text-red-800 { color: #fecaca; }
+.dark .text-amber-600 { color: #fbbf24; }
+.dark .text-amber-700 { color: #fcd34d; }
+.dark .text-amber-800 { color: #fde68a; }
+.dark .text-yellow-600 { color: #facc15; }
+.dark .text-yellow-700 { color: #fde047; }
+.dark .text-blue-600 { color: #60a5fa; }
+.dark .text-blue-700 { color: #93c5fd; }
+.dark .text-purple-600 { color: #c084fc; }
+.dark .text-purple-700 { color: #d8b4fe; }
+.dark .text-orange-600 { color: #fb923c; }
+.dark .text-orange-700 { color: #fdba74; }
+.dark .text-rose-600 { color: #fb7185; }
+.dark .text-rose-700 { color: #fda4af; }
+.dark .text-teal-600 { color: #2dd4bf; }
+.dark .text-teal-700 { color: #5eead4; }
+.dark .text-indigo-600 { color: #818cf8; }
+.dark .text-indigo-700 { color: #a5b4fc; }
+.dark .text-gold-600 { color: rgb(var(--gold-400)); }
+.dark .text-gold-700 { color: rgb(var(--gold-300)); }
+
+/* Bordes de chips */
+.dark .border-green-200 { border-color: rgba(16, 185, 129, 0.3); }
+.dark .border-red-200 { border-color: rgba(239, 68, 68, 0.3); }
+.dark .border-amber-200 { border-color: rgba(245, 158, 11, 0.3); }
+.dark .border-yellow-200 { border-color: rgba(234, 179, 8, 0.3); }
+.dark .border-blue-200 { border-color: rgba(59, 130, 246, 0.3); }
+.dark .border-purple-200 { border-color: rgba(168, 85, 247, 0.3); }
+.dark .border-orange-200 { border-color: rgba(249, 115, 22, 0.3); }
+.dark .border-rose-200 { border-color: rgba(244, 63, 94, 0.3); }
+.dark .border-teal-200 { border-color: rgba(20, 184, 166, 0.3); }
+.dark .border-gold-200 { border-color: rgb(var(--gold-500) / 0.3); }
+
+/* Hovers de chips */
+.dark .hover\:bg-red-50:hover { background-color: rgba(239, 68, 68, 0.18); }
+.dark .hover\:bg-red-100\/50:hover { background-color: rgba(239, 68, 68, 0.16); }
+.dark .hover\:bg-amber-50:hover { background-color: rgba(245, 158, 11, 0.18); }
+.dark .hover\:bg-green-50:hover { background-color: rgba(16, 185, 129, 0.18); }
+
+/* Degradados de superficies grandes */
+.dark .from-green-50 { --tw-gradient-from: rgba(16, 185, 129, 0.16) var(--tw-gradient-from-position, 0); }
+.dark .to-emerald-50 { --tw-gradient-to: rgba(16, 185, 129, 0.08) var(--tw-gradient-to-position, 100%); }

@@ -2,6 +2,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { suppliersApi, type Supplier, type SupplierCreate } from "@/api/suppliers.api";
 import { Plus, Search, Edit, Trash2, Truck, X } from "lucide-react";
+import { SkeletonRows, EmptyTableRow } from "@/components/common/TableStates";
 
 export function SuppliersPage() {
   const [search, setSearch] = useState("");
@@ -116,9 +117,9 @@ export function SuppliersPage() {
           </thead>
           <tbody className="divide-y">
             {isLoading ? (
-              <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-500">Cargando...</td></tr>
+              <SkeletonRows colSpan={6} />
             ) : suppliers.length === 0 ? (
-              <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-500">No se encontraron proveedores</td></tr>
+              <EmptyTableRow colSpan={6} icon={Truck} title="No se encontraron proveedores" description="Registra tus proveedores para gestionar los pedidos" />
             ) : (
               suppliers.map((s) => (
                 <tr key={s.id} className="hover:bg-gray-50">

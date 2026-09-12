@@ -7,6 +7,7 @@ import { Plus, Search, Eye, Trash2, Send, CheckCircle, XCircle, FileText, Downlo
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { ClientPicker } from "@/components/common/ClientPicker";
 import { AutoResizeTextarea } from "@/components/common/AutoResizeTextarea";
+import { SkeletonRows, EmptyTableRow } from "@/components/common/TableStates";
 
 type CartItem = {
   product: Product;
@@ -204,9 +205,9 @@ export function QuotesPage() {
           </thead>
           <tbody className="divide-y">
             {isLoading ? (
-              <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-500">Cargando...</td></tr>
+              <SkeletonRows colSpan={6} />
             ) : quotes.length === 0 ? (
-              <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-500">No hay cotizaciones</td></tr>
+              <EmptyTableRow colSpan={6} icon={FileText} title="No hay cotizaciones" description="Crea una cotización y envíala a tu cliente" />
             ) : (
               quotes.map((q) => (
                 <tr key={q.id} className="hover:bg-gray-50">

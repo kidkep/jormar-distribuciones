@@ -5,6 +5,8 @@ import { clientsApi, type Client } from "@/api/clients.api";
 import { Plus, Search, CheckCircle2, Trash2, Calendar, User, AlertCircle, ListTodo, X } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { cn } from "@/lib/utils";
+import { SkeletonCard } from "@/components/common/Skeleton";
+import { EmptyState } from "@/components/common/TableStates";
 
 const TASK_TYPES = [
   { value: "general", label: "General" },
@@ -134,12 +136,11 @@ export function TasksPage() {
 
       <div className="animate-scale-in space-y-3">
         {isLoading ? (
-          <div className="card-premium p-8 text-center text-gray-500">Cargando...</div>
-        ) : tasks.length === 0 ? (
-          <div className="card-premium p-8 text-center text-gray-500">
-            <AlertCircle className="mx-auto mb-2 h-8 w-8 text-gray-300" />
-            No hay tareas
+          <div className="grid gap-3 sm:grid-cols-2">
+            {[1, 2, 3].map((i) => <SkeletonCard key={i} />)}
           </div>
+        ) : tasks.length === 0 ? (
+          <EmptyState icon={AlertCircle} title="No hay tareas" description="Crea tareas y recordatorios para no olvidar ningún pendiente" />
         ) : (
           tasks.map((t) => (
             <div key={t.id} className="card-premium p-4">

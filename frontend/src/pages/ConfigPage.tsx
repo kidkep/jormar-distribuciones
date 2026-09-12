@@ -13,7 +13,10 @@ import {
   Wifi,
   Palette,
   Settings,
+  Sun,
+  Moon,
 } from "lucide-react";
+import { useDarkMode } from "@/hooks/useDarkMode";
 
 export function ConfigPage() {
   const { data: monitor, isFetching, refetch } = useQuery({
@@ -23,6 +26,7 @@ export function ConfigPage() {
   });
 
   const { theme, setTheme } = useTheme();
+  const { dark, toggle } = useDarkMode();
 
   return (
     <div className="space-y-6">
@@ -58,6 +62,34 @@ export function ConfigPage() {
             </button>
           ))}
         </div>
+      </div>
+
+      {/* Modo oscuro */}
+      <div className="card-premium animate-fade-up-delay-1 p-6">
+        <h2 className="mb-1 flex items-center gap-2 text-lg font-semibold text-gray-900"><Sun className="h-5 w-5 text-gold-600" /> Apariencia</h2>
+        <p className="mb-4 text-sm text-gray-500">Alterna entre el modo claro y oscuro de la aplicación.</p>
+        <button
+          onClick={toggle}
+          className={cn(
+            "flex w-full items-center justify-between rounded-xl border p-4 transition-all sm:w-96",
+            dark
+              ? "border-gold-500 bg-gold-50 ring-2 ring-gold-500/20"
+              : "border-gray-200 hover:bg-gray-50"
+          )}
+        >
+          <div className="flex items-center gap-3">
+            <div className={cn("flex h-10 w-10 items-center justify-center rounded-lg", dark ? "bg-gold-500/15 text-gold-600" : "bg-gray-100 text-gray-600")}>
+              {dark ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
+            </div>
+            <div className="text-left">
+              <p className="text-sm font-semibold text-gray-900">{dark ? "Modo oscuro" : "Modo claro"}</p>
+              <p className="text-xs text-gray-500">{dark ? "Activo en este dispositivo" : "Activar el modo oscuro"}</p>
+            </div>
+          </div>
+          <div className={cn("relative h-6 w-11 rounded-full transition-colors", dark ? "bg-gold-500" : "bg-gray-300")}>
+            <div className={cn("absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all", dark ? "left-[22px]" : "left-0.5")} />
+          </div>
+        </button>
       </div>
 
       {/* Monitor de estado */}

@@ -7,6 +7,7 @@ import { formatCurrency, formatDate } from "@/lib/utils";
 import { SupplierPicker } from "@/components/common/SupplierPicker";
 import { AutoResizeTextarea } from "@/components/common/AutoResizeTextarea";
 import { useAuth } from "@/hooks/useAuth";
+import { SkeletonRows, EmptyTableRow } from "@/components/common/TableStates";
 
 type CartItem = {
   product: Product;
@@ -203,9 +204,9 @@ export function PurchaseOrdersPage() {
           </thead>
           <tbody className="divide-y">
             {isLoading ? (
-              <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-500">Cargando...</td></tr>
+              <SkeletonRows colSpan={6} />
             ) : orders.length === 0 ? (
-              <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-500">No hay solicitudes de pedido</td></tr>
+              <EmptyTableRow colSpan={6} icon={ClipboardList} title="No hay solicitudes de pedido" description="Crea una solicitud para reponer tu inventario" />
             ) : (
               orders.map((o) => (
                 <tr key={o.id} className="hover:bg-gray-50">

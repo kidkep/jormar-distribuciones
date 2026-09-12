@@ -57,7 +57,22 @@ export function DistribucionPage() {
   };
 
   if (loadingSummary || loadingHistory) {
-    return <div className="p-8 text-center text-gray-500">Cargando...</div>;
+    return (
+      <div className="space-y-6">
+        <div className="h-8 w-64 rounded-lg bg-gray-200/60 animate-pulse" />
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="card-premium animate-pulse p-5">
+              <div className="h-4 w-24 rounded bg-gray-200/60" />
+              <div className="mt-3 h-8 w-32 rounded bg-gray-200/60" />
+            </div>
+          ))}
+        </div>
+        <div className="card-premium animate-pulse h-72 p-5">
+          <div className="h-5 w-48 rounded bg-gray-200/60" />
+        </div>
+      </div>
+    );
   }
 
   return (

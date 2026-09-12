@@ -4,6 +4,7 @@ import { productsApi, type Product, type ProductCreate } from "@/api/products.ap
 import { Plus, Search, Edit, Eye, EyeOff, X, Package } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
+import { SkeletonRows, EmptyTableRow } from "@/components/common/TableStates";
 
 export function ProductsPage() {
   const { user } = useAuth();
@@ -146,9 +147,9 @@ export function ProductsPage() {
           </thead>
           <tbody className="divide-y">
             {isLoading ? (
-              <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-500">Cargando...</td></tr>
+              <SkeletonRows colSpan={6} />
             ) : products.length === 0 ? (
-              <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-500">No se encontraron productos</td></tr>
+              <EmptyTableRow colSpan={6} icon={Package} title="No se encontraron productos" description="Crea tu primer producto para empezar a vender" />
             ) : (
               products.map((p) => (
                 <tr key={p.id} className="hover:bg-gray-50">

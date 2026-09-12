@@ -4,6 +4,7 @@ import { usersApi } from "@/api/users.api";
 import { rolesApi } from "@/api/roles.api";
 import type { User, UserCreate, UserUpdate } from "@/api/types";
 import { Plus, Search, Edit, Trash2, ShieldCheck, UserCog, X } from "lucide-react";
+import { SkeletonRows, EmptyTableRow } from "@/components/common/TableStates";
 
 interface FormState {
   email: string;
@@ -152,9 +153,9 @@ export function UsersPage() {
           </thead>
           <tbody className="divide-y">
             {isLoading ? (
-              <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-500">Cargando...</td></tr>
+              <SkeletonRows colSpan={6} />
             ) : users.length === 0 ? (
-              <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-500">No se encontraron usuarios</td></tr>
+              <EmptyTableRow colSpan={6} icon={UserCog} title="No se encontraron usuarios" description="Crea usuarios para que tu equipo ingrese al sistema" />
             ) : (
               users.map((u) => (
                 <tr key={u.id} className="hover:bg-gray-50">

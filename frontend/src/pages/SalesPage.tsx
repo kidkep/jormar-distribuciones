@@ -7,6 +7,7 @@ import { Plus, Search, Eye, XCircle, ShoppingCart, Trash2, Download, AlertTriang
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { ClientPicker } from "@/components/common/ClientPicker";
 import { AutoResizeTextarea } from "@/components/common/AutoResizeTextarea";
+import { SkeletonRows, EmptyTableRow } from "@/components/common/TableStates";
 
 type CartItem = {
   product: Product;
@@ -199,9 +200,9 @@ export function SalesPage() {
           </thead>
           <tbody className="divide-y">
             {isLoading ? (
-              <tr><td colSpan={7} className="px-4 py-8 text-center text-gray-500">Cargando...</td></tr>
+              <SkeletonRows colSpan={7} />
             ) : sales.length === 0 ? (
-              <tr><td colSpan={7} className="px-4 py-8 text-center text-gray-500">No hay ventas registradas</td></tr>
+              <EmptyTableRow colSpan={7} icon={ShoppingCart} title="No hay ventas registradas" description="Registra tu primera venta con el botón Nueva Venta" />
             ) : (
               sales.map((s) => (
                 <tr key={s.id} className="hover:bg-gray-50">

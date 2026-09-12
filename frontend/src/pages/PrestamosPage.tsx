@@ -4,6 +4,7 @@ import { prestamosApi, type Prestamo, type PrestamoResumen } from "@/api/prestam
 import { cajaApi, type CajaResumen } from "@/api/caja.api";
 import { formatCurrency } from "@/lib/utils";
 import { Landmark, Plus, X, DollarSign, Clock, CheckCircle, ArrowDownCircle, AlertTriangle, Search, Trash2, Wallet, PieChart } from "lucide-react";
+import { EmptyState } from "@/components/common/TableStates";
 
 export function PrestamosPage() {
   const queryClient = useQueryClient();
@@ -85,7 +86,24 @@ export function PrestamosPage() {
   });
 
   if (loadingResumen || loadingPrestamos || loadingCaja) {
-    return <div className="p-8 text-center text-gray-500">Cargando prestamos...</div>;
+    return (
+      <div className="space-y-6">
+        <div className="h-8 w-64 rounded-lg bg-gray-200/60 animate-pulse" />
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="card-premium animate-pulse p-5">
+              <div className="h-4 w-24 rounded bg-gray-200/60" />
+              <div className="mt-3 h-8 w-32 rounded bg-gray-200/60" />
+            </div>
+          ))}
+        </div>
+        <div className="space-y-3">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="card-premium animate-pulse h-20 p-5" />
+          ))}
+        </div>
+      </div>
+    );
   }
 
   const r = resumen as PrestamoResumen;
@@ -398,10 +416,7 @@ export function PrestamosPage() {
 
       {/* Lista de prestamos */}
       {lista.length === 0 ? (
-        <div className="card-premium p-8 text-center text-gray-400">
-          <Landmark className="mx-auto mb-3 h-10 w-10 opacity-30" />
-          <p>No hay prestamos registrados</p>
-        </div>
+        <EmptyState icon={Landmark} title="No hay prestamos registrados" description="Los prestamos que registres aparecerán aquí con su estado de pago" />
       ) : (
         <div className="space-y-4">
           {lista.map((p) => {

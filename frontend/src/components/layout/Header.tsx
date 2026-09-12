@@ -1,5 +1,6 @@
-import { Menu, LogOut, User, Database } from "lucide-react";
+import { Menu, LogOut, User, Database, Sun, Moon } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useDarkMode } from "@/hooks/useDarkMode";
 
 interface Props {
   onMenuClick: () => void;
@@ -7,6 +8,7 @@ interface Props {
 
 export function Header({ onMenuClick }: Props) {
   const { user, logout } = useAuth();
+  const { dark, toggle } = useDarkMode();
   const canExport =
     user?.is_superuser || (user?.permissions ?? []).includes("sistema.exportar_db");
 
@@ -58,6 +60,14 @@ export function Header({ onMenuClick }: Props) {
             <span className="hidden sm:inline">Exportar base de datos</span>
           </button>
         )}
+        <button
+          onClick={toggle}
+          title={dark ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
+          className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-gray-600 transition hover:bg-gold-500/15 hover:text-gold-700 active:scale-95"
+        >
+          {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          <span className="hidden sm:inline">{dark ? "Claro" : "Oscuro"}</span>
+        </button>
         <div className="flex items-center gap-2.5 rounded-full bg-white/70 px-3.5 py-1.5 text-sm font-medium text-neutral-700 shadow-sm ring-1 ring-white/70 backdrop-blur">
           <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-gold-400 to-gold-600 text-neutral-950">
             <User className="h-3.5 w-3.5" />

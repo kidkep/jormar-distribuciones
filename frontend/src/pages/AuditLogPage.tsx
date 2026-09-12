@@ -2,6 +2,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { auditApi, type AuditLogEntry } from "@/api/audit.api";
 import { History, Search, RefreshCw } from "lucide-react";
+import { SkeletonRows, EmptyTableRow } from "@/components/common/TableStates";
 
 const ENTITY_LABELS: Record<string, string> = {
   user: "Usuario",
@@ -127,9 +128,9 @@ export function AuditLogPage() {
           </thead>
           <tbody className="divide-y">
             {isLoading ? (
-              <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-500">Cargando...</td></tr>
+              <SkeletonRows colSpan={5} />
             ) : logs.length === 0 ? (
-              <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-500">No hay actividades registradas</td></tr>
+              <EmptyTableRow colSpan={5} icon={History} title="No hay actividades registradas" description="Los cambios de los usuarios aparecerán aquí" />
             ) : (
               logs.map((log: AuditLogEntry) => {
                 const oldVals = parseValues(log.old_values);

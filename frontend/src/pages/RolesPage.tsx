@@ -3,6 +3,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { rolesApi } from "@/api/roles.api";
 import type { Permission, Role } from "@/api/types";
 import { Plus, Edit, Trash2, KeyRound, ShieldCheck, X } from "lucide-react";
+import { SkeletonCards, SkeletonCard } from "@/components/common/Skeleton";
+import { EmptyState } from "@/components/common/TableStates";
 
 interface FormState {
   name: string;
@@ -121,9 +123,11 @@ export function RolesPage() {
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
         {isLoading ? (
-          <p className="text-sm text-gray-500">Cargando...</p>
+          <div className="col-span-full grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {[1, 2, 3].map((i) => <SkeletonCard key={i} />)}
+          </div>
         ) : roles.length === 0 ? (
-          <p className="text-sm text-gray-500">No hay roles creados</p>
+          <EmptyState icon={ShieldCheck} title="No hay roles creados" description="Crea roles y asígnales permisos a tu equipo" />
         ) : (
           roles.map((role) => (
             <div key={role.id} className="card-premium p-4">

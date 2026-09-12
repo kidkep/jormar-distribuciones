@@ -2,6 +2,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { clientsApi, type Client, type ClientCreate } from "@/api/clients.api";
 import { Plus, Search, Edit, Trash2, X, Users } from "lucide-react";
+import { SkeletonRows, EmptyTableRow } from "@/components/common/TableStates";
 
 export function ClientsPage() {
   const [search, setSearch] = useState("");
@@ -115,9 +116,9 @@ export function ClientsPage() {
           </thead>
           <tbody className="divide-y">
             {isLoading ? (
-              <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-500">Cargando...</td></tr>
+              <SkeletonRows colSpan={6} />
             ) : clients.length === 0 ? (
-              <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-500">No se encontraron clientes</td></tr>
+              <EmptyTableRow colSpan={6} icon={Users} title="No se encontraron clientes" description="Registra tu primer cliente para llevar los créditos" />
             ) : (
               clients.map((c) => (
                 <tr key={c.id} className="hover:bg-gray-50">
