@@ -19,11 +19,14 @@ class ExpenseService:
             raise NotFoundException("Gasto", expense_id)
         return expense
 
-    async def get_expenses(self, skip: int = 0, limit: int = 50, search: str = "") -> tuple[list[Expense], int]:
-        return await self.repo.get_all(skip, limit, search)
+    async def get_expenses(self, skip: int = 0, limit: int = 50, search: str = "", distribution_category: str = "") -> tuple[list[Expense], int]:
+        return await self.repo.get_all(skip, limit, search, distribution_category)
 
     async def get_total(self) -> float:
         return await self.repo.get_total()
+
+    async def get_totals_by_distribution(self) -> dict[str, float]:
+        return await self.repo.get_totals_by_distribution()
 
     async def create_expense(self, data: ExpenseCreate, user_id: int) -> Expense:
         expense = Expense(

@@ -18,8 +18,34 @@ const EXPENSE_CATEGORIES = [
   { value: "otro", label: "Otro" },
 ];
 
+const DISTRIBUTION_CATEGORIES = [
+  { value: "", label: "Todos" },
+  { value: "costos", label: "Gasto" },
+  { value: "utilidad", label: "Utilidad" },
+  { value: "inversion", label: "Inversión" },
+];
+
+const DIST_LABELS: Record<string, string> = {
+  costos: "Gasto",
+  utilidad: "Utilidad",
+  inversion: "Inversión",
+};
+
+const DIST_BADGES: Record<string, string> = {
+  costos: "bg-amber-100 text-amber-700",
+  utilidad: "bg-green-100 text-green-700",
+  inversion: "bg-blue-100 text-blue-700",
+};
+
+const DIST_CARDS: Record<string, { label: string; color: string; text: string }> = {
+  costos: { label: "Gasto", color: "bg-amber-50 border-amber-200", text: "text-amber-700" },
+  utilidad: { label: "Utilidad", color: "bg-green-50 border-green-200", text: "text-green-700" },
+  inversion: { label: "Inversión", color: "bg-blue-50 border-blue-200", text: "text-blue-700" },
+};
+
 export function ExpensesPage() {
   const [search, setSearch] = useState("");
+  const [filtro, setFiltro] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState<ExpenseCreate>({
     description: "",
@@ -31,8 +57,8 @@ export function ExpensesPage() {
   const queryClient = useQueryClient();
 
   const { data: expenses = [], isLoading } = useQuery({
-    queryKey: ["expenses", search],
-    queryFn: () => expensesApi.list(1, 200, search),
+    queryKey: ["expenses", search, filtro],
+    queryFn: () => expensesApi.list(1, 200, search, filtro),
   });
 
   const { data: totalData } = useQuery({
@@ -81,9 +107,39 @@ export function ExpensesPage() {
         </button>
       </div>
 
-      <div className="animate-fade-up-delay-1 relative">
-        <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-        <input type="text" placeholder="Buscar gasto..." value={search} onChange={(e) => setSearch(e.target.value)} className="input-premium pl-10" />
+      {totalData && (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 animate-fade-up-delay-1">
+          {Object.entries(DIST_CARDS).map(([key, cfg]) => (
+            <div key={key} className={`rounded-xl border p-4 ${cfg.color}`}>
+              <p className={`text-sm font-medium ${cfg.text}`}>Sale de: {cfg.label}</p>
+              <p className={`mt-1 text-2xl font-bold ${cfg.text}`}>
+                {formatCurrency(totalData.por_distribucion[key] || 0)}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="animate-fade-up-delay-1 flex flex-wrap items-center gap-3">
+        <div className="relative min-w-[200px] flex-1">
+          <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+          <input type="text" placeholder="Buscar gasto..." value={search} onChange={(e) => setSearch(e.target.value)} className="input-premium pl-10" />
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          {DISTRIBUTION_CATEGORIES.map((c) => (
+            <button
+              key={c.value}
+              onClick={() => setFiltro(c.value)}
+              className={`rounded-full border px-3 py-1.5 text-xs font-medium transition ${
+                filtro === c.value
+                  ? "border-gold-300 bg-gold-100 text-gold-800"
+                  : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+              }`}
+            >
+              {c.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="card-premium animate-scale-in overflow-x-auto p-0">
@@ -93,6 +149,7 @@ export function ExpensesPage() {
               <th className="px-5 py-3">Fecha</th>
               <th className="px-5 py-3">Descripcion</th>
               <th className="px-5 py-3">Categoria</th>
+              <th className="px-5 py-3">Sale de</th>
               <th className="px-5 py-3">Metodo Pago</th>
               <th className="px-5 py-3">Monto</th>
               <th className="px-5 py-3">Acciones</th>
@@ -100,18 +157,32 @@ export function ExpensesPage() {
           </thead>
           <tbody className="divide-y">
             {isLoading ? (
-              <SkeletonRows colSpan={6} />
+              <SkeletonRows colSpan={7} />
             ) : expenses.length === 0 ? (
-              <EmptyTableRow colSpan={6} icon={BarChart3} title="No hay gastos registrados" description="Los gastos del día se verán reflejados en el balance" />
+              <EmptyTableRow colSpan={7} icon={BarChart3} title="No hay gastos registrados" description="Los gastos del día se verán reflejados en el balance" />
             ) : (
               expenses.map((e) => (
                 <tr key={e.id} className="hover:bg-gray-50">
                   <td className="px-5 py-3.5">{formatDate(e.expense_date)}</td>
-                  <td className="px-5 py-3.5 font-medium text-gray-800">{e.description}</td>
+                  <td className="px-5 py-3.5 font-medium text-gray-800">
+                    <div className="flex flex-wrap items-center gap-2">
+                      {e.retiro_id && (
+                        <span className="rounded bg-red-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-red-600">
+                          Saque
+                        </span>
+                      )}
+                      <span>{e.description}</span>
+                    </div>
+                  </td>
                   <td className="px-5 py-3.5">
                     <span className="flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">
                       <Tag className="h-3 w-3" />
                       {EXPENSE_CATEGORIES.find((c) => c.value === e.category)?.label || e.category}
+                    </span>
+                  </td>
+                  <td className="px-5 py-3.5">
+                    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${DIST_BADGES[e.distribution_category] || "bg-gray-100 text-gray-600"}`}>
+                      {DIST_LABELS[e.distribution_category] || e.distribution_category}
                     </span>
                   </td>
                   <td className="px-5 py-3.5 capitalize">{e.payment_method}</td>

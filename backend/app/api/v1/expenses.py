@@ -17,12 +17,13 @@ async def list_expenses(
     page: int = Query(1, ge=1),
     size: int = Query(50, ge=1, le=200),
     search: str = Query("", max_length=100),
+    distribution_category: str = Query("", max_length=30),
     db: AsyncSession = Depends(get_db),
     _user: User = Depends(require_permission("finanzas.gastos")),
 ):
     service = ExpenseService(db)
     skip = (page - 1) * size
-    expenses, total = await service.get_expenses(skip, size, search)
+    expenses, total = await service.get_expenses(skip, size, search, distribution_category)
     return expenses
 
 
@@ -32,7 +33,16 @@ async def get_expenses_total(
     _user: User = Depends(require_permission("finanzas.view")),
 ):
     service = ExpenseService(db)
-    return {"total": await service.get_total()}
+    por_distribucion = await service.get_totals_by_distribution()
+    total = sum(por_distribucion.values())
+    return {
+        "total": total,
+        "por_distribucion": {
+            "costos": por_distribucion.get("costos", 0.0),
+            "utilidad": por_distribucion.get("utilidad", 0.0),
+            "inversion": por_distribucion.get("inversion", 0.0),
+        },
+    }
 
 
 @router.get("/{expense_id}", response_model=ExpenseResponse)

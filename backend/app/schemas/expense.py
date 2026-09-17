@@ -35,6 +35,7 @@ class ExpenseResponse(BaseModel):
     reference: str | None = None
     notes: str | None = None
     distribution_category: str = "costos"
+    retiro_id: int | None = None
     user_id: int
     created_at: datetime
     updated_at: datetime

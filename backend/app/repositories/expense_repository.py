@@ -12,13 +12,17 @@ class ExpenseRepository:
         result = await self.db.execute(select(Expense).where(Expense.id == expense_id))
         return result.scalar_one_or_none()
 
-    async def get_all(self, skip: int = 0, limit: int = 50, search: str = "") -> tuple[list[Expense], int]:
+    async def get_all(self, skip: int = 0, limit: int = 50, search: str = "", distribution_category: str = "") -> tuple[list[Expense], int]:
         query = select(Expense)
         count_query = select(func.count()).select_from(Expense)
 
         if search:
             query = query.where(Expense.description.ilike(f"%{search}%"))
             count_query = count_query.where(Expense.description.ilike(f"%{search}%"))
+
+        if distribution_category:
+            query = query.where(Expense.distribution_category == distribution_category)
+            count_query = count_query.where(Expense.distribution_category == distribution_category)
 
         total_result = await self.db.execute(count_query)
         total = total_result.scalar()
@@ -30,6 +34,13 @@ class ExpenseRepository:
     async def get_total(self) -> float:
         result = await self.db.execute(select(func.coalesce(func.sum(Expense.amount), 0)))
         return float(result.scalar() or 0)
+
+    async def get_totals_by_distribution(self) -> dict[str, float]:
+        result = await self.db.execute(
+            select(Expense.distribution_category, func.coalesce(func.sum(Expense.amount), 0))
+            .group_by(Expense.distribution_category)
+        )
+        return {row[0]: float(row[1]) for row in result.all()}
 
     async def create(self, expense: Expense) -> Expense:
         self.db.add(expense)
