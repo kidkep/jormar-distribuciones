@@ -16,6 +16,9 @@ export const GENDER_NODE_MATCH: Record<Gender, RegExp> = {
 // Altura objetivo del personaje en metros (se normaliza automaticamente).
 export const CHARACTER_HEIGHT = 1.8;
 
+// Grados que se bajan los brazos desde la pose base (T/A) a una pose relajada.
+export const ARM_DOWN_DEGREES = 55;
+
 // Decoders para modelos comprimidos (Draco / KTX2 / Meshopt).
 export const DRACO_PATH = "/draco/";
 export const KTX2_PATH = "/basis/";

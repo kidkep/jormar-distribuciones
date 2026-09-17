@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { clone as cloneSkeleton } from "three/examples/jsm/utils/SkeletonUtils.js";
 
 import { getGLTFLoader, withAuthHeader } from "./loaders";
-import { CHARACTER_MODELS, CHARACTER_HEIGHT, GENDER_NODE_MATCH, resolveAssetUrl } from "./config";
+import { CHARACTER_MODELS, CHARACTER_HEIGHT, ARM_DOWN_DEGREES, GENDER_NODE_MATCH, resolveAssetUrl } from "./config";
 import type { Gender } from "./types";
 
 export interface CharacterInstance {
@@ -53,6 +53,31 @@ function pruneToGender(scene: THREE.Object3D, gender: Gender) {
   }
 }
 
+// Baja los brazos de la pose base (T/A) a una pose relajada, girando los
+// huesos deformadores en el eje frontal (Z) del mundo.
+function lowerArms(scene: THREE.Object3D) {
+  scene.updateMatrixWorld(true);
+  scene.traverse((o) => {
+    const bone = o as THREE.Bone & { isBone?: boolean };
+    if (!bone.isBone || !bone.parent) return;
+    const match = /^DEF-upper_arm\.([LR])_/.exec(bone.name);
+    if (!match) return;
+    const side = match[1] as "L" | "R";
+    const parentQuat = new THREE.Quaternion();
+    bone.parent.getWorldQuaternion(parentQuat);
+    const localAxis = new THREE.Vector3(0, 0, 1)
+      .applyQuaternion(parentQuat.invert())
+      .normalize();
+    const sign = side === "L" ? -1 : 1;
+    const delta = new THREE.Quaternion().setFromAxisAngle(
+      localAxis,
+      THREE.MathUtils.degToRad(ARM_DOWN_DEGREES) * sign,
+    );
+    bone.quaternion.premultiply(delta);
+  });
+  scene.updateMatrixWorld(true);
+}
+
 // Ajusta escala/posicion: altura objetivo, pies en y=0 y centrado en x/z.
 function normalizeCharacter(scene: THREE.Object3D) {
   scene.updateMatrixWorld(true);
@@ -89,6 +114,7 @@ export async function loadCharacter(gender: Gender): Promise<CharacterInstance> 
   const source = await loadGLTFScene(CHARACTER_MODELS[gender]);
   const scene = cloneSkeleton(source) as THREE.Group;
   pruneToGender(scene, gender);
+  lowerArms(scene);
   normalizeCharacter(scene);
   scene.traverse((o) => {
     const mesh = o as THREE.Mesh;
