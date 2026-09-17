@@ -46,6 +46,9 @@ async def lifespan(app: FastAPI):
             "ALTER TABLE products ADD COLUMN IF NOT EXISTS available_sizes JSON"
         ))
         await conn.execute(text(
+            "ALTER TABLE products ADD COLUMN IF NOT EXISTS model_url VARCHAR(500)"
+        ))
+        await conn.execute(text(
             "ALTER TABLE sale_distributions "
             "ADD COLUMN IF NOT EXISTS monto_recibido NUMERIC(12,2) NOT NULL DEFAULT 0"
         ))

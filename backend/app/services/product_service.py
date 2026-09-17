@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
 
 from app.models.product import Product
+from app.models.product_model import ProductModel
 from app.repositories.product_repository import ProductRepository
 from app.schemas.product import ProductCreate, ProductUpdate
 from app.exceptions import NotFoundException, ConflictException
@@ -71,3 +72,33 @@ class ProductService:
         product.is_active = not product.is_active
         await self.repo.update(product)
         return await self.repo.get_by_id(product_id)
+
+    # --- Modelos 3D (GLB/GLTF) para el probador virtual ---
+
+    async def get_product_model(self, product_id: int) -> ProductModel | None:
+        result = await self.db.execute(
+            select(ProductModel).where(ProductModel.product_id == product_id)
+        )
+        return result.scalar_one_or_none()
+
+    async def save_product_model(
+        self, product_id: int, filename: str, content_type: str, data: bytes
+    ) -> ProductModel:
+        await self.get_product(product_id)
+        model = await self.get_product_model(product_id)
+        if model is None:
+            model = ProductModel(product_id=product_id)
+            self.db.add(model)
+        model.filename = filename
+        model.content_type = content_type or "model/gltf-binary"
+        model.size = len(data)
+        model.data = data
+        await self.db.commit()
+        await self.db.refresh(model)
+        return model
+
+    async def delete_product_model(self, product_id: int) -> None:
+        model = await self.get_product_model(product_id)
+        if model is not None:
+            await self.db.delete(model)
+            await self.db.commit()

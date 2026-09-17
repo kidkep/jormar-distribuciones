@@ -74,3 +74,23 @@ def require_permission(permission_name: str):
         return current_user
 
     return _check
+
+
+def require_any_permission(*permission_names: str):
+    async def _check(
+        current_user: User = Depends(get_current_active_user),
+        db: AsyncSession = Depends(get_db),
+    ) -> User:
+        if current_user.is_superuser:
+            return current_user
+
+        if current_user.role is None:
+            raise ForbiddenException("No tiene un rol asignado")
+
+        perm_names = [p.name for p in current_user.role.permissions]
+        if not any(name in perm_names for name in permission_names):
+            raise ForbiddenException(f"Permiso requerido: {' o '.join(permission_names)}")
+
+        return current_user
+
+    return _check

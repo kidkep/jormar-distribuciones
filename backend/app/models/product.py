@@ -35,6 +35,8 @@ class Product(Base, TimestampMixin):
     layer: Mapped[str | None] = mapped_column(String(30), nullable=True)
     gender: Mapped[str | None] = mapped_column(String(20), nullable=True)
     available_sizes: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    # URL externa del modelo 3D (GLB/GLTF); si no, se usa el modelo subido
+    model_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
 
     category: Mapped["Category | None"] = relationship("Category", back_populates="products")
     unit: Mapped["Unit | None"] = relationship("Unit", back_populates="products")

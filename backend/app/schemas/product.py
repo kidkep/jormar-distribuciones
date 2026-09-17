@@ -21,6 +21,7 @@ class ProductBase(BaseModel):
     layer: str | None = None
     gender: str | None = None
     available_sizes: list[str] | None = None
+    model_url: str | None = None
 
 
 class ProductCreate(ProductBase):
@@ -45,6 +46,7 @@ class ProductUpdate(BaseModel):
     layer: str | None = None
     gender: str | None = None
     available_sizes: list[str] | None = None
+    model_url: str | None = None
 
 
 class CategoryBrief(BaseModel):

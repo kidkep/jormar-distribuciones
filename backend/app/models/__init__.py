@@ -5,6 +5,7 @@ from app.models.permission import Permission
 from app.models.audit_log import AuditLog
 from app.models.category import Category, Unit
 from app.models.product import Product
+from app.models.product_model import ProductModel
 from app.models.supplier import Supplier
 from app.models.client import Client
 from app.models.sale import Sale, SaleItem
@@ -22,7 +23,7 @@ from app.models.dotacion import DotacionEmpresa, DotacionPersona, DotacionTalla,
 
 __all__ = [
     "Base", "User", "Role", "Permission", "AuditLog",
-    "Category", "Unit", "Product", "Supplier", "Client",
+    "Category", "Unit", "Product", "ProductModel", "Supplier", "Client",
     "Sale", "SaleItem", "Quote", "QuoteItem", "Payment", "Expense", "Retiro",
     "SaleDistribution", "Task", "HealthCheck", "PurchaseOrder", "PurchaseOrderItem",
     "Prestamo", "PrestamoPago",

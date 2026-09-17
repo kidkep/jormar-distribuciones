@@ -25,6 +25,7 @@ from app.schemas.dotacion import (
 from app.exceptions import NotFoundException, BadRequestException
 from app.utils.audit import record_audit
 from app.utils.garments import LAYERS, resolve_product_fit
+from app.models.product_model import ProductModel
 
 router = APIRouter(prefix="/dotacion", tags=["Tallas y Dotacion"])
 
@@ -409,9 +410,13 @@ async def get_catalogo(
         select(Product).where(Product.is_active == True).order_by(Product.name)  # noqa: E712
     )
     products = result.scalars().all()
+    model_result = await db.execute(select(ProductModel.product_id))
+    uploaded_models = {row[0] for row in model_result.all()}
     items = []
     for p in products:
         fit = resolve_product_fit(p)
+        has_model = bool(p.model_url) or p.id in uploaded_models
+        model_url = p.model_url or (f"/api/v1/products/{p.id}/model" if p.id in uploaded_models else None)
         items.append({
             "id": p.id,
             "name": p.name,
@@ -422,6 +427,8 @@ async def get_catalogo(
             "gender": fit["gender"],
             "sizes": fit["sizes"],
             "size_class": fit["size_class"],
+            "model_url": model_url,
+            "has_model": has_model,
         })
     return {
         "products": items,

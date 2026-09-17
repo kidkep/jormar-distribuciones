@@ -1,15 +1,21 @@
-from fastapi import APIRouter, Depends, Query
+import os
+
+from fastapi import APIRouter, Depends, File, Query, Response, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
-from app.dependencies import require_permission
+from app.dependencies import require_permission, require_any_permission
 from app.models.user import User
 from app.schemas.product import ProductCreate, ProductUpdate, ProductResponse
 from app.schemas.common import MessageResponse
 from app.services.product_service import ProductService
 from app.utils.audit import record_audit
+from app.exceptions import BadRequestException, NotFoundException
 
 router = APIRouter(prefix="/products", tags=["Productos"])
+
+ALLOWED_MODEL_EXTENSIONS = {".glb", ".gltf"}
+MAX_MODEL_SIZE = 25 * 1024 * 1024
 
 
 @router.get("", response_model=list[ProductResponse])
@@ -122,3 +128,74 @@ async def toggle_product_status(
         new_values={"name": updated.name, "sku": updated.sku, "is_active": updated.is_active},
     )
     return updated
+
+
+@router.post("/{product_id}/model")
+async def upload_product_model(
+    product_id: int,
+    file: UploadFile = File(...),
+    db: AsyncSession = Depends(get_db),
+    _user: User = Depends(require_permission("productos.edit")),
+):
+    filename = (file.filename or "").strip()
+    ext = os.path.splitext(filename)[1].lower()
+    if ext not in ALLOWED_MODEL_EXTENSIONS:
+        raise BadRequestException("Solo se permiten archivos .glb o .gltf")
+    content = await file.read()
+    if not content:
+        raise BadRequestException("El archivo esta vacio")
+    if len(content) > MAX_MODEL_SIZE:
+        raise BadRequestException("El archivo supera el limite de 25 MB")
+    content_type = "model/gltf-binary" if ext == ".glb" else "model/gltf+json"
+    service = ProductService(db)
+    model = await service.save_product_model(product_id, filename, content_type, content)
+    record_audit(
+        db, _user, "update", "product",
+        entity_id=product_id,
+        new_values={"model_file": model.filename, "model_size": model.size},
+    )
+    return {
+        "product_id": product_id,
+        "filename": model.filename,
+        "size": model.size,
+        "content_type": model.content_type,
+        "model_url": f"/api/v1/products/{product_id}/model",
+        "updated_at": model.updated_at,
+    }
+
+
+@router.get("/{product_id}/model")
+async def download_product_model(
+    product_id: int,
+    db: AsyncSession = Depends(get_db),
+    _user: User = Depends(require_any_permission("productos.view", "dotacion.view")),
+):
+    service = ProductService(db)
+    model = await service.get_product_model(product_id)
+    if model is None:
+        raise NotFoundException("Modelo 3D", product_id)
+    return Response(
+        content=model.data,
+        media_type=model.content_type or "model/gltf-binary",
+        headers={
+            "Content-Disposition": f'inline; filename="{model.filename}"',
+            "Cache-Control": "private, max-age=3600",
+        },
+    )
+
+
+@router.delete("/{product_id}/model", response_model=MessageResponse)
+async def delete_product_model(
+    product_id: int,
+    db: AsyncSession = Depends(get_db),
+    _user: User = Depends(require_permission("productos.edit")),
+):
+    service = ProductService(db)
+    await service.get_product(product_id)
+    await service.delete_product_model(product_id)
+    record_audit(
+        db, _user, "update", "product",
+        entity_id=product_id,
+        new_values={"model_file": None},
+    )
+    return MessageResponse(message="Modelo 3D eliminado correctamente")
