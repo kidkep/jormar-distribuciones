@@ -113,7 +113,7 @@ export function PrestamosPage() {
   const catLabels: Record<string, string> = {
     utilidad: "Utilidad",
     inversion: "Inversion",
-    costos: "Costos / Gastos",
+    costos: "Gasto",
   };
 
   const methodLabels: Record<string, string> = {
@@ -251,7 +251,7 @@ export function PrestamosPage() {
               </p>
             </div>
             <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
-              <p className="text-sm font-medium text-amber-800">Costos / Gastos</p>
+              <p className="text-sm font-medium text-amber-800">Gasto</p>
               <p className={`mt-1 text-2xl font-bold ${d.distribucion.costos >= 0 ? "text-amber-700" : "text-red-600"}`}>
                 {formatCurrency(d.distribucion.costos)}
               </p>
@@ -261,7 +261,7 @@ export function PrestamosPage() {
             </div>
           </div>
           <p className="mt-3 text-xs text-gray-500">
-            Al crear un prestamo, el monto sale de la categoria que elijas (utilidad, inversion o costos) y se descuenta del dinero en caja. Cada abono devuelve el dinero a esa categoria.
+            Al crear un prestamo, el monto sale de la categoria que elijas (utilidad, inversion o gasto) y se descuenta del dinero en caja. Cada abono devuelve el dinero a esa categoria.
           </p>
         </div>
       )}
@@ -327,7 +327,7 @@ export function PrestamosPage() {
               >
                 <option value="utilidad">Utilidad</option>
                 <option value="inversion">Inversion</option>
-                <option value="costos">Costos / Gastos</option>
+                <option value="costos">Gasto</option>
               </select>
             </div>
             <div>

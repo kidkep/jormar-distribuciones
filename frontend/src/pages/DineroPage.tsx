@@ -224,8 +224,8 @@ export function DineroPage() {
 
         {showConfig && (
           <div className="mb-4 rounded-lg border border-gold-200 bg-gold-50 p-3 text-xs text-gray-700">
-            Reparto por defecto por cada venta: <strong>20% Utilidad</strong> · <strong>10% Costos/Gastos</strong> · <strong>70% Inversión</strong>.
-            Los gastos se descuentan de <strong>Costos/Gastos</strong> y los saques de <strong>Utilidad</strong> (puedes cambiarlo al crearlos).
+            Reparto por defecto por cada venta: <strong>20% Utilidad</strong> · <strong>10% Gasto</strong> · <strong>70% Inversión</strong>.
+            Los gastos se descuentan de <strong>Gasto</strong> y los saques de <strong>Utilidad</strong> (puedes cambiarlo al crearlos).
           </div>
         )}
 
@@ -247,7 +247,7 @@ export function DineroPage() {
             </p>
           </div>
           <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
-            <p className="text-sm font-medium text-amber-800">Costos / Gastos</p>
+            <p className="text-sm font-medium text-amber-800">Gasto</p>
             <p className={`mt-1 text-2xl font-bold ${d.distribucion.costos >= 0 ? "text-amber-700" : "text-red-600"}`}>
               {formatCurrency(d.distribucion.costos)}
             </p>

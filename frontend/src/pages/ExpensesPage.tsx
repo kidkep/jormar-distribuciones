@@ -69,7 +69,7 @@ export function ExpensesPage() {
         <div>
           <h1 className="flex items-center gap-2 text-2xl font-bold text-gray-900">
             <BarChart3 className="h-6 w-6 text-gold-600" />
-            Gastos y Costos
+            Gastos
           </h1>
           {totalData && (
             <p className="mt-1 text-sm text-gray-600">Total gastos: <strong>{formatCurrency(totalData.total)}</strong></p>
@@ -163,7 +163,7 @@ export function ExpensesPage() {
                 <div>
                   <label className="mb-1 block text-sm font-medium text-gray-700">Sale de la categoria</label>
                   <select value={form.distribution_category || "costos"} onChange={(e) => setForm({ ...form, distribution_category: e.target.value })} className="input-premium">
-                    <option value="costos">Costos / Gastos</option>
+                    <option value="costos">Gasto</option>
                     <option value="utilidad">Utilidad</option>
                     <option value="inversion">Inversión</option>
                   </select>
