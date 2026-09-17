@@ -99,7 +99,7 @@ export function DineroPage() {
   const catLabels: Record<string, string> = {
     utilidad: "Utilidad",
     inversion: "Inversión",
-    costos: "Costos / Gastos",
+    costos: "Gasto",
   };
 
   const handleSubmit = () => {
@@ -379,7 +379,7 @@ export function DineroPage() {
                   >
                     <option value="utilidad">Utilidad</option>
                     <option value="inversion">Inversión</option>
-                    <option value="costos">Costos / Gastos</option>
+                    <option value="costos">Gasto</option>
                   </select>
                 </div>
               </div>
