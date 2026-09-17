@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import {
   createBody,
   createGarment,
@@ -101,10 +102,14 @@ export function Mannequin3D({
     const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
     camera.position.set(...VIEW_POSITIONS.front);
 
-    scene.add(new THREE.AmbientLight(0xffffff, 0.42));
-    scene.add(new THREE.HemisphereLight(0xcfe0ff, 0x2a2420, 0.7));
+    const pmrem = new THREE.PMREMGenerator(renderer);
+    const envRT = pmrem.fromScene(new RoomEnvironment(), 0.04);
+    scene.environment = envRT.texture;
 
-    const key = new THREE.DirectionalLight(0xfff3e0, 1.7);
+    scene.add(new THREE.AmbientLight(0xffffff, 0.22));
+    scene.add(new THREE.HemisphereLight(0xcfe0ff, 0x2a2420, 0.5));
+
+    const key = new THREE.DirectionalLight(0xfff3e0, 1.55);
     key.position.set(4, 7.5, 5);
     key.castShadow = true;
     key.shadow.mapSize.set(1024, 1024);
@@ -115,6 +120,7 @@ export function Mannequin3D({
     key.shadow.camera.top = 5;
     key.shadow.camera.bottom = -1;
     key.shadow.bias = -0.0005;
+    key.shadow.radius = 3;
     scene.add(key);
 
     const fill = new THREE.DirectionalLight(0xbfd0ff, 0.5);
@@ -260,6 +266,8 @@ export function Mannequin3D({
       if (scene.background && (scene.background as THREE.Texture).isTexture) {
         (scene.background as THREE.Texture).dispose();
       }
+      envRT.dispose();
+      pmrem.dispose();
       renderer.dispose();
       if (renderer.domElement.parentElement === container) {
         container.removeChild(renderer.domElement);

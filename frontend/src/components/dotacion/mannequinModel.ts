@@ -134,6 +134,102 @@ function torus(g: THREE.Group, m: THREE.Material, r: number, tube: number, pos: 
   return mesh;
 }
 
+// --- Helpers para el cuerpo: tubos suavizados y piel con variacion sutil ---
+
+function radiusAt(t: number, radii: number[]) {
+  const n = radii.length - 1;
+  const f = Math.max(0, Math.min(1, t)) * n;
+  const i = Math.floor(f);
+  if (i >= n) return radii[n];
+  return radii[i] * (1 - (f - i)) + radii[i + 1] * (f - i);
+}
+
+function taperedTube(
+  g: THREE.Group,
+  m: THREE.Material,
+  nodes: [number, number, number][],
+  radii: number[],
+  radial = 16,
+  tubular = 26,
+) {
+  const pts = nodes.map((p) => new THREE.Vector3(p[0], p[1], p[2]));
+  const curve = new THREE.CatmullRomCurve3(pts, false, "catmullrom", 0.35);
+  const frames = curve.computeFrenetFrames(tubular, false);
+  const positions: number[] = [];
+  const normals: number[] = [];
+  const indices: number[] = [];
+  for (let i = 0; i <= tubular; i++) {
+    const t = i / tubular;
+    const p = curve.getPointAt(t);
+    const n = frames.normals[i];
+    const b = frames.binormals[i];
+    const r = radiusAt(t, radii);
+    for (let j = 0; j <= radial; j++) {
+      const a = (j / radial) * Math.PI * 2;
+      const nx = Math.cos(a) * n.x + Math.sin(a) * b.x;
+      const ny = Math.cos(a) * n.y + Math.sin(a) * b.y;
+      const nz = Math.cos(a) * n.z + Math.sin(a) * b.z;
+      positions.push(p.x + nx * r, p.y + ny * r, p.z + nz * r);
+      normals.push(nx, ny, nz);
+    }
+  }
+  for (let i = 0; i < tubular; i++) {
+    for (let j = 0; j < radial; j++) {
+      const a = i * (radial + 1) + j;
+      const c = a + radial + 1;
+      indices.push(a, c, a + 1, c, c + 1, a + 1);
+    }
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+  geo.setAttribute("normal", new THREE.Float32BufferAttribute(normals, 3));
+  geo.setIndex(indices);
+  const mesh = new THREE.Mesh(geo, m);
+  mesh.castShadow = true;
+  g.add(mesh);
+  return mesh;
+}
+
+function makeSkinTexture(hex: number): THREE.CanvasTexture {
+  const size = 128;
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
+  const base = new THREE.Color(hex);
+  ctx.fillStyle = `#${base.getHexString()}`;
+  ctx.fillRect(0, 0, size, size);
+  for (let i = 0; i < 170; i++) {
+    const r = 6 + Math.random() * 26;
+    const x = Math.random() * size;
+    const y = Math.random() * size;
+    const c = base.clone().offsetHSL((Math.random() - 0.5) * 0.012, (Math.random() - 0.5) * 0.05, (Math.random() - 0.5) * 0.045);
+    const gd = ctx.createRadialGradient(x, y, 0, x, y, r);
+    gd.addColorStop(0, `rgba(${(c.r * 255) | 0},${(c.g * 255) | 0},${(c.b * 255) | 0},0.3)`);
+    gd.addColorStop(1, `rgba(${(c.r * 255) | 0},${(c.g * 255) | 0},${(c.b * 255) | 0},0)`);
+    ctx.fillStyle = gd;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.wrapS = THREE.RepeatWrapping;
+  tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(2, 2);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
+function skinMaterial(hex: number, extra: Partial<THREE.MeshStandardMaterialParameters> = {}) {
+  return new THREE.MeshStandardMaterial({
+    map: makeSkinTexture(hex),
+    roughness: 0.5,
+    metalness: 0,
+    envMapIntensity: 0.55,
+    ...extra,
+  });
+}
+
 export function disposeObject(root: THREE.Object3D) {
   root.traverse((o) => {
     const mesh = o as THREE.Mesh;
@@ -147,125 +243,185 @@ export function disposeObject(root: THREE.Object3D) {
 }
 
 interface BodyCfg {
-  profile: [number, number][];
   shoulderX: number;
-  deltoid: number;
-  neckR: number;
-  upperArm: [number, number];
-  foreArm: [number, number];
-  thigh: [number, number];
-  calf: [number, number];
   bust: boolean;
   longHair: boolean;
+  skinTone: number;
+  torso: [number, number][];
+  neck: number[];
+  arm: number[];
+  leg: number[];
+  deltoid: number;
 }
 
 const MALE: BodyCfg = {
-  profile: [
-    [0.285, 1.98], [0.315, 2.1], [0.295, 2.3], [0.262, 2.46], [0.285, 2.6],
-    [0.325, 2.76], [0.335, 2.9], [0.31, 3.0], [0.2, 3.07],
+  shoulderX: 0.44,
+  bust: false,
+  longHair: false,
+  skinTone: 0xe3a578,
+  torso: [
+    [0.235, 1.86], [0.285, 2.0], [0.298, 2.12], [0.276, 2.26], [0.262, 2.4],
+    [0.274, 2.5], [0.302, 2.62], [0.328, 2.76], [0.336, 2.88], [0.322, 2.98], [0.185, 3.06],
   ],
-  shoulderX: 0.44, deltoid: 0.15, neckR: 0.125,
-  upperArm: [0.115, 0.088], foreArm: [0.09, 0.062],
-  thigh: [0.175, 0.115], calf: [0.125, 0.068],
-  bust: false, longHair: false,
+  neck: [0.138, 0.126, 0.106],
+  arm: [0.108, 0.098, 0.086, 0.073, 0.054],
+  leg: [0.166, 0.136, 0.103, 0.092, 0.056],
+  deltoid: 0.14,
 };
 
 const FEMALE: BodyCfg = {
-  profile: [
-    [0.3, 1.98], [0.335, 2.1], [0.315, 2.28], [0.235, 2.44], [0.25, 2.58],
-    [0.285, 2.74], [0.3, 2.9], [0.28, 3.0], [0.185, 3.07],
+  shoulderX: 0.375,
+  bust: true,
+  longHair: true,
+  skinTone: 0xe8ad84,
+  torso: [
+    [0.25, 1.86], [0.305, 2.0], [0.318, 2.12], [0.27, 2.26], [0.238, 2.4],
+    [0.25, 2.5], [0.278, 2.62], [0.3, 2.74], [0.306, 2.88], [0.292, 2.98], [0.16, 3.06],
   ],
-  shoulderX: 0.375, deltoid: 0.125, neckR: 0.105,
-  upperArm: [0.1, 0.076], foreArm: [0.08, 0.052],
-  thigh: [0.16, 0.105], calf: [0.115, 0.06],
-  bust: true, longHair: true,
+  neck: [0.114, 0.104, 0.09],
+  arm: [0.09, 0.081, 0.071, 0.06, 0.045],
+  leg: [0.15, 0.122, 0.093, 0.082, 0.05],
+  deltoid: 0.115,
 };
 
 export function createBody(gender: Gender): THREE.Group {
   const cfg = gender === "mujer" ? FEMALE : MALE;
   const g = new THREE.Group();
-  const skin = mat(0xe4a97e, { roughness: 0.6 });
-  const skinDk = mat(0xd0966b, { roughness: 0.64 });
-  const hair = mat(gender === "mujer" ? 0x3a2418 : 0x2a2118, { roughness: 0.9, metalness: 0 });
-  const dark = mat(0x1c1713, { roughness: 0.4 });
-  const white = mat(0xf3f0ec, { roughness: 0.35 });
-
   const sx = cfg.shoulderX;
-  const neckTop = 3.3;
+
+  const skin = skinMaterial(cfg.skinTone, { roughness: 0.5 });
+  const skinShade = skinMaterial(new THREE.Color(cfg.skinTone).multiplyScalar(0.92).getHex(), { roughness: 0.56 });
+  const hair = mat(gender === "mujer" ? 0x2f2016 : 0x241d16, { roughness: 0.82, metalness: 0, envMapIntensity: 0.3 });
+  const dark = mat(0x171310, { roughness: 0.35 });
+  const white = mat(0xf5f2ee, { roughness: 0.3 });
+  const lip = mat(0xc98377, { roughness: 0.5 });
+
+  // Torso (perfil humano, seccion aplanada)
+  lathe(g, skin, cfg.torso, 0.6);
+  // Hombros / trapecio / clavicula
+  sphere(g, skin, 0.24, [0, 2.95, -0.01], cfg.bust ? [1.44, 0.4, 0.7] : [1.62, 0.42, 0.72]);
+  sphere(g, skin, 0.15, [0, 2.99, -0.03], [1.75, 0.5, 0.82]);
+  // Cadera
+  sphere(g, skin, 0.27, [0, 2.02, 0], cfg.bust ? [1.05, 0.86, 0.68] : [1.0, 0.86, 0.66]);
+  sphere(g, skin, 0.135, [0.1, 1.99, -0.05], [1, 0.95, 1]);
+  sphere(g, skin, 0.135, [-0.1, 1.99, -0.05], [1, 0.95, 1]);
+  // Pecho
+  if (cfg.bust) {
+    sphere(g, skin, 0.1, [0.105, 2.7, 0.11], [1.05, 0.9, 0.75]);
+    sphere(g, skin, 0.1, [-0.105, 2.7, 0.11], [1.05, 0.9, 0.75]);
+  } else {
+    sphere(g, skin, 0.11, [0.13, 2.74, 0.1], [1.1, 0.8, 0.62]);
+    sphere(g, skin, 0.11, [-0.13, 2.74, 0.1], [1.1, 0.8, 0.62]);
+  }
 
   // Cuello
-  limb(g, skin, [0, 2.96, 0], [0, neckTop, 0], cfg.neckR, cfg.neckR * 0.82);
-  // Hombros
-  sphere(g, skin, 0.2, [0, 2.98, 0], [cfg.bust ? 1.5 : 1.72, 0.5, 0.82]);
-  // Torso
-  lathe(g, skin, cfg.profile, 0.62);
-  sphere(g, skin, 0.29, [0, 2.06, 0], [cfg.bust ? 1.06 : 1.0, 0.82, 0.62]);
-  if (cfg.bust) {
-    sphere(g, skin, 0.12, [0.13, 2.68, 0.17], [1.05, 0.9, 0.78]);
-    sphere(g, skin, 0.12, [-0.13, 2.68, 0.17], [1.05, 0.9, 0.78]);
-  } else {
-    sphere(g, skin, 0.13, [0.15, 2.72, 0.17], [1.1, 0.85, 0.7]);
-    sphere(g, skin, 0.13, [-0.15, 2.72, 0.17], [1.1, 0.85, 0.7]);
-  }
+  taperedTube(g, skin, [[0, 2.92, 0], [0, 3.08, 0.006], [0, 3.24, 0]], cfg.neck, 18, 12);
 
   // Cabeza
   const head = new THREE.Group();
   head.position.set(0, 3.5, 0);
   g.add(head);
-  sphere(head, skin, 0.235, [0, 0.02, 0], [0.8, 1.0, 0.9]);
-  sphere(head, skinDk, 0.2, [0, -0.14, 0.02], [0.82, 0.86, 0.96]);
-  sphere(head, skin, 0.045, [0, -0.03, 0.205], [0.9, 1.3, 1.1]);
-  sphere(head, skinDk, 0.05, [0.185, -0.02, 0], [0.6, 1.1, 0.9]);
-  sphere(head, skinDk, 0.05, [-0.185, -0.02, 0], [0.6, 1.1, 0.9]);
+
+  const headMesh = lathe(head, skin, [
+    [0.02, -0.215], [0.06, -0.205], [0.115, -0.175], [0.155, -0.125], [0.178, -0.07],
+    [0.183, 0.0], [0.172, 0.07], [0.145, 0.13], [0.095, 0.18], [0.02, 0.205],
+  ], 1.0);
+  headMesh.scale.x = 0.86;
+  // Pómulos / mandíbula
+  sphere(head, skin, 0.11, [0.09, -0.05, 0.09], [0.9, 0.8, 0.9]);
+  sphere(head, skin, 0.11, [-0.09, -0.05, 0.09], [0.9, 0.8, 0.9]);
+  sphere(head, skin, 0.06, [0, -0.19, 0.07], [1, 0.8, 1.15]);
+  // Cejas (cresta)
+  sphere(head, skin, 0.14, [0, 0.035, 0.11], [0.86, 0.34, 0.6]);
+  // Nariz
+  sphere(head, skin, 0.026, [0, 0.015, 0.175], [0.55, 1.5, 0.7]);
+  sphere(head, skin, 0.028, [0, -0.035, 0.188], [0.85, 0.8, 0.95]);
+  sphere(head, skinShade, 0.012, [0.022, -0.05, 0.178], [1, 0.7, 0.7]);
+  sphere(head, skinShade, 0.012, [-0.022, -0.05, 0.178], [1, 0.7, 0.7]);
+  // Orejas
+  sphere(head, skin, 0.05, [0.166, -0.015, -0.012], [0.45, 1.05, 0.85]);
+  sphere(head, skin, 0.05, [-0.166, -0.015, -0.012], [0.45, 1.05, 0.85]);
+  sphere(head, skinShade, 0.03, [0.17, -0.02, -0.005], [0.4, 1, 0.8]);
+  sphere(head, skinShade, 0.03, [-0.17, -0.02, -0.005], [0.4, 1, 0.8]);
   // Ojos
-  sphere(head, white, 0.032, [0.08, 0.03, 0.192], [1, 1, 0.5]);
-  sphere(head, white, 0.032, [-0.08, 0.03, 0.192], [1, 1, 0.5]);
-  sphere(head, dark, 0.017, [0.085, 0.03, 0.213], [1, 1, 0.6]);
-  sphere(head, dark, 0.017, [-0.085, 0.03, 0.213], [1, 1, 0.6]);
-  // Cejas
-  box(head, dark, [0.075, 0.014, 0.02], [0.085, 0.085, 0.196], [0, 0, -0.12]);
-  box(head, dark, [0.075, 0.014, 0.02], [-0.085, 0.085, 0.196], [0, 0, 0.12]);
+  for (const s of [1, -1]) {
+    sphere(head, white, 0.028, [s * 0.072, 0.02, 0.16], [1, 1, 0.7]);
+    sphere(head, dark, 0.014, [s * 0.074, 0.02, 0.18], [1, 1, 0.6]);
+    sphere(head, skin, 0.031, [s * 0.072, 0.048, 0.158], [1, 0.52, 0.72]);
+    box(head, hair, [0.068, 0.011, 0.018], [s * 0.075, 0.066, 0.166], [0, 0, s * 0.13]);
+  }
   // Boca
-  sphere(head, skinDk, 0.03, [0, -0.135, 0.16], [1.5, 0.35, 0.4]);
-  // Pelo
-  const cap = new THREE.Mesh(new THREE.SphereGeometry(0.248, 32, 20, 0, Math.PI * 2, 0, Math.PI * 0.62), hair);
-  cap.position.set(0, 0.035, -0.01);
-  cap.scale.set(cfg.bust ? 0.84 : 0.82, 1.04, 0.96);
+  sphere(head, lip, 0.03, [0, -0.112, 0.166], [1.35, 0.32, 0.5]);
+  sphere(head, lip, 0.028, [0, -0.137, 0.164], [1.15, 0.38, 0.5]);
+
+  // Cabello
+  const cap = new THREE.Mesh(
+    new THREE.SphereGeometry(0.2, 32, 20, 0, Math.PI * 2, 0, Math.PI * (cfg.bust ? 0.6 : 0.55)),
+    hair,
+  );
+  cap.position.set(0, 0.028, -0.004);
+  cap.scale.set(cfg.bust ? 0.95 : 0.9, 1.02, 1.0);
   head.add(cap);
+  sphere(head, hair, 0.165, [0, -0.03, -0.08], [0.86, 1.0, 0.72]);
   if (cfg.longHair) {
-    sphere(head, hair, 0.22, [0, -0.42, -0.06], [0.98, 1.7, 0.72]);
-    sphere(head, hair, 0.09, [0.2, -0.2, 0.02], [0.7, 1.8, 0.8]);
-    sphere(head, hair, 0.09, [-0.2, -0.2, 0.02], [0.7, 1.8, 0.8]);
+    taperedTube(head, hair, [
+      [0, 0.11, -0.11], [0, -0.05, -0.165], [0, -0.2, -0.16], [0, -0.35, -0.115],
+    ], [0.185, 0.195, 0.165, 0.095], 20, 20);
+    taperedTube(head, hair, [[0.145, 0.06, 0.0], [0.135, -0.12, 0.03], [0.115, -0.26, 0.05]], [0.06, 0.05, 0.028], 10, 10);
+    taperedTube(head, hair, [[-0.145, 0.06, 0.0], [-0.135, -0.12, 0.03], [-0.115, -0.26, 0.05]], [0.06, 0.05, 0.028], 10, 10);
   }
 
   // Brazos
   for (const s of [1, -1]) {
-    const shoulder: [number, number, number] = [s * sx, 3.0, 0];
-    const elbow: [number, number, number] = [s * (sx + 0.06), 2.35, 0];
-    const wrist: [number, number, number] = [s * (sx + 0.11), 1.72, 0];
-    sphere(g, skin, cfg.deltoid, [s * (sx - 0.02), 3.0, 0], [1, 1, 0.9]);
-    limb(g, skin, shoulder, elbow, cfg.upperArm[0], cfg.upperArm[1]);
-    sphere(g, skin, cfg.upperArm[1] * 0.95, elbow);
-    limb(g, skin, elbow, wrist, cfg.foreArm[0], cfg.foreArm[1]);
-    // Mano (palma + pulgar)
+    sphere(g, skin, cfg.deltoid, [s * (sx - 0.005), 2.985, 0], [1.05, 1.0, 0.92]);
+    taperedTube(g, skin, [
+      [s * sx, 3.0, 0],
+      [s * (sx + 0.03), 2.68, -0.006],
+      [s * (sx + 0.06), 2.35, 0.0],
+      [s * (sx + 0.085), 2.04, -0.006],
+      [s * (sx + 0.11), 1.72, 0.005],
+    ], cfg.arm, 18, 30);
+
+    // Mano (palma + dedos + pulgar)
     const hand = new THREE.Group();
-    hand.position.set(wrist[0], wrist[1] - 0.11, 0.01);
+    hand.position.set(s * (sx + 0.11), 1.615, 0.005);
+    hand.rotation.z = s * 0.06;
     g.add(hand);
-    sphere(hand, skinDk, 0.062, [0, 0, 0], [0.95, 1.5, 0.58]);
-    sphere(hand, skinDk, 0.03, [s * 0.055, 0.02, 0.01], [0.8, 1.1, 0.8]);
+    sphere(hand, skin, 0.05, [0, 0.05, 0], [0.9, 1, 0.9]);
+    sphere(hand, skin, 0.05, [0, 0, 0], [0.46, 1.08, 0.98]);
+    const fingerDefs: [number, number][] = [
+      [-0.03, 0.06], [-0.011, 0.07], [0.009, 0.066], [0.028, 0.052],
+    ];
+    for (const [fz, len] of fingerDefs) {
+      taperedTube(hand, skin, [
+        [0, -0.045, fz],
+        [0, -0.045 - len * 0.55, fz + 0.004],
+        [0, -0.045 - len, fz + 0.006],
+      ], [0.0115, 0.0095, 0.0075], 8, 8);
+    }
+    taperedTube(hand, skin, [[0, -0.012, 0.038], [0, -0.045, 0.07]], [0.014, 0.011], 8, 8);
   }
 
   // Piernas
   for (const s of [1, -1]) {
-    const hip: [number, number, number] = [s * 0.16, 1.98, 0];
-    const knee: [number, number, number] = [s * 0.15, 1.02, 0];
-    const ankle: [number, number, number] = [s * 0.14, 0.18, 0];
-    sphere(g, skin, 0.16, hip, [1, 0.9, 1]);
-    limb(g, skin, hip, knee, cfg.thigh[0], cfg.thigh[1]);
-    sphere(g, skin, cfg.thigh[1] * 0.95, knee);
-    limb(g, skin, knee, ankle, cfg.calf[0], cfg.calf[1]);
-    sphere(g, skin, cfg.calf[0] * 0.92, [s * 0.15, 0.72, -0.04], [1, 1.5, 0.9]);
-    sphere(g, skinDk, 0.12, [s * 0.14, 0.09, 0.14], [1.1, 0.95, 2.6]);
+    sphere(g, skin, 0.16, [s * 0.16, 1.99, 0], [1, 0.92, 1]);
+    taperedTube(g, skin, [
+      [s * 0.16, 1.98, 0],
+      [s * 0.155, 1.52, 0],
+      [s * 0.15, 1.05, 0],
+      [s * 0.145, 0.66, -0.015],
+      [s * 0.14, 0.18, 0.0],
+    ], cfg.leg, 18, 30);
+    sphere(g, skin, cfg.leg[4], [s * 0.14, 0.18, 0], [1, 1, 1]);
+
+    // Pie (talón, empeine, punta, suela)
+    sphere(g, skin, 0.07, [s * 0.14, 0.075, -0.075], [1.0, 0.95, 1.05]);
+    sphere(g, skin, 0.07, [s * 0.14, 0.062, 0.1], [1.05, 0.8, 1.75]);
+    sphere(g, skin, 0.056, [s * 0.14, 0.052, 0.35], [1.15, 0.72, 1.1]);
+    sphere(g, skinShade, 0.085, [s * 0.14, 0.03, 0.13], [1.02, 0.32, 2.55]);
+    for (let i = -1; i <= 1; i++) {
+      sphere(g, skinShade, 0.014, [s * 0.14 + i * 0.03, 0.05, 0.4], [1, 0.8, 1]);
+    }
   }
 
   // Anillo dorado
