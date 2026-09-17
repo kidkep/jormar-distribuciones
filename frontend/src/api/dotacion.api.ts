@@ -67,16 +67,26 @@ export interface DotacionResumenItem {
   count: number;
 }
 
+export interface DotacionLayer {
+  key: string;
+  label: string;
+}
+
 export interface DotacionCatalogoProduct {
   id: number;
   name: string;
   sku: string | null;
   sale_price: number;
+  garment_type: string | null;
+  layer: string | null;
+  gender: string;
+  sizes: string[];
+  size_class: string;
 }
 
 export interface DotacionCatalogo {
   products: DotacionCatalogoProduct[];
-  sizes: string[];
+  layers: DotacionLayer[];
   colors: string[];
 }
 
@@ -115,11 +125,8 @@ export interface DotacionHistorialCreate {
   dotacion_date?: string;
 }
 
-export interface QuoteAddItems {
-  items: { product_id: number; quantity: number; unit_price: number }[];
-}
-
-export const dotacionApi = {  getCatalogo: async (): Promise<DotacionCatalogo> => {
+export const dotacionApi = {
+  getCatalogo: async (): Promise<DotacionCatalogo> => {
     const response = await apiClient.get("/dotacion/catalogo");
     return response.data;
   },

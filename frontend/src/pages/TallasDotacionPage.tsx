@@ -6,21 +6,54 @@ import {
   type DotacionCatalogoProduct,
 } from "@/api/dotacion.api";
 import { quotesApi } from "@/api/quotes.api";
-import { Mannequin3D, detectGarmentType, GARMENT_LABELS } from "@/components/dotacion/Mannequin3D";
+import {
+  Mannequin3D,
+  detectGarmentType,
+  GARMENT_LABELS,
+  type Gender,
+  type ViewName,
+  type BackgroundName,
+} from "@/components/dotacion/Mannequin3D";
 import { formatCurrency } from "@/lib/utils";
 import { EmptyState } from "@/components/common/TableStates";
 import {
   Search, Plus, Trash2, Building2, User, Shirt, X, Package, History,
-  Ruler, FileText, UserPlus, Check, RotateCw,
+  Ruler, FileText, UserPlus, Check, RotateCw, Save, Eye, Palette,
 } from "lucide-react";
 
 const COLOR_HEX: Record<string, string> = {
   Negro: "#1f1f1f", Blanco: "#f4f4f2", Gris: "#8a8a8a", Azul: "#1e40af",
   Rojo: "#b91c1c", Verde: "#166534", Amarillo: "#eab308", Naranja: "#ea580c",
   Cafe: "#6b4423", Beige: "#d6c7a1", Vino: "#7f1d1d", Cielo: "#87ceeb", Tony: "#c0803a",
+  Petroleo: "#0f5c63", Fucsia: "#c026d3", Morado: "#6d28d9",
 };
 
-const NUMERIC_SIZES = ["28", "30", "32", "34", "36", "38", "40", "42", "44", "46", "48"];
+const VIEWS: { key: ViewName; label: string }[] = [
+  { key: "front", label: "Frente" },
+  { key: "back", label: "Atrás" },
+  { key: "left", label: "Izq." },
+  { key: "right", label: "Der." },
+  { key: "three", label: "3/4" },
+];
+
+const BACKGROUNDS: { key: BackgroundName; label: string; css: string }[] = [
+  { key: "studio", label: "Estudio", css: "linear-gradient(#eef2f8,#b3b9c5)" },
+  { key: "white", label: "Blanco", css: "#f4f5f8" },
+  { key: "gray", label: "Gris", css: "#767c86" },
+  { key: "dark", label: "Oscuro", css: "#14161b" },
+];
+
+interface OutfitItem {
+  key: string;
+  product_id: number;
+  name: string;
+  type: string;
+  layer: string;
+  size: string;
+  color: string;
+  sale_price: number;
+  garmentGender: string;
+}
 
 const blankEmpresa = { name: "", document: "", phone: "", contact_name: "", address: "", notes: "" };
 const blankPersona = { full_name: "", document: "", position: "", phone: "", notes: "" };
@@ -32,8 +65,14 @@ export function TallasDotacionPage() {
   const [selectedEmpresaId, setSelectedEmpresaId] = useState<number | null>(null);
   const [selectedPersonaId, setSelectedPersonaId] = useState<number | null>(null);
 
-  const [preview, setPreview] = useState({ product_id: 0, product_name: "", size: "M", color: "Azul" });
+  const [gender, setGender] = useState<Gender>("hombre");
+  const [outfit, setOutfit] = useState<OutfitItem[]>([]);
+  const [selectedKey, setSelectedKey] = useState<string | null>(null);
+  const [background, setBackground] = useState<BackgroundName>("studio");
+  const [view, setView] = useState<ViewName>("front");
+  const [resetNonce, setResetNonce] = useState(0);
   const [productQuery, setProductQuery] = useState("");
+  const [layerFilter, setLayerFilter] = useState<string>("all");
 
   const [showEmpresaModal, setShowEmpresaModal] = useState(false);
   const [showPersonaModal, setShowPersonaModal] = useState(false);
@@ -43,7 +82,7 @@ export function TallasDotacionPage() {
   const [empresaForm, setEmpresaForm] = useState(blankEmpresa);
   const [personaForm, setPersonaForm] = useState(blankPersona);
   const [histForm, setHistForm] = useState({
-    product_id: 0, size: "M", color: "Azul", quantity: 1, note: "",
+    product_id: 0, size: "M", color: "Negro", quantity: 1, note: "",
     dotacion_date: new Date().toISOString().split("T")[0],
   });
   const [quoteForm, setQuoteForm] = useState({ quote_id: 0, quantity: 1, unit_price: 0 });
@@ -72,31 +111,40 @@ export function TallasDotacionPage() {
     enabled: showQuoteModal,
   });
 
+  const colors = catalogo?.colors ?? [];
+  const layers = catalogo?.layers ?? [];
+  const products = catalogo?.products ?? [];
+  const productMap = useMemo(() => new Map(products.map((p) => [p.id, p])), [products]);
+
   const empresaActual = useMemo(
     () => (empresas || []).find((e) => e.id === selectedEmpresaId) || null,
     [empresas, selectedEmpresaId],
   );
 
-  const products = catalogo?.products ?? [];
+  const layerLabel = (key: string) => layers.find((l) => l.key === key)?.label || key;
+
   const filteredProducts = useMemo(() => {
     const q = productQuery.trim().toLowerCase();
-    if (!q) return products.slice(0, 8);
-    return products
-      .filter((p) => p.name.toLowerCase().includes(q) || (p.sku || "").toLowerCase().includes(q))
-      .slice(0, 8);
-  }, [products, productQuery]);
+    return products.filter((p) => {
+      if (layerFilter !== "all" && (p.layer || "otros") !== layerFilter) return false;
+      if (!q) return true;
+      return p.name.toLowerCase().includes(q) || (p.sku || "").toLowerCase().includes(q);
+    });
+  }, [products, productQuery, layerFilter]);
 
-  const garmentKey = preview.product_name ? detectGarmentType(preview.product_name) || "generic" : null;
-  const colorHex = COLOR_HEX[preview.color] || "#c0803a";
-  const allSizes = [...(catalogo?.sizes || []), ...NUMERIC_SIZES];
-
-  useEffect(() => {
-    if (persona && persona.tallas.length > 0) {
-      const t = persona.tallas[0];
-      setPreview({ product_id: t.product_id, product_name: t.product?.name || "", size: t.size, color: t.color || "Azul" });
+  const groupedProducts = useMemo(() => {
+    const order = ["all", ...layers.map((l) => l.key)];
+    const map = new Map<string, DotacionCatalogoProduct[]>();
+    for (const p of filteredProducts) {
+      const key = p.layer || "otros";
+      if (!map.has(key)) map.set(key, []);
+      map.get(key)!.push(p);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [persona?.id]);
+    return order.filter((k) => k !== "all" && map.has(k)).map((k) => ({ key: k, items: map.get(k)! }))
+      .concat(map.has("otros") ? [{ key: "otros", items: map.get("otros")! }] : []);
+  }, [filteredProducts, layers]);
+
+  const selected = useMemo(() => outfit.find((o) => o.key === selectedKey) || null, [outfit, selectedKey]);
 
   const invalidateAll = () => {
     queryClient.invalidateQueries({ queryKey: ["dotacion-empresas"] });
@@ -105,6 +153,33 @@ export function TallasDotacionPage() {
     queryClient.invalidateQueries({ queryKey: ["dotacion-resumen", selectedEmpresaId] });
     queryClient.invalidateQueries({ queryKey: ["dotacion-persona", selectedPersonaId] });
   };
+
+  // Cargar dotación (tallas) de la persona en el probador
+  useEffect(() => {
+    if (!persona || products.length === 0) return;
+    const items: OutfitItem[] = persona.tallas.map((t) => {
+      const p = productMap.get(t.product_id);
+      const type = p?.garment_type || detectGarmentType(p?.name || t.product?.name || "") || "camiseta";
+      return {
+        key: `p-${t.product_id}`,
+        product_id: t.product_id,
+        name: p?.name || t.product?.name || `Producto #${t.product_id}`,
+        type,
+        layer: p?.layer || "top",
+        size: t.size,
+        color: t.color || "Negro",
+        sale_price: p?.sale_price || 0,
+        garmentGender: p?.gender || "unisex",
+      };
+    });
+    setOutfit(items);
+    setSelectedKey(items[0]?.key ?? null);
+    const fem = items.filter((i) => i.garmentGender === "mujer").length;
+    const mas = items.filter((i) => i.garmentGender === "hombre").length;
+    if (fem > mas && fem > 0) setGender("mujer");
+    else if (mas > 0) setGender("hombre");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [persona?.id, products.length]);
 
   const createEmpresa = useMutation({
     mutationFn: dotacionApi.createEmpresa,
@@ -124,6 +199,7 @@ export function TallasDotacionPage() {
     onSuccess: () => {
       setSelectedEmpresaId(null);
       setSelectedPersonaId(null);
+      setOutfit([]);
       invalidateAll();
     },
   });
@@ -135,6 +211,7 @@ export function TallasDotacionPage() {
       setShowPersonaModal(false);
       setPersonaForm(blankPersona);
       setSelectedPersonaId(p.id);
+      setOutfit([]);
       setError(null);
     },
     onError: (e: any) => setError(e?.response?.data?.detail || "Error al crear persona"),
@@ -144,27 +221,33 @@ export function TallasDotacionPage() {
     mutationFn: dotacionApi.deletePersona,
     onSuccess: () => {
       setSelectedPersonaId(null);
+      setOutfit([]);
       invalidateAll();
     },
-  });
-
-  const upsertTalla = useMutation({
-    mutationFn: () =>
-      dotacionApi.upsertTalla(selectedPersonaId as number, {
-        product_id: preview.product_id,
-        size: preview.size,
-        color: preview.color,
-      }),
-    onSuccess: () => {
-      invalidateAll();
-      setError(null);
-    },
-    onError: (e: any) => setError(e?.response?.data?.detail || "Error al guardar la talla"),
   });
 
   const deleteTalla = useMutation({
     mutationFn: (tallaId: number) => dotacionApi.deleteTalla(selectedPersonaId as number, tallaId),
     onSuccess: invalidateAll,
+  });
+
+  const saveOutfit = useMutation({
+    mutationFn: async (spec: { single?: OutfitItem }) => {
+      if (!selectedPersonaId) return;
+      const targets = spec.single ? [spec.single] : outfit;
+      for (const item of targets) {
+        await dotacionApi.upsertTalla(selectedPersonaId, {
+          product_id: item.product_id,
+          size: item.size,
+          color: item.color,
+        });
+      }
+    },
+    onSuccess: () => {
+      invalidateAll();
+      setError(null);
+    },
+    onError: (e: any) => setError(e?.response?.data?.detail || "Error al guardar la dotación"),
   });
 
   const addHistorial = useMutation({
@@ -187,7 +270,7 @@ export function TallasDotacionPage() {
   const addToQuote = useMutation({
     mutationFn: () =>
       quotesApi.addItems(quoteForm.quote_id, [
-        { product_id: preview.product_id, quantity: quoteForm.quantity, unit_price: quoteForm.unit_price },
+        { product_id: selected!.product_id, quantity: quoteForm.quantity, unit_price: quoteForm.unit_price },
       ]),
     onSuccess: () => {
       setShowQuoteModal(false);
@@ -197,37 +280,83 @@ export function TallasDotacionPage() {
     onError: (e: any) => setError(e?.response?.data?.detail || "Error al agregar a la cotización"),
   });
 
+  const addProduct = (p: DotacionCatalogoProduct) => {
+    const key = `p-${p.id}`;
+    if (outfit.some((o) => o.key === key)) {
+      setSelectedKey(key);
+      return;
+    }
+    const type = p.garment_type || detectGarmentType(p.name) || "camiseta";
+    const item: OutfitItem = {
+      key,
+      product_id: p.id,
+      name: p.name,
+      type,
+      layer: p.layer || "top",
+      size: p.sizes?.[0] || "M",
+      color: colors[0] || "Negro",
+      sale_price: p.sale_price || 0,
+      garmentGender: p.gender || "unisex",
+    };
+    setOutfit((prev) => [...prev, item]);
+    setSelectedKey(key);
+  };
+
+  const updateSelected = (patch: Partial<OutfitItem>) => {
+    if (!selectedKey) return;
+    setOutfit((prev) => prev.map((o) => (o.key === selectedKey ? { ...o, ...patch } : o)));
+  };
+
+  const removeItem = (item: OutfitItem) => {
+    setOutfit((prev) => prev.filter((o) => o.key !== item.key));
+    if (selectedKey === item.key) setSelectedKey(null);
+    const talla = persona?.tallas.find((t) => t.product_id === item.product_id);
+    if (talla && selectedPersonaId) deleteTalla.mutate(talla.id);
+  };
+
   const selectEmpresa = (id: number) => {
-    setSelectedEmpresaId(id);
+    setSelectedEmpresaId(id || null);
     setSelectedPersonaId(null);
+    setOutfit([]);
+    setSelectedKey(null);
+  };
+  const selectPersona = (id: number) => {
+    setSelectedPersonaId(id || null);
+    if (!id) {
+      setOutfit([]);
+      setSelectedKey(null);
+    }
   };
 
   const openQuoteModal = () => {
-    const prod = products.find((p) => p.id === preview.product_id);
-    setQuoteForm({ quote_id: quoteForm.quote_id, quantity: 1, unit_price: prod?.sale_price || 0 });
+    if (!selected) return;
+    setQuoteForm({ quote_id: quoteForm.quote_id, quantity: 1, unit_price: selected.sale_price || 0 });
     setShowQuoteModal(true);
   };
 
-  const tallaOptions = persona?.tallas ?? [];
+  const outfitFor3D = outfit.map((o) => ({
+    key: o.key,
+    type: o.type,
+    layer: o.layer,
+    size: o.size,
+    color: COLOR_HEX[o.color] || "#c0803a",
+  }));
+
+  const empleadosDeEmpresa = empleados || [];
+  const personalesList = personales || [];
 
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Tallas y Dotación</h1>
-          <p className="text-sm text-gray-500">Perfiles de tallas, dotación de personal y probador virtual 3D</p>
+          <p className="text-sm text-gray-500">Probador virtual 3D con prendas por capas, tallas y dotación de personal</p>
         </div>
         <div className="flex gap-2">
-          <button
-            onClick={() => { setEmpresaForm(blankEmpresa); setShowEmpresaModal(true); }}
-            className="btn-gold inline-flex items-center gap-2"
-          >
+          <button onClick={() => { setEmpresaForm(blankEmpresa); setShowEmpresaModal(true); }} className="btn-gold inline-flex items-center gap-2">
             <Building2 className="h-4 w-4" /> Nueva Empresa
           </button>
-          <button
-            onClick={() => { setPersonaForm(blankPersona); setShowPersonaModal(true); }}
-            className="btn-gold inline-flex items-center gap-2"
-          >
+          <button onClick={() => { setPersonaForm(blankPersona); setShowPersonaModal(true); }} className="btn-gold inline-flex items-center gap-2">
             <UserPlus className="h-4 w-4" /> Nueva Persona
           </button>
         </div>
@@ -237,204 +366,260 @@ export function TallasDotacionPage() {
         <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
       )}
 
+      {/* Barra de perfil */}
+      <div className="card-premium flex flex-wrap items-center gap-3 p-3">
+        <div className="grid grid-cols-2 gap-1 rounded-xl bg-gray-100 p-1">
+          <button onClick={() => setTab("empresas")} className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${tab === "empresas" ? "bg-white text-gray-900 shadow" : "text-gray-500"}`}>
+            Empresas
+          </button>
+          <button onClick={() => setTab("personales")} className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${tab === "personales" ? "bg-white text-gray-900 shadow" : "text-gray-500"}`}>
+            Personales
+          </button>
+        </div>
+
+        <div className="relative min-w-[180px] flex-1">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar empresa o persona..." className="input-premium pl-9" />
+        </div>
+
+        {tab === "empresas" ? (
+          <>
+            <select value={selectedEmpresaId ?? 0} onChange={(e) => selectEmpresa(Number(e.target.value))} className="input-premium min-w-[200px] flex-1">
+              <option value={0}>Selecciona empresa</option>
+              {(empresas || []).map((e) => <option key={e.id} value={e.id}>{e.name}</option>)}
+            </select>
+            <select value={selectedPersonaId ?? 0} onChange={(e) => selectPersona(Number(e.target.value))} disabled={!selectedEmpresaId} className="input-premium min-w-[200px] flex-1 disabled:opacity-50">
+              <option value={0}>Selecciona empleado</option>
+              {empleadosDeEmpresa.map((p) => <option key={p.id} value={p.id}>{p.full_name}{p.position ? ` · ${p.position}` : ""}</option>)}
+            </select>
+          </>
+        ) : (
+          <select value={selectedPersonaId ?? 0} onChange={(e) => selectPersona(Number(e.target.value))} className="input-premium min-w-[200px] flex-1">
+            <option value={0}>Selecciona cliente personal</option>
+            {personalesList.map((p) => <option key={p.id} value={p.id}>{p.full_name}</option>)}
+          </select>
+        )}
+
+        {selectedPersonaId && (
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-gold-100 px-3 py-1.5 text-xs font-semibold text-gold-700">
+            <User className="h-3.5 w-3.5" /> {persona?.full_name || "Cargando..."}
+          </span>
+        )}
+      </div>
+
       <div className="grid grid-cols-1 gap-5 xl:grid-cols-[300px_minmax(0,1fr)_360px]">
-        {/* Columna izquierda: navegación */}
-        <div className="card-premium flex max-h-[70vh] flex-col p-4">
-          <div className="mb-3 grid grid-cols-2 gap-1 rounded-xl bg-gray-100 p-1">
-            <button
-              onClick={() => setTab("empresas")}
-              className={`rounded-lg px-3 py-2 text-sm font-medium transition ${tab === "empresas" ? "bg-white text-gray-900 shadow" : "text-gray-500"}`}
-            >
-              Empresas
-            </button>
-            <button
-              onClick={() => setTab("personales")}
-              className={`rounded-lg px-3 py-2 text-sm font-medium transition ${tab === "personales" ? "bg-white text-gray-900 shadow" : "text-gray-500"}`}
-            >
-              Personales
-            </button>
-          </div>
-
-          <div className="relative mb-3">
+        {/* Columna 1: productos */}
+        <div className="card-premium flex max-h-[78vh] flex-col p-4">
+          <h2 className="mb-3 flex items-center gap-2 font-semibold text-gray-900">
+            <Package className="h-5 w-5 text-gold-600" /> Productos
+          </h2>
+          <div className="relative mb-2">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Buscar..."
-              className="input-premium pl-9"
-            />
+            <input value={productQuery} onChange={(e) => setProductQuery(e.target.value)} placeholder="Buscar prenda..." className="input-premium pl-9" />
           </div>
-
-          <div className="flex-1 space-y-2 overflow-y-auto pr-1">
-            {tab === "empresas" ? (
-              <>
-                {(empresas || []).map((emp) => (
-                  <div key={emp.id}>
-                    <button
-                      onClick={() => selectEmpresa(emp.id)}
-                      className={`w-full rounded-xl border p-3 text-left transition ${selectedEmpresaId === emp.id ? "border-gold-400 bg-gold-50" : "border-gray-200 hover:border-gold-200"}`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <Building2 className="h-4 w-4 text-gold-600" />
-                        <span className="truncate font-medium text-gray-900">{emp.name}</span>
-                      </div>
-                      <span className="text-xs text-gray-500">{emp.employee_count} empleado(s)</span>
-                    </button>
-
-                    {selectedEmpresaId === emp.id && (
-                      <div className="mt-2 space-y-1 border-l-2 border-gold-200 pl-2">
-                        {empleados && empleados.length > 0 ? (
-                          empleados.map((p) => (
-                            <button
-                              key={p.id}
-                              onClick={() => setSelectedPersonaId(p.id)}
-                              className={`flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm transition ${selectedPersonaId === p.id ? "bg-gold-100 text-gray-900" : "text-gray-600 hover:bg-gray-50"}`}
-                            >
-                              <User className="h-3.5 w-3.5" />
-                              <span className="truncate">{p.full_name}</span>
-                            </button>
-                          ))
-                        ) : (
-                          <p className="px-2 py-1 text-xs text-gray-400">Sin empleados</p>
-                        )}
-                        <button
-                          onClick={() => { setPersonaForm({ ...blankPersona }); setShowPersonaModal(true); }}
-                          className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm text-gold-600 hover:bg-gold-50"
-                        >
-                          <Plus className="h-3.5 w-3.5" /> Agregar empleado
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                ))}
-                {(!empresas || empresas.length === 0) && <p className="py-6 text-center text-sm text-gray-400">Sin empresas</p>}
-              </>
-            ) : (
-              <>
-                {(personales || []).map((p) => (
-                  <button
-                    key={p.id}
-                    onClick={() => { setSelectedEmpresaId(null); setSelectedPersonaId(p.id); }}
-                    className={`w-full rounded-xl border p-3 text-left transition ${selectedPersonaId === p.id ? "border-gold-400 bg-gold-50" : "border-gray-200 hover:border-gold-200"}`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <User className="h-4 w-4 text-gold-600" />
-                      <span className="truncate font-medium text-gray-900">{p.full_name}</span>
-                    </div>
-                    <span className="text-xs text-gray-500">{p.tallas.length} talla(s)</span>
-                  </button>
-                ))}
-                {(!personales || personales.length === 0) && <p className="py-6 text-center text-sm text-gray-400">Sin clientes personales</p>}
-              </>
-            )}
+          <div className="mb-2 flex flex-wrap gap-1.5">
+            <button onClick={() => setLayerFilter("all")} className={`rounded-lg border px-2 py-0.5 text-xs transition ${layerFilter === "all" ? "border-gold-400 bg-gold-50 text-gray-900" : "border-gray-200 text-gray-600"}`}>
+              Todas
+            </button>
+            {layers.map((l) => (
+              <button key={l.key} onClick={() => setLayerFilter(l.key)} className={`rounded-lg border px-2 py-0.5 text-xs transition ${layerFilter === l.key ? "border-gold-400 bg-gold-50 text-gray-900" : "border-gray-200 text-gray-600"}`}>
+                {l.label}
+              </button>
+            ))}
+          </div>
+          <div className="flex-1 space-y-3 overflow-y-auto pr-1">
+            {groupedProducts.map((group) => (
+              <div key={group.key}>
+                <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-gray-400">{layerLabel(group.key)}</p>
+                <div className="space-y-1.5">
+                  {group.items.map((p) => {
+                    const active = selected?.product_id === p.id;
+                    return (
+                      <button
+                        key={p.id}
+                        onClick={() => addProduct(p)}
+                        className={`flex w-full items-center justify-between gap-2 rounded-xl border p-2.5 text-left transition ${active ? "border-gold-400 bg-gold-50" : "border-gray-200 hover:border-gold-200"}`}
+                      >
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-medium text-gray-900">{p.name}</p>
+                          <p className="text-xs text-gray-500">{p.sku || "—"} · {formatCurrency(p.sale_price)}</p>
+                        </div>
+                        <Plus className="h-4 w-4 shrink-0 text-gold-600" />
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+            {groupedProducts.length === 0 && <p className="py-6 text-center text-sm text-gray-400">Sin productos</p>}
           </div>
         </div>
 
-        {/* Columna central: probador 3D */}
+        {/* Columna 2: probador 3D */}
         <div className="card-premium p-4">
-          <div className="mb-3 flex items-center justify-between">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
             <h2 className="flex items-center gap-2 font-semibold text-gray-900">
               <Shirt className="h-5 w-5 text-gold-600" /> Probador Virtual
             </h2>
-            <span className="flex items-center gap-1 text-xs text-gray-400">
-              <RotateCw className="h-3.5 w-3.5" /> Gira y hace zoom
-            </span>
-          </div>
-
-          <div className="overflow-hidden rounded-2xl bg-gradient-to-b from-gray-900 to-gray-800">
-            <Mannequin3D garment={garmentKey} size={preview.size} color={colorHex} height={380} />
-          </div>
-
-          <div className="mt-3 flex items-center justify-between text-sm">
-            <span className="font-medium text-gray-900">{preview.product_name || "Selecciona una prenda"}</span>
-            <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-600">
-              {garmentKey ? GARMENT_LABELS[garmentKey] || "Prenda" : "—"} · {preview.size}
-            </span>
-          </div>
-
-          {/* Selector de prenda */}
-          <div className="mt-3">
-            <label className="mb-1.5 block text-xs font-medium text-gray-500">Prenda</label>
-            <div className="relative">
-              <Package className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-              <input
-                value={productQuery}
-                onChange={(e) => setProductQuery(e.target.value)}
-                placeholder="Buscar producto..."
-                className="input-premium pl-9"
-              />
-            </div>
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              {filteredProducts.map((p: DotacionCatalogoProduct) => (
+            <div className="flex items-center gap-1 rounded-xl bg-gray-100 p-1">
+              {(["hombre", "mujer"] as Gender[]).map((g) => (
                 <button
-                  key={p.id}
-                  onClick={() => { setPreview({ ...preview, product_id: p.id, product_name: p.name }); setProductQuery(""); }}
-                  className={`rounded-lg border px-2.5 py-1 text-xs transition ${preview.product_id === p.id ? "border-gold-400 bg-gold-50 text-gray-900" : "border-gray-200 text-gray-600 hover:border-gold-200"}`}
+                  key={g}
+                  onClick={() => setGender(g)}
+                  className={`rounded-lg px-3 py-1 text-sm font-medium capitalize transition ${gender === g ? "bg-white text-gray-900 shadow" : "text-gray-500"}`}
                 >
-                  {p.name}
-                </button>
-              ))}
-              {filteredProducts.length === 0 && <span className="text-xs text-gray-400">Sin coincidencias</span>}
-            </div>
-          </div>
-
-          {/* Tallas */}
-          <div className="mt-3">
-            <label className="mb-1.5 flex items-center gap-1 text-xs font-medium text-gray-500">
-              <Ruler className="h-3.5 w-3.5" /> Talla
-            </label>
-            <div className="flex flex-wrap gap-1.5">
-              {allSizes.map((s) => (
-                <button
-                  key={s}
-                  onClick={() => setPreview({ ...preview, size: s })}
-                  className={`min-w-[2.4rem] rounded-lg border px-2 py-1 text-xs font-semibold transition ${preview.size === s ? "border-gold-500 bg-gold-500 text-white" : "border-gray-200 text-gray-600 hover:border-gold-300"}`}
-                >
-                  {s}
+                  {g}
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Color */}
-          <div className="mt-3">
-            <label className="mb-1.5 block text-xs font-medium text-gray-500">Color</label>
-            <div className="flex flex-wrap gap-2">
-              {(catalogo?.colors || []).map((c) => (
+          <div className="overflow-hidden rounded-2xl border border-gray-200" style={{ height: 420 }}>
+            <Mannequin3D
+              items={outfitFor3D}
+              gender={gender}
+              background={background}
+              view={view}
+              resetNonce={resetNonce}
+              height={420}
+            />
+          </div>
+
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap gap-1">
+              {VIEWS.map((v) => (
+                <button key={v.key} onClick={() => setView(v.key)} className={`rounded-lg border px-2.5 py-1 text-xs font-medium transition ${view === v.key ? "border-gold-400 bg-gold-50 text-gray-900" : "border-gray-200 text-gray-600 hover:border-gold-200"}`}>
+                  {v.label}
+                </button>
+              ))}
+              <button onClick={() => setResetNonce((n) => n + 1)} title="Reiniciar vista" className="rounded-lg border border-gray-200 p-1.5 text-gray-500 hover:border-gold-200">
+                <RotateCw className="h-3.5 w-3.5" />
+              </button>
+            </div>
+            <div className="ml-auto flex items-center gap-1.5">
+              <Palette className="h-3.5 w-3.5 text-gray-400" />
+              {BACKGROUNDS.map((b) => (
                 <button
-                  key={c}
-                  title={c}
-                  onClick={() => setPreview({ ...preview, color: c })}
-                  className={`h-7 w-7 rounded-full border-2 transition ${preview.color === c ? "border-gold-500 ring-2 ring-gold-200" : "border-gray-200"}`}
-                  style={{ backgroundColor: COLOR_HEX[c] || "#c0803a" }}
+                  key={b.key}
+                  title={b.label}
+                  onClick={() => setBackground(b.key)}
+                  className={`h-6 w-6 rounded-full border-2 transition ${background === b.key ? "border-gold-500 ring-2 ring-gold-200" : "border-gray-300"}`}
+                  style={{ background: b.css }}
                 />
               ))}
             </div>
           </div>
 
-          <div className="mt-4 flex flex-wrap gap-2">
-            <button
-              onClick={() => upsertTalla.mutate()}
-              disabled={!selectedPersonaId || !preview.product_id || upsertTalla.isPending}
-              className="btn-gold inline-flex flex-1 items-center justify-center gap-2 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <Check className="h-4 w-4" /> Guardar talla
-            </button>
-            <button
-              onClick={openQuoteModal}
-              disabled={!preview.product_id}
-              className="btn-gold inline-flex flex-1 items-center justify-center gap-2 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <FileText className="h-4 w-4" /> Agregar a cotización
-            </button>
+          {/* Dotación actual */}
+          <div className="mt-4">
+            <div className="mb-2 flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-gray-900">Dotación actual</h3>
+              <span className="text-xs text-gray-400">{outfit.length} prenda(s)</span>
+            </div>
+            {outfit.length === 0 ? (
+              <p className="rounded-xl border border-dashed border-gray-200 px-3 py-4 text-center text-xs text-gray-400">
+                Agrega prendas desde la lista para armar la dotación
+              </p>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {outfit.map((o) => (
+                  <div key={o.key} className={`flex items-center gap-2 rounded-xl border px-2.5 py-1.5 text-xs ${selectedKey === o.key ? "border-gold-400 bg-gold-50" : "border-gray-200"}`}>
+                    <button onClick={() => setSelectedKey(o.key)} className="flex items-center gap-1.5">
+                      <span className="h-3.5 w-3.5 rounded-full border border-gray-300" style={{ backgroundColor: COLOR_HEX[o.color] || "#c0803a" }} />
+                      <span className="max-w-[130px] truncate font-medium text-gray-800">{o.name}</span>
+                      <span className="text-gray-500">{o.size}</span>
+                    </button>
+                    <button onClick={() => removeItem(o)} className="text-gray-400 hover:text-red-600">
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-          {!selectedPersonaId && (
-            <p className="mt-2 text-center text-xs text-gray-400">Selecciona una persona para guardar su talla</p>
-          )}
         </div>
 
-        {/* Columna derecha: detalle */}
+        {/* Columna 3: información */}
         <div className="space-y-4">
+          <div className="card-premium p-4">
+            <h2 className="mb-3 flex items-center gap-2 font-semibold text-gray-900">
+              <Eye className="h-5 w-5 text-gold-600" /> Información
+            </h2>
+            {selected ? (
+              <div className="space-y-3">
+                <div className="rounded-xl border border-gold-200 bg-gold-50 px-3 py-2">
+                  <p className="text-sm font-medium text-gray-900">{selected.name}</p>
+                  <p className="text-xs text-gray-500">
+                    {layerLabel(selected.layer)} · {GARMENT_LABELS[selected.type] || "Prenda"} · {formatCurrency(selected.sale_price)}
+                  </p>
+                </div>
+
+                <div>
+                  <label className="mb-1.5 flex items-center gap-1 text-xs font-medium text-gray-500">
+                    <Ruler className="h-3.5 w-3.5" /> Talla
+                  </label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {(productMap.get(selected.product_id)?.sizes || [selected.size]).map((s) => (
+                      <button
+                        key={s}
+                        onClick={() => updateSelected({ size: s })}
+                        className={`min-w-[2.4rem] rounded-lg border px-2 py-1 text-xs font-semibold transition ${selected.size === s ? "border-gold-500 bg-gold-500 text-white" : "border-gray-200 text-gray-600 hover:border-gold-300"}`}
+                      >
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="mb-1.5 flex items-center gap-1 text-xs font-medium text-gray-500">
+                    <Palette className="h-3.5 w-3.5" /> Color
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {colors.map((c) => (
+                      <button
+                        key={c}
+                        title={c}
+                        onClick={() => updateSelected({ color: c })}
+                        className={`h-7 w-7 rounded-full border-2 transition ${selected.color === c ? "border-gold-500 ring-2 ring-gold-200" : "border-gray-200"}`}
+                        style={{ backgroundColor: COLOR_HEX[c] || "#c0803a" }}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-2 pt-1">
+                  <button
+                    onClick={() => saveOutfit.mutate({ single: selected })}
+                    disabled={!selectedPersonaId || saveOutfit.isPending}
+                    className="btn-gold inline-flex flex-1 items-center justify-center gap-1.5 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <Check className="h-4 w-4" /> Guardar talla
+                  </button>
+                  <button
+                    onClick={openQuoteModal}
+                    className="btn-gold inline-flex flex-1 items-center justify-center gap-1.5 text-sm"
+                  >
+                    <FileText className="h-4 w-4" /> Cotizar
+                  </button>
+                </div>
+                {!selectedPersonaId && (
+                  <p className="text-center text-xs text-gray-400">Selecciona una persona para guardar su talla</p>
+                )}
+              </div>
+            ) : (
+              <p className="text-xs text-gray-400">Selecciona una prenda en la dotación para ajustar su talla y color.</p>
+            )}
+
+            <button
+              onClick={() => saveOutfit.mutate({})}
+              disabled={!selectedPersonaId || outfit.length === 0 || saveOutfit.isPending}
+              className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-gold-300 px-4 py-2 text-sm font-medium text-gold-700 transition hover:bg-gold-50 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <Save className="h-4 w-4" /> Guardar toda la dotación
+            </button>
+          </div>
+
           {persona ? (
             <>
               <div className="card-premium p-4">
@@ -448,10 +633,7 @@ export function TallasDotacionPage() {
                     {persona.document && <p className="text-xs text-gray-400">Doc: {persona.document}</p>}
                     {persona.phone && <p className="text-xs text-gray-400">Tel: {persona.phone}</p>}
                   </div>
-                  <button
-                    onClick={() => deletePersona.mutate(persona.id)}
-                    className="rounded-lg p-1.5 text-gray-400 transition hover:bg-red-50 hover:text-red-600"
-                  >
+                  <button onClick={() => deletePersona.mutate(persona.id)} className="rounded-lg p-1.5 text-gray-400 transition hover:bg-red-50 hover:text-red-600">
                     <Trash2 className="h-4 w-4" />
                   </button>
                 </div>
@@ -459,90 +641,27 @@ export function TallasDotacionPage() {
 
               <div className="card-premium p-4">
                 <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-gray-900">
-                  <Ruler className="h-4 w-4 text-gold-600" /> Tallas registradas
-                </h3>
-                {tallaOptions.length === 0 ? (
-                  <p className="text-xs text-gray-400">Sin tallas registradas</p>
-                ) : (
-                  <div className="space-y-2">
-                    {tallaOptions.map((t) => (
-                      <div key={t.id} className="flex items-center justify-between rounded-lg border border-gray-100 px-3 py-2">
-                        <div className="min-w-0">
-                          <p className="truncate text-sm text-gray-800">{t.product?.name || `Producto #${t.product_id}`}</p>
-                          <p className="text-xs text-gray-500">
-                            Talla {t.size}{t.color ? ` · ${t.color}` : ""}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <button
-                            onClick={() => setPreview({ product_id: t.product_id, product_name: t.product?.name || "", size: t.size, color: t.color || "Azul" })}
-                            className="rounded-md px-2 py-1 text-xs text-gold-600 hover:bg-gold-50"
-                          >
-                            Probar
-                          </button>
-                          <button
-                            onClick={() => deleteTalla.mutate(t.id)}
-                            className="rounded-md p-1 text-gray-400 hover:bg-red-50 hover:text-red-600"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <div className="card-premium p-4">
-                <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-gray-900">
                   <Package className="h-4 w-4 text-gold-600" /> Registrar entrega
                 </h3>
                 <div className="space-y-2">
-                  <select
-                    value={histForm.product_id}
-                    onChange={(e) => setHistForm({ ...histForm, product_id: Number(e.target.value) })}
-                    className="input-premium"
-                  >
+                  <select value={histForm.product_id} onChange={(e) => setHistForm({ ...histForm, product_id: Number(e.target.value) })} className="input-premium">
                     <option value={0}>Selecciona producto</option>
-                    {products.map((p) => (
-                      <option key={p.id} value={p.id}>{p.name}</option>
-                    ))}
+                    {products.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
                   </select>
                   <div className="grid grid-cols-2 gap-2">
                     <select value={histForm.size} onChange={(e) => setHistForm({ ...histForm, size: e.target.value })} className="input-premium">
-                      {allSizes.map((s) => <option key={s} value={s}>{s}</option>)}
+                      {(products.find((p) => p.id === histForm.product_id)?.sizes || ["M"]).map((s) => <option key={s} value={s}>{s}</option>)}
                     </select>
                     <select value={histForm.color} onChange={(e) => setHistForm({ ...histForm, color: e.target.value })} className="input-premium">
-                      {(catalogo?.colors || []).map((c) => <option key={c} value={c}>{c}</option>)}
+                      {colors.map((c) => <option key={c} value={c}>{c}</option>)}
                     </select>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      value={histForm.quantity}
-                      onChange={(e) => setHistForm({ ...histForm, quantity: Number(e.target.value) || 1 })}
-                      className="input-premium"
-                      placeholder="Cantidad"
-                    />
-                    <input
-                      type="date"
-                      value={histForm.dotacion_date}
-                      onChange={(e) => setHistForm({ ...histForm, dotacion_date: e.target.value })}
-                      className="input-premium"
-                    />
+                    <input type="text" inputMode="numeric" value={histForm.quantity} onChange={(e) => setHistForm({ ...histForm, quantity: Number(e.target.value) || 1 })} className="input-premium" placeholder="Cantidad" />
+                    <input type="date" value={histForm.dotacion_date} onChange={(e) => setHistForm({ ...histForm, dotacion_date: e.target.value })} className="input-premium" />
                   </div>
-                  <input
-                    value={histForm.note}
-                    onChange={(e) => setHistForm({ ...histForm, note: e.target.value })}
-                    className="input-premium"
-                    placeholder="Nota (opcional)"
-                  />
-                  <button
-                    onClick={() => addHistorial.mutate()}
-                    disabled={!histForm.product_id || addHistorial.isPending}
-                    className="btn-gold w-full disabled:opacity-50"
-                  >
+                  <input value={histForm.note} onChange={(e) => setHistForm({ ...histForm, note: e.target.value })} className="input-premium" placeholder="Nota (opcional)" />
+                  <button onClick={() => addHistorial.mutate()} disabled={!histForm.product_id || addHistorial.isPending} className="btn-gold w-full disabled:opacity-50">
                     Registrar entrega
                   </button>
                 </div>
@@ -580,17 +699,11 @@ export function TallasDotacionPage() {
                     {empresaActual.phone && <p className="text-xs text-gray-400">Tel: {empresaActual.phone}</p>}
                     {empresaActual.address && <p className="text-xs text-gray-400">{empresaActual.address}</p>}
                   </div>
-                  <button
-                    onClick={() => deleteEmpresa.mutate(empresaActual.id)}
-                    className="rounded-lg p-1.5 text-gray-400 transition hover:bg-red-50 hover:text-red-600"
-                  >
+                  <button onClick={() => deleteEmpresa.mutate(empresaActual.id)} className="rounded-lg p-1.5 text-gray-400 transition hover:bg-red-50 hover:text-red-600">
                     <Trash2 className="h-4 w-4" />
                   </button>
                 </div>
-                <button
-                  onClick={() => { setPersonaForm(blankPersona); setShowPersonaModal(true); }}
-                  className="btn-gold mt-3 inline-flex w-full items-center justify-center gap-2"
-                >
+                <button onClick={() => { setPersonaForm(blankPersona); setShowPersonaModal(true); }} className="btn-gold mt-3 inline-flex w-full items-center justify-center gap-2">
                   <UserPlus className="h-4 w-4" /> Agregar empleado
                 </button>
               </div>
@@ -607,13 +720,9 @@ export function TallasDotacionPage() {
                       <div key={i} className="flex items-center justify-between rounded-lg border border-gray-100 px-3 py-2">
                         <div className="min-w-0">
                           <p className="truncate text-sm text-gray-800">{r.product_name}</p>
-                          <p className="text-xs text-gray-500">
-                            Talla {r.size}{r.color ? ` · ${r.color}` : ""}
-                          </p>
+                          <p className="text-xs text-gray-500">Talla {r.size}{r.color ? ` · ${r.color}` : ""}</p>
                         </div>
-                        <span className="rounded-full bg-gold-100 px-2.5 py-0.5 text-xs font-semibold text-gold-700">
-                          {r.count}
-                        </span>
+                        <span className="rounded-full bg-gold-100 px-2.5 py-0.5 text-xs font-semibold text-gold-700">{r.count}</span>
                       </div>
                     ))}
                   </div>
@@ -622,11 +731,7 @@ export function TallasDotacionPage() {
             </>
           ) : (
             <div className="card-premium p-6">
-              <EmptyState
-                icon={Shirt}
-                title="Selecciona una empresa o persona"
-                description="Administra tallas, dotación y prueba las prendas en 3D."
-              />
+              <EmptyState icon={Shirt} title="Selecciona una empresa o persona" description="Administra tallas, dotación y prueba las prendas en 3D." />
             </div>
           )}
         </div>
@@ -642,10 +747,7 @@ export function TallasDotacionPage() {
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <form
-              onSubmit={(e) => { e.preventDefault(); createEmpresa.mutate(empresaForm); }}
-              className="space-y-4"
-            >
+            <form onSubmit={(e) => { e.preventDefault(); createEmpresa.mutate(empresaForm); }} className="space-y-4">
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-gray-700">Nombre</label>
                 <input value={empresaForm.name} onChange={(e) => setEmpresaForm({ ...empresaForm, name: e.target.value })} className="input-premium" required />
@@ -700,11 +802,7 @@ export function TallasDotacionPage() {
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                createPersona.mutate({
-                  ...personaForm,
-                  company_id: selectedEmpresaId,
-                  client_id: null,
-                });
+                createPersona.mutate({ ...personaForm, company_id: selectedEmpresaId, client_id: null });
               }}
               className="space-y-4"
             >
@@ -744,7 +842,7 @@ export function TallasDotacionPage() {
       )}
 
       {/* Modal agregar a cotización */}
-      {showQuoteModal && (
+      {showQuoteModal && selected && (
         <div className="modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="modal-content w-full max-w-md rounded-2xl p-6">
             <div className="mb-5 flex items-center justify-between">
@@ -755,16 +853,12 @@ export function TallasDotacionPage() {
             </div>
             <div className="space-y-4">
               <div className="rounded-xl border border-gold-200 bg-gold-50 px-4 py-3">
-                <p className="text-sm font-medium text-gray-900">{preview.product_name}</p>
-                <p className="text-xs text-gray-500">Talla {preview.size} · {preview.color}</p>
+                <p className="text-sm font-medium text-gray-900">{selected.name}</p>
+                <p className="text-xs text-gray-500">Talla {selected.size} · {selected.color}</p>
               </div>
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-gray-700">Cotización</label>
-                <select
-                  value={quoteForm.quote_id}
-                  onChange={(e) => setQuoteForm({ ...quoteForm, quote_id: Number(e.target.value) })}
-                  className="input-premium"
-                >
+                <select value={quoteForm.quote_id} onChange={(e) => setQuoteForm({ ...quoteForm, quote_id: Number(e.target.value) })} className="input-premium">
                   <option value={0}>Selecciona cotización</option>
                   {(quotes || []).map((q) => (
                     <option key={q.id} value={q.id}>
@@ -776,34 +870,18 @@ export function TallasDotacionPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="mb-1.5 block text-sm font-medium text-gray-700">Cantidad</label>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    value={quoteForm.quantity}
-                    onChange={(e) => setQuoteForm({ ...quoteForm, quantity: Number(e.target.value) || 1 })}
-                    className="input-premium"
-                  />
+                  <input type="text" inputMode="numeric" value={quoteForm.quantity} onChange={(e) => setQuoteForm({ ...quoteForm, quantity: Number(e.target.value) || 1 })} className="input-premium" />
                 </div>
                 <div>
                   <label className="mb-1.5 block text-sm font-medium text-gray-700">Precio unitario</label>
-                  <input
-                    type="text"
-                    inputMode="decimal"
-                    value={quoteForm.unit_price}
-                    onChange={(e) => setQuoteForm({ ...quoteForm, unit_price: Number(e.target.value) || 0 })}
-                    className="input-premium"
-                  />
+                  <input type="text" inputMode="decimal" value={quoteForm.unit_price} onChange={(e) => setQuoteForm({ ...quoteForm, unit_price: Number(e.target.value) || 0 })} className="input-premium" />
                 </div>
               </div>
               <div className="flex justify-end gap-3 pt-2">
                 <button type="button" onClick={() => setShowQuoteModal(false)} className="rounded-xl border border-gray-200 px-5 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50">
                   Cancelar
                 </button>
-                <button
-                  onClick={() => addToQuote.mutate()}
-                  disabled={!quoteForm.quote_id || addToQuote.isPending}
-                  className="btn-gold disabled:opacity-50"
-                >
+                <button onClick={() => addToQuote.mutate()} disabled={!quoteForm.quote_id || addToQuote.isPending} className="btn-gold disabled:opacity-50">
                   {addToQuote.isPending ? "Agregando..." : "Agregar"}
                 </button>
               </div>
