@@ -1,27 +1,14 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
-import {
-  createBody,
-  createGarment,
-  disposeObject,
-  type Gender,
-} from "./mannequinModel";
+
+import { loadCharacter, emptyCharacter, type CharacterInstance } from "./character3d/characterLoader";
+import { instantiateGarment, disposeGarment } from "./character3d/garmentLoader";
+import type { Gender, FittingItem, ViewName, BackgroundName } from "./character3d/types";
 
 export { GARMENT_LABELS, detectGarmentType } from "./mannequinModel";
-export type { Gender } from "./mannequinModel";
-
-export interface FittingItem {
-  key: string;
-  type: string;
-  layer?: string | null;
-  size: string;
-  color: string;
-}
-
-export type ViewName = "front" | "back" | "left" | "right" | "three";
-export type BackgroundName = "studio" | "white" | "gray" | "dark";
+export type { Gender, FittingItem, ViewName, BackgroundName } from "./character3d/types";
 
 interface Props {
   items: FittingItem[];
@@ -38,12 +25,14 @@ interface Engine {
   setView: (v: ViewName, animate: boolean) => void;
 }
 
+type BodyState = "loading" | "ready" | "missing";
+
 const VIEW_POSITIONS: Record<ViewName, [number, number, number]> = {
-  front: [0, 2.05, 6.4],
-  back: [0, 2.05, -6.4],
-  left: [-6.4, 2.05, 0],
-  right: [6.4, 2.05, 0],
-  three: [4.3, 2.35, 4.7],
+  front: [0, 1.02, 3.2],
+  back: [0, 1.02, -3.2],
+  left: [-3.2, 1.02, 0],
+  right: [3.2, 1.02, 0],
+  three: [2.15, 1.2, 2.35],
 };
 
 function makeBackdrop(kind: BackgroundName): THREE.Texture | THREE.Color {
@@ -79,9 +68,14 @@ export function Mannequin3D({
   const engineRef = useRef<Engine | null>(null);
   const itemsRef = useRef(items);
   const genderRef = useRef(gender);
+  const [bodyState, setBodyState] = useState<BodyState>("loading");
+  const [missingGarments, setMissingGarments] = useState<string[]>([]);
 
   const signature = useMemo(
-    () => items.map((i) => `${i.key}:${i.type}:${i.size}:${i.color}:${i.layer ?? ""}`).join("|"),
+    () =>
+      items
+        .map((i) => `${i.key}:${i.size}:${i.color}:${i.layer ?? ""}:${i.modelUrl ?? ""}:${i.hasModel ? 1 : 0}`)
+        .join("|"),
     [items],
   );
 
@@ -99,39 +93,39 @@ export function Mannequin3D({
     container.appendChild(renderer.domElement);
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
+    const camera = new THREE.PerspectiveCamera(42, 1, 0.05, 100);
     camera.position.set(...VIEW_POSITIONS.front);
 
     const pmrem = new THREE.PMREMGenerator(renderer);
     const envRT = pmrem.fromScene(new RoomEnvironment(), 0.04);
     scene.environment = envRT.texture;
 
-    scene.add(new THREE.AmbientLight(0xffffff, 0.22));
+    scene.add(new THREE.AmbientLight(0xffffff, 0.24));
     scene.add(new THREE.HemisphereLight(0xcfe0ff, 0x2a2420, 0.5));
 
-    const key = new THREE.DirectionalLight(0xfff3e0, 1.55);
-    key.position.set(4, 7.5, 5);
+    const key = new THREE.DirectionalLight(0xfff3e0, 1.6);
+    key.position.set(2.2, 4.2, 2.8);
     key.castShadow = true;
     key.shadow.mapSize.set(1024, 1024);
-    key.shadow.camera.near = 0.5;
-    key.shadow.camera.far = 20;
-    key.shadow.camera.left = -3;
-    key.shadow.camera.right = 3;
-    key.shadow.camera.top = 5;
-    key.shadow.camera.bottom = -1;
-    key.shadow.bias = -0.0005;
+    key.shadow.camera.near = 0.2;
+    key.shadow.camera.far = 12;
+    key.shadow.camera.left = -1.6;
+    key.shadow.camera.right = 1.6;
+    key.shadow.camera.top = 2.6;
+    key.shadow.camera.bottom = -0.4;
+    key.shadow.bias = -0.0006;
     key.shadow.radius = 3;
     scene.add(key);
 
     const fill = new THREE.DirectionalLight(0xbfd0ff, 0.5);
-    fill.position.set(-5, 3, 3);
+    fill.position.set(-2.6, 1.8, 1.8);
     scene.add(fill);
 
     const rim = new THREE.DirectionalLight(0xc79a32, 0.8);
-    rim.position.set(-3, 4.5, -6);
+    rim.position.set(-1.6, 2.6, -3.2);
     scene.add(rim);
 
-    const groundGeo = new THREE.PlaneGeometry(30, 30);
+    const groundGeo = new THREE.PlaneGeometry(20, 20);
     const groundMat = new THREE.ShadowMaterial({ opacity: 0.32 });
     const ground = new THREE.Mesh(groundGeo, groundMat);
     ground.rotation.x = -Math.PI / 2;
@@ -140,11 +134,11 @@ export function Mannequin3D({
     scene.add(ground);
 
     const controls = new OrbitControls(camera, renderer.domElement);
-    controls.target.set(0, 1.95, 0);
+    controls.target.set(0, 0.95, 0);
     controls.enableDamping = true;
     controls.dampingFactor = 0.08;
-    controls.minDistance = 2.6;
-    controls.maxDistance = 12;
+    controls.minDistance = 1.3;
+    controls.maxDistance = 6.5;
     controls.maxPolarAngle = Math.PI * 0.52;
     controls.rotateSpeed = 0.9;
     controls.zoomSpeed = 0.85;
@@ -155,52 +149,74 @@ export function Mannequin3D({
     scene.add(bodyGroup);
     scene.add(clothes);
 
-    let bodyGender: Gender | null = null;
-    let garmentGroup: THREE.Group | null = null;
+    let character: CharacterInstance | null = null;
+    let loadedGender: Gender | null = null;
+    let generation = 0;
 
-    const rebuild = () => {
-      if (bodyGender !== genderRef.current) {
-        disposeObject(bodyGroup);
-        bodyGroup.clear();
-        const body = createBody(genderRef.current);
-        body.traverse((o) => {
-          const mesh = o as THREE.Mesh;
-          if (mesh.isMesh) {
-            mesh.castShadow = true;
-            mesh.receiveShadow = true;
-          }
-        });
-        bodyGroup.add(body);
-        bodyGender = genderRef.current;
+    const clearGarments = () => {
+      for (const child of [...clothes.children]) {
+        clothes.remove(child);
+        disposeGarment(child);
+      }
+    };
+
+    const rebuild = async () => {
+      const gen = ++generation;
+
+      if (loadedGender !== genderRef.current) {
+        if (character) {
+          bodyGroup.remove(character.scene);
+          character = null;
+        }
+        loadedGender = null;
+        setBodyState("loading");
+        try {
+          const loaded = await loadCharacter(genderRef.current);
+          if (gen !== generation) return;
+          character = loaded;
+          loadedGender = genderRef.current;
+          bodyGroup.add(loaded.scene);
+          setBodyState("ready");
+        } catch {
+          if (gen !== generation) return;
+          character = emptyCharacter();
+          loadedGender = genderRef.current;
+          setBodyState("missing");
+        }
       }
 
-      if (garmentGroup) {
-        clothes.remove(garmentGroup);
-        disposeObject(garmentGroup);
-      }
-      garmentGroup = new THREE.Group();
+      clearGarments();
+      const activeCharacter = character;
+      if (!activeCharacter) return;
+      const missing: string[] = [];
       for (const item of itemsRef.current) {
-        if (!item.type) continue;
-        const garment = createGarment({
-          type: item.type,
-          layer: item.layer,
-          size: item.size,
-          color: item.color,
-        });
-        garment.traverse((o) => {
-          const mesh = o as THREE.Mesh;
-          if (mesh.isMesh) mesh.castShadow = true;
-        });
-        garmentGroup.add(garment);
+        if (!item.modelUrl || !activeCharacter.hasModel) {
+          if (!item.modelUrl) missing.push(item.type);
+          continue;
+        }
+        try {
+          const object = await instantiateGarment(item.modelUrl, {
+            character: activeCharacter,
+            size: item.size,
+            color: item.color,
+          });
+          if (gen !== generation) {
+            disposeGarment(object);
+            return;
+          }
+          clothes.add(object);
+        } catch {
+          missing.push(item.type);
+        }
       }
-      clothes.add(garmentGroup);
+      if (gen === generation) setMissingGarments(missing);
     };
 
     const anim = { active: false, t: 0, from: new THREE.Vector3(), to: new THREE.Vector3() };
 
     const setView = (v: ViewName, animate: boolean) => {
       const dest = new THREE.Vector3(...VIEW_POSITIONS[v]);
-      controls.target.set(0, 1.95, 0);
+      controls.target.set(0, 0.95, 0);
       if (animate) {
         anim.from.copy(camera.position);
         anim.to.copy(dest);
@@ -223,9 +239,9 @@ export function Mannequin3D({
       anim.active = false;
     });
 
-    engineRef.current = { rebuild, setBackground, setView };
+    engineRef.current = { rebuild: () => void rebuild(), setBackground, setView };
     setBackground(background);
-    rebuild();
+    void rebuild();
     setView(view, false);
 
     const resize = () => {
@@ -256,11 +272,11 @@ export function Mannequin3D({
     loop();
 
     return () => {
+      generation++;
       cancelAnimationFrame(raf);
       ro.disconnect();
       controls.dispose();
-      disposeObject(bodyGroup);
-      if (garmentGroup) disposeObject(garmentGroup);
+      clearGarments();
       groundGeo.dispose();
       groundMat.dispose();
       if (scene.background && (scene.background as THREE.Texture).isTexture) {
@@ -304,5 +320,33 @@ export function Mannequin3D({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resetNonce]);
 
-  return <div ref={containerRef} style={{ width: "100%", height }} className="relative" />;
+  const bodyFile = gender === "mujer" ? "character_female.glb" : "character_male.glb";
+
+  return (
+    <div className="relative" style={{ width: "100%", height }}>
+      <div ref={containerRef} style={{ width: "100%", height }} />
+      {bodyState !== "ready" && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gradient-to-b from-slate-100 to-slate-300 px-6 text-center">
+          <svg viewBox="0 0 120 300" className="h-40 w-auto text-slate-400/70" fill="currentColor" aria-hidden="true">
+            <circle cx="60" cy="30" r="24" />
+            <path d="M60 62c-24 0-42 16-45 40l-6 46c-1 10 5 18 15 18 7 0 12-5 14-13l7-30 3 60-6 82c-1 11 6 19 16 19s16-8 16-19l-4-70h8l-4 70c0 11 6 19 16 19s17-8 16-19l-6-82 3-60 7 30c2 8 7 13 14 13 10 0 16-8 15-18l-6-46c-3-24-21-40-45-40z" />
+          </svg>
+          <p className="text-sm font-semibold text-slate-700">
+            {bodyState === "loading" ? "Cargando modelo 3D…" : "Modelo 3D del personaje no disponible"}
+          </p>
+          {bodyState === "missing" && (
+            <p className="max-w-sm text-xs text-slate-500">
+              Coloca el archivo <code className="rounded bg-slate-200 px-1">{bodyFile}</code> en{" "}
+              <code className="rounded bg-slate-200 px-1">public/models</code> para visualizar el probador virtual.
+            </p>
+          )}
+        </div>
+      )}
+      {bodyState === "ready" && missingGarments.length > 0 && (
+        <div className="absolute bottom-2 left-2 rounded-lg bg-black/60 px-2.5 py-1.5 text-[11px] font-medium text-white">
+          {missingGarments.length} prenda(s) sin modelo 3D asociado
+        </div>
+      )}
+    </div>
+  );
 }

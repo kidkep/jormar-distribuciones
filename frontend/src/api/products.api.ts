@@ -15,6 +15,11 @@ export interface Product {
   min_stock: number;
   current_stock: number;
   is_active: boolean;
+  garment_type?: string | null;
+  layer?: string | null;
+  gender?: string | null;
+  available_sizes?: string[] | null;
+  model_url?: string | null;
   category: { id: number; name: string } | null;
   unit: { id: number; name: string; abbreviation: string } | null;
   supplier: { id: number; name: string } | null;
@@ -75,5 +80,18 @@ export const productsApi = {
   getLowStock: async (): Promise<Product[]> => {
     const response = await apiClient.get("/products/low-stock");
     return response.data;
+  },
+
+  uploadModel: async (id: number, file: File): Promise<{ model_url: string; filename: string; size: number }> => {
+    const formData = new FormData();
+    formData.append("file", file);
+    const response = await apiClient.post(`/products/${id}/model`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return response.data;
+  },
+
+  deleteModel: async (id: number): Promise<void> => {
+    await apiClient.delete(`/products/${id}/model`);
   },
 };

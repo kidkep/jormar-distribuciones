@@ -82,6 +82,8 @@ export interface DotacionCatalogoProduct {
   gender: string;
   sizes: string[];
   size_class: string;
+  model_url: string | null;
+  has_model: boolean;
 }
 
 export interface DotacionCatalogo {

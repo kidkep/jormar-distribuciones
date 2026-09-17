@@ -6,6 +6,7 @@ import {
   type DotacionCatalogoProduct,
 } from "@/api/dotacion.api";
 import { quotesApi } from "@/api/quotes.api";
+import { productsApi } from "@/api/products.api";
 import {
   Mannequin3D,
   detectGarmentType,
@@ -18,7 +19,7 @@ import { formatCurrency } from "@/lib/utils";
 import { EmptyState } from "@/components/common/TableStates";
 import {
   Search, Plus, Trash2, Building2, User, Shirt, X, Package, History,
-  Ruler, FileText, UserPlus, Check, RotateCw, Save, Eye, Palette,
+  Ruler, FileText, UserPlus, Check, RotateCw, Save, Eye, Palette, Upload, Box,
 } from "lucide-react";
 
 const COLOR_HEX: Record<string, string> = {
@@ -53,6 +54,8 @@ interface OutfitItem {
   color: string;
   sale_price: number;
   garmentGender: string;
+  modelUrl: string | null;
+  hasModel: boolean;
 }
 
 const blankEmpresa = { name: "", document: "", phone: "", contact_name: "", address: "", notes: "" };
@@ -86,6 +89,8 @@ export function TallasDotacionPage() {
     dotacion_date: new Date().toISOString().split("T")[0],
   });
   const [quoteForm, setQuoteForm] = useState({ quote_id: 0, quantity: 1, unit_price: 0 });
+  const [modelBusy, setModelBusy] = useState(false);
+  const [modelError, setModelError] = useState<string | null>(null);
 
   const { data: catalogo } = useQuery({ queryKey: ["dotacion-catalogo"], queryFn: dotacionApi.getCatalogo });
   const { data: empresas } = useQuery({ queryKey: ["dotacion-empresas", search], queryFn: () => dotacionApi.listEmpresas(search) });
@@ -170,6 +175,8 @@ export function TallasDotacionPage() {
         color: t.color || "Negro",
         sale_price: p?.sale_price || 0,
         garmentGender: p?.gender || "unisex",
+        modelUrl: p?.model_url ?? null,
+        hasModel: p?.has_model ?? false,
       };
     });
     setOutfit(items);
@@ -297,6 +304,8 @@ export function TallasDotacionPage() {
       color: colors[0] || "Negro",
       sale_price: p.sale_price || 0,
       garmentGender: p.gender || "unisex",
+      modelUrl: p.model_url ?? null,
+      hasModel: p.has_model ?? false,
     };
     setOutfit((prev) => [...prev, item]);
     setSelectedKey(key);
@@ -334,12 +343,50 @@ export function TallasDotacionPage() {
     setShowQuoteModal(true);
   };
 
+  const handleUploadModel = async (file: File) => {
+    if (!selected) return;
+    setModelBusy(true);
+    setModelError(null);
+    try {
+      const res = await productsApi.uploadModel(selected.product_id, file);
+      const url = res?.model_url || `/api/v1/products/${selected.product_id}/model`;
+      setOutfit((prev) =>
+        prev.map((o) => (o.product_id === selected.product_id ? { ...o, modelUrl: url, hasModel: true } : o)),
+      );
+      queryClient.invalidateQueries({ queryKey: ["dotacion-catalogo"] });
+    } catch (e: any) {
+      setModelError(e?.response?.data?.detail || "No se pudo subir el modelo 3D");
+    } finally {
+      setModelBusy(false);
+    }
+  };
+
+  const handleDeleteModel = async () => {
+    if (!selected) return;
+    setModelBusy(true);
+    setModelError(null);
+    try {
+      await productsApi.deleteModel(selected.product_id);
+      setOutfit((prev) =>
+        prev.map((o) => (o.product_id === selected.product_id ? { ...o, modelUrl: null, hasModel: false } : o)),
+      );
+      queryClient.invalidateQueries({ queryKey: ["dotacion-catalogo"] });
+    } catch (e: any) {
+      setModelError(e?.response?.data?.detail || "No se pudo eliminar el modelo 3D");
+    } finally {
+      setModelBusy(false);
+    }
+  };
+
   const outfitFor3D = outfit.map((o) => ({
     key: o.key,
+    product_id: o.product_id,
     type: o.type,
     layer: o.layer,
     size: o.size,
     color: COLOR_HEX[o.color] || "#c0803a",
+    modelUrl: o.modelUrl,
+    hasModel: o.hasModel,
   }));
 
   const empleadosDeEmpresa = empleados || [];
@@ -586,6 +633,58 @@ export function TallasDotacionPage() {
                       />
                     ))}
                   </div>
+                </div>
+
+                <div>
+                  <label className="mb-1.5 flex items-center gap-1 text-xs font-medium text-gray-500">
+                    <Box className="h-3.5 w-3.5" /> Modelo 3D (GLB)
+                  </label>
+                  {selected.hasModel ? (
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="inline-flex items-center gap-1 rounded-lg bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700">
+                        <Check className="h-3.5 w-3.5" /> Modelo cargado
+                      </span>
+                      <label className={`inline-flex cursor-pointer items-center gap-1 rounded-lg border border-gray-200 px-2 py-1 text-xs text-gray-600 hover:border-gold-300 ${modelBusy ? "pointer-events-none opacity-50" : ""}`}>
+                        <Upload className="h-3.5 w-3.5" /> Reemplazar
+                        <input
+                          type="file"
+                          accept=".glb,.gltf"
+                          className="hidden"
+                          onChange={(e) => {
+                            const f = e.target.files?.[0];
+                            if (f) void handleUploadModel(f);
+                            e.target.value = "";
+                          }}
+                        />
+                      </label>
+                      <button
+                        onClick={() => void handleDeleteModel()}
+                        disabled={modelBusy}
+                        className="inline-flex items-center gap-1 rounded-lg border border-red-200 px-2 py-1 text-xs text-red-600 hover:bg-red-50 disabled:opacity-50"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" /> Quitar
+                      </button>
+                    </div>
+                  ) : (
+                    <label className={`inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-dashed border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-600 hover:border-gold-400 ${modelBusy ? "pointer-events-none opacity-50" : ""}`}>
+                      <Upload className="h-3.5 w-3.5" /> Subir modelo GLB
+                      <input
+                        type="file"
+                        accept=".glb,.gltf"
+                        className="hidden"
+                        onChange={(e) => {
+                          const f = e.target.files?.[0];
+                          if (f) void handleUploadModel(f);
+                          e.target.value = "";
+                        }}
+                      />
+                    </label>
+                  )}
+                  <p className="mt-1 text-[11px] text-gray-400">
+                    Formatos .glb / .gltf, hasta 25 MB. Se posiciona sobre el personaje según su talla y color.
+                  </p>
+                  {modelBusy && <p className="mt-1 text-xs text-gray-400">Procesando…</p>}
+                  {modelError && <p className="mt-1 text-xs text-red-600">{modelError}</p>}
                 </div>
 
                 <div className="flex flex-wrap gap-2 pt-1">
