@@ -1,11 +1,16 @@
 import type { Gender } from "./types";
 
-// Rutas de los modelos humanos. Coloca tus archivos GLB/GLTF en:
-//   frontend/public/models/character_male.glb
-//   frontend/public/models/character_female.glb
+// Ruta del modelo humano. Puede ser un unico GLB con ambos generos
+// (cada personaje cuelga de "GLTF_SceneRootNode") o un archivo por genero.
 export const CHARACTER_MODELS: Record<Gender, string> = {
-  hombre: "/models/character_male.glb",
-  mujer: "/models/character_female.glb",
+  hombre: "/models/human_malefemale_basemesh_rigged.glb",
+  mujer: "/models/human_malefemale_basemesh_rigged.glb",
+};
+
+// Nombres de los nodos-raiz de cada personaje dentro del GLB combinado.
+export const GENDER_NODE_MATCH: Record<Gender, RegExp> = {
+  hombre: /(^|[^a-z])male/i,
+  mujer: /female/i,
 };
 
 // Altura objetivo del personaje en metros (se normaliza automaticamente).

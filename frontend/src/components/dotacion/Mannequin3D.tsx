@@ -320,7 +320,7 @@ export function Mannequin3D({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resetNonce]);
 
-  const bodyFile = gender === "mujer" ? "character_female.glb" : "character_male.glb";
+  const bodyFile = "human_malefemale_basemesh_rigged.glb";
 
   return (
     <div className="relative" style={{ width: "100%", height }}>

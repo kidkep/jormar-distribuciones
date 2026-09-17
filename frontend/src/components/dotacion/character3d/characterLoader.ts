@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { clone as cloneSkeleton } from "three/examples/jsm/utils/SkeletonUtils.js";
 
 import { getGLTFLoader, withAuthHeader } from "./loaders";
-import { CHARACTER_MODELS, CHARACTER_HEIGHT, resolveAssetUrl } from "./config";
+import { CHARACTER_MODELS, CHARACTER_HEIGHT, GENDER_NODE_MATCH, resolveAssetUrl } from "./config";
 import type { Gender } from "./types";
 
 export interface CharacterInstance {
@@ -34,6 +34,23 @@ function loadGLTFScene(url: string): Promise<THREE.Group> {
   });
   gltfCache.set(resolved, promise);
   return promise;
+}
+
+// Cuando el GLB trae ambos generos, deja solo el personaje pedido.
+function pruneToGender(scene: THREE.Object3D, gender: Gender) {
+  const other: Gender = gender === "mujer" ? "hombre" : "mujer";
+  let selected: THREE.Object3D | null = null;
+  scene.traverse((o) => {
+    if (selected || !o.name) return;
+    if (GENDER_NODE_MATCH[gender].test(o.name)) selected = o;
+  });
+  const chosen = selected as THREE.Object3D | null;
+  if (!chosen || !chosen.parent) return;
+  const parent = chosen.parent;
+  for (const child of [...parent.children]) {
+    if (child === chosen) continue;
+    if (GENDER_NODE_MATCH[other].test(child.name)) parent.remove(child);
+  }
 }
 
 // Ajusta escala/posicion: altura objetivo, pies en y=0 y centrado en x/z.
@@ -71,6 +88,7 @@ export function extractRig(scene: THREE.Object3D) {
 export async function loadCharacter(gender: Gender): Promise<CharacterInstance> {
   const source = await loadGLTFScene(CHARACTER_MODELS[gender]);
   const scene = cloneSkeleton(source) as THREE.Group;
+  pruneToGender(scene, gender);
   normalizeCharacter(scene);
   scene.traverse((o) => {
     const mesh = o as THREE.Mesh;
@@ -79,7 +97,13 @@ export async function loadCharacter(gender: Gender): Promise<CharacterInstance> 
     mesh.receiveShadow = true;
     const applyEnv = (m: THREE.Material) => {
       const std = m as THREE.MeshStandardMaterial;
-      if (std.isMeshStandardMaterial) std.envMapIntensity = 0.7;
+      if (!std.isMeshStandardMaterial) return;
+      std.envMapIntensity = 0.7;
+      if (!std.map && /grey|gray|skin|body/i.test(m.name || "")) {
+        std.color = new THREE.Color(0xd9b39a);
+        std.roughness = 0.72;
+        std.metalness = 0;
+      }
     };
     if (Array.isArray(mesh.material)) mesh.material.forEach(applyEnv);
     else if (mesh.material) applyEnv(mesh.material);
