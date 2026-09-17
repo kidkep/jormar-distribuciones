@@ -107,13 +107,13 @@ export function ExpensesPage() {
         </button>
       </div>
 
-      {totalData && (
+      {totalData?.por_distribucion && (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 animate-fade-up-delay-1">
           {Object.entries(DIST_CARDS).map(([key, cfg]) => (
             <div key={key} className={`rounded-xl border p-4 ${cfg.color}`}>
               <p className={`text-sm font-medium ${cfg.text}`}>Sale de: {cfg.label}</p>
               <p className={`mt-1 text-2xl font-bold ${cfg.text}`}>
-                {formatCurrency(totalData.por_distribucion[key] || 0)}
+                {formatCurrency(totalData.por_distribucion?.[key] || 0)}
               </p>
             </div>
           ))}
