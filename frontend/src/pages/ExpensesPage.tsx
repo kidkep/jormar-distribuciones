@@ -97,9 +97,6 @@ export function ExpensesPage() {
             <BarChart3 className="h-6 w-6 text-gold-600" />
             Gastos
           </h1>
-          {totalData && (
-            <p className="mt-1 text-sm text-gray-600">Total gastos: <strong>{formatCurrency(totalData.total)}</strong></p>
-          )}
         </div>
         <button onClick={() => setShowModal(true)} className="btn-gold">
           <Plus className="h-4 w-4" />
