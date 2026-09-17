@@ -327,6 +327,32 @@ async def get_balance(
     # --- GANANCIA ---
     ganancia_bruta = total_ventas - total_gastos
 
+    # ========================
+    # UTILIDAD BRUTA (Ventas - Costo de lo vendido)
+    # Se calcula sobre TODAS las ventas no anuladas del periodo (contado + credito),
+    # porque el costo del inventario se incurre al vender, sin importar cuando se
+    # cobre. El costo de cada unidad se estima con el precio de compra ACTUAL del
+    # producto (no se guarda una copia al momento de la venta).
+    # ========================
+    cogs_row = (
+        await db.execute(
+            select(
+                func.coalesce(func.sum(SaleItem.total_price), 0),
+                func.coalesce(func.sum(SaleItem.quantity * Product.purchase_price), 0),
+                func.coalesce(func.sum(Sale.discount), 0),
+            )
+            .select_from(SaleItem)
+            .join(Sale, Sale.id == SaleItem.sale_id)
+            .join(Product, Product.id == SaleItem.product_id)
+            .where(Sale.sale_date >= fi, Sale.sale_date <= ff, Sale.status != "anulada")
+        )
+    ).one()
+    ub_ventas = float(cogs_row[0] or 0)
+    ub_costo = float(cogs_row[1] or 0)
+    ub_descuentos = float(cogs_row[2] or 0)
+    ub_ventas_netas = ub_ventas - ub_descuentos
+    ub_utilidad = ub_ventas_netas - ub_costo
+
     # --- DEUDORES DETALLE ---
     deudores_q = await db.execute(
         select(Sale)
@@ -402,5 +428,11 @@ async def get_balance(
         "ganancia": {
             "bruta": ganancia_bruta,
             "margen": (ganancia_bruta / total_ventas * 100) if total_ventas > 0 else 0,
+        },
+        "utilidad_bruta": {
+            "ventas": round(ub_ventas_netas, 2),
+            "costo": round(ub_costo, 2),
+            "utilidad": round(ub_utilidad, 2),
+            "margen": round(ub_utilidad / ub_ventas_netas * 100, 2) if ub_ventas_netas > 0 else 0,
         },
     }

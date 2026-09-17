@@ -43,6 +43,7 @@ export interface BalanceData {
   clientes: { total: number };
   top_productos: { producto: string; unidades_vendidas: number; total_generado: number }[];
   ganancia: { bruta: number; margen: number };
+  utilidad_bruta: { ventas: number; costo: number; utilidad: number; margen: number };
 }
 
 export const balanceApi = {

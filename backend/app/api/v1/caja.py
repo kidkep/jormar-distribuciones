@@ -7,16 +7,41 @@ from zoneinfo import ZoneInfo
 from app.database import get_db
 from app.dependencies import require_permission
 from app.models.user import User
-from app.models.sale import Sale
+from app.models.sale import Sale, SaleItem
 from app.models.expense import Expense
 from app.models.payment import Payment
 from app.models.retiro import Retiro
 from app.models.distribution import SaleDistribution
 from app.models.prestamo import Prestamo, PrestamoPago
 from app.models.colchon import ColchonPago
+from app.models.product import Product
 from app.config import AJUSTE_INVERSION
 
 router = APIRouter(prefix="/caja", tags=["Caja"])
+
+
+async def compute_utilidad_bruta(db: AsyncSession, bound: datetime) -> float:
+    """Utilidad bruta = Ventas - Costo de lo vendido para todas las ventas no
+    anuladas desde `bound`. El costo se estima con el precio de compra actual
+    del producto. Incluye ventas de contado y de credito (el costo se incurre
+    al vender, no al cobrar)."""
+    row = (
+        await db.execute(
+            select(
+                func.coalesce(func.sum(SaleItem.total_price), 0),
+                func.coalesce(func.sum(SaleItem.quantity * Product.purchase_price), 0),
+                func.coalesce(func.sum(Sale.discount), 0),
+            )
+            .select_from(SaleItem)
+            .join(Sale, Sale.id == SaleItem.sale_id)
+            .join(Product, Product.id == SaleItem.product_id)
+            .where(Sale.status != "anulada", Sale.sale_date >= bound)
+        )
+    ).one()
+    ventas = float(row[0] or 0)
+    costo = float(row[1] or 0)
+    descuentos = float(row[2] or 0)
+    return round((ventas - descuentos) - costo, 2)
 
 
 async def compute_inversion_neta(db: AsyncSession) -> float:
@@ -295,6 +320,10 @@ async def get_caja_resumen(
     )
     gastos_mes = float(expenses_month_q.scalar() or 0)
 
+    # Utilidad bruta (Ventas - Costo de lo vendido)
+    utilidad_bruta_hoy = await compute_utilidad_bruta(db, today)
+    utilidad_bruta_mes = await compute_utilidad_bruta(db, month_start)
+
     # Abonos recibidos hoy (creditos)
     payments_today_q = await db.execute(
         select(func.coalesce(func.sum(Payment.amount), 0)).where(
@@ -432,6 +461,8 @@ async def get_caja_resumen(
         "deuda_pendiente": deuda_pendiente,
         "ganancia_neta_hoy": ventas_hoy - gastos_hoy,
         "ganancia_neta_mes": ventas_mes - gastos_mes,
+        "utilidad_bruta_hoy": utilidad_bruta_hoy,
+        "utilidad_bruta_mes": utilidad_bruta_mes,
         "por_metodo": por_metodo,
         "movimientos": movimientos,
         "saldo_total": total_general,

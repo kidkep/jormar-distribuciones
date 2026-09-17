@@ -17,6 +17,8 @@ export interface CajaResumen {
   deuda_pendiente: number;
   ganancia_neta_hoy: number;
   ganancia_neta_mes: number;
+  utilidad_bruta_hoy: number;
+  utilidad_bruta_mes: number;
   por_metodo: Record<string, number>;
   movimientos: Movimiento[];
   saldo_total: number;

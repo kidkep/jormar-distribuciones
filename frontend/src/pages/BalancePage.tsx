@@ -177,13 +177,20 @@ export function BalancePage() {
       </div>
 
       {/* RESUMEN GENERAL */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 animate-fade-up-delay-1">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5 animate-fade-up-delay-1">
         <SummaryCard
           title="Total Ventas"
           value={d.ventas.total}
           sub={`${d.ventas.cantidad} ventas | Ticket: ${formatCurrency(d.ventas.ticket_promedio)}`}
           icon={<TrendingUp className="h-5 w-5 text-green-600" />}
           color="green"
+        />
+        <SummaryCard
+          title="Utilidad Bruta"
+          value={d.utilidad_bruta.utilidad}
+          sub={`Ventas: ${formatCurrency(d.utilidad_bruta.ventas)} | Costo: ${formatCurrency(d.utilidad_bruta.costo)} | Margen: ${d.utilidad_bruta.margen.toFixed(1)}%`}
+          icon={<BarChart3 className="h-5 w-5 text-teal-600" />}
+          color="teal"
         />
         <SummaryCard
           title="Total Gastos"
@@ -532,10 +539,16 @@ export function BalancePage() {
       {/* RESUMEN FINAL */}
       <div className="rounded-xl border-2 border-gold-200 bg-gold-50 p-6">
         <h2 className="mb-3 text-lg font-bold text-gold-900">Resumen del Periodo</h2>
-        <div className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-4">
           <div>
             <span className="text-gold-600">Ingresos reales del periodo (contado + abonos):</span>
             <p className="text-lg font-bold text-green-700">{formatCurrency(d.ventas.total)}</p>
+          </div>
+          <div>
+            <span className="text-gold-600">Utilidad bruta (ventas - costo de lo vendido):</span>
+            <p className={`text-lg font-bold ${d.utilidad_bruta.utilidad >= 0 ? "text-green-700" : "text-red-700"}`}>
+              {formatCurrency(d.utilidad_bruta.utilidad)}
+            </p>
           </div>
           <div>
             <span className="text-gold-600">Egresos totales:</span>
