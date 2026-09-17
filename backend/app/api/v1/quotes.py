@@ -90,6 +90,38 @@ async def update_quote_status(
     return updated
 
 
+@router.put("/{quote_id}", response_model=QuoteResponse)
+async def update_quote(
+    quote_id: int,
+    data: QuoteCreate,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(require_permission("cotizaciones.edit")),
+):
+    service = QuoteService(db)
+    existing = await service.get_quote(quote_id)
+    old_total = str(existing.total)
+    old_subtotal = str(existing.subtotal)
+    old_items_count = len(existing.items)
+    updated = await service.update_quote(quote_id, data)
+    record_audit(
+        db, user, "update", "quote",
+        entity_id=quote_id,
+        old_values={
+            "quote_number": existing.quote_number,
+            "subtotal": old_subtotal,
+            "total": old_total,
+            "items": old_items_count,
+        },
+        new_values={
+            "quote_number": updated.quote_number,
+            "subtotal": str(updated.subtotal),
+            "total": str(updated.total),
+            "items": len(updated.items),
+        },
+    )
+    return updated
+
+
 @router.delete("/{quote_id}", response_model=MessageResponse)
 async def delete_quote(
     quote_id: int,

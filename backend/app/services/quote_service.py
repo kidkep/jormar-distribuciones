@@ -77,6 +77,44 @@ class QuoteService:
         quote.status = status
         return await self.repo.update(quote)
 
+    async def update_quote(self, quote_id: int, data: QuoteCreate) -> Quote:
+        quote = await self.get_quote(quote_id)
+        if quote.status == "aceptada":
+            raise BadRequestException("No se puede editar una cotizacion aceptada")
+
+        subtotal = Decimal("0")
+        items = []
+
+        for item_data in data.items:
+            product = await self.product_repo.get_by_id(item_data.product_id)
+            if not product:
+                raise NotFoundException("Producto", item_data.product_id)
+
+            total_price = item_data.unit_price * item_data.quantity
+            subtotal += total_price
+            items.append(QuoteItem(
+                product_id=product.id,
+                quantity=item_data.quantity,
+                unit_price=item_data.unit_price,
+                total_price=total_price,
+            ))
+
+        discount = data.discount or Decimal("0")
+
+        quote.items = items
+        quote.quote_date = data.quote_date or quote.quote_date
+        quote.valid_until = data.valid_until
+        quote.client_id = data.client_id
+        quote.client_name = data.client_name
+        quote.subtotal = subtotal
+        quote.tax_amount = Decimal("0")
+        quote.discount = discount
+        quote.total = subtotal - discount
+        quote.notes = data.notes
+
+        await self.repo.update(quote)
+        return await self.repo.get_by_id(quote.id)
+
     async def delete_quote(self, quote_id: int) -> None:
         quote = await self.get_quote(quote_id)
         if quote.status not in ("borrador", "rechazada"):

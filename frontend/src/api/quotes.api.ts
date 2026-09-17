@@ -61,6 +61,11 @@ export const quotesApi = {
     return response.data;
   },
 
+  update: async (id: number, data: QuoteCreate): Promise<Quote> => {
+    const response = await apiClient.put(`/quotes/${id}`, data);
+    return response.data;
+  },
+
   updateStatus: async (id: number, status: string): Promise<Quote> => {
     const response = await apiClient.put(`/quotes/${id}/status?status=${status}`);
     return response.data;

@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { quotesApi, type Quote, type QuoteCreate } from "@/api/quotes.api";
 import { productsApi, type Product } from "@/api/products.api";
 import { clientsApi, type Client } from "@/api/clients.api";
-import { Plus, Search, Eye, Trash2, Send, CheckCircle, XCircle, FileText, Download, X } from "lucide-react";
+import { Plus, Search, Eye, Trash2, Send, CheckCircle, XCircle, FileText, Download, X, Pencil } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { ClientPicker } from "@/components/common/ClientPicker";
 import { AutoResizeTextarea } from "@/components/common/AutoResizeTextarea";
@@ -33,6 +33,7 @@ export function QuotesPage() {
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [showDetail, setShowDetail] = useState<Quote | null>(null);
+  const [editingQuote, setEditingQuote] = useState<Quote | null>(null);
   const [clientName, setClientName] = useState("");
   const [clientId, setClientId] = useState<number | null>(null);
   const handleClientChange = ({ clientId: id, clientName: name }: { clientId: number | null; clientName: string }) => {
@@ -69,6 +70,14 @@ export function QuotesPage() {
     },
   });
 
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: QuoteCreate }) => quotesApi.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["quotes"] });
+      resetForm();
+    },
+  });
+
   const statusMutation = useMutation({
     mutationFn: ({ id, status }: { id: number; status: string }) => quotesApi.updateStatus(id, status),
     onSuccess: () => {
@@ -87,6 +96,7 @@ export function QuotesPage() {
 
   const resetForm = () => {
     setShowForm(false);
+    setEditingQuote(null);
     setCart([]);
     setClientName("");
     setClientId(null);
@@ -94,6 +104,30 @@ export function QuotesPage() {
     setDiscount(0);
     setNotes("");
     setProductSearch("");
+  };
+
+  const openEdit = (q: Quote) => {
+    setEditingQuote(q);
+    setClientName(q.client_name || q.client?.name || "");
+    setClientId(q.client_id);
+    setValidUntil(q.valid_until ? String(q.valid_until).slice(0, 10) : "");
+    const sub = Number(q.subtotal);
+    setDiscount(sub > 0 ? Math.round((Number(q.discount) / sub) * 100) : 0);
+    setNotes(q.notes || "");
+    setCart(
+      q.items.map((item) => ({
+        product: {
+          id: item.product_id,
+          name: item.product?.name || `Producto #${item.product_id}`,
+          sku: item.product?.sku || "",
+          sale_price: Number(item.unit_price),
+        } as Product,
+        quantity: String(item.quantity),
+        unit_price: Number(item.unit_price),
+      }))
+    );
+    setProductSearch("");
+    setShowForm(true);
   };
 
   const downloadQuotePdf = async (quoteId: number) => {
@@ -139,7 +173,7 @@ export function QuotesPage() {
 
   const handleSubmit = () => {
     if (cart.length === 0) return;
-    createMutation.mutate({
+    const payload: QuoteCreate = {
       client_id: clientId,
       client_name: clientName || null,
       valid_until: validUntil || undefined,
@@ -150,7 +184,12 @@ export function QuotesPage() {
         quantity: Number(item.quantity),
         unit_price: item.unit_price,
       })),
-    });
+    };
+    if (editingQuote) {
+      updateMutation.mutate({ id: editingQuote.id, data: payload });
+    } else {
+      createMutation.mutate(payload);
+    }
   };
 
   const filteredProducts = products.filter(
@@ -225,6 +264,11 @@ export function QuotesPage() {
                       <button onClick={() => setShowDetail(q)} className="rounded-lg p-1.5 text-gold-600 transition hover:bg-gold-50">
                         <Eye className="h-4 w-4" />
                       </button>
+                      {q.status !== "aceptada" && (
+                        <button onClick={() => openEdit(q)} className="rounded-lg p-1.5 text-blue-600 transition hover:bg-blue-50" title="Editar productos">
+                          <Pencil className="h-4 w-4" />
+                        </button>
+                      )}
                       <button onClick={() => downloadQuotePdf(q.id)} className="rounded-lg p-1.5 text-green-600 transition hover:bg-green-50" title="Descargar PDF">
                         <Download className="h-4 w-4" />
                       </button>
@@ -261,7 +305,7 @@ export function QuotesPage() {
         <div className="modal-backdrop fixed inset-0 z-50 flex items-start justify-center overflow-y-auto py-10">
           <div className="modal-content w-full max-w-3xl rounded-2xl p-6">
             <div className="mb-5 flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-gray-900">Nueva Cotizacion</h2>
+              <h2 className="text-lg font-semibold text-gray-900">{editingQuote ? "Editar Cotizacion" : "Nueva Cotizacion"}</h2>
               <button onClick={resetForm} className="rounded-lg p-1.5 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600">
                 <X className="h-5 w-5" />
               </button>
@@ -356,8 +400,10 @@ export function QuotesPage() {
 
             <div className="flex justify-end gap-3 pt-2">
               <button onClick={resetForm} className="btn-outline">Cancelar</button>
-              <button onClick={handleSubmit} disabled={cart.length === 0 || createMutation.isPending} className="btn-gold disabled:opacity-50">
-                {createMutation.isPending ? "Guardando..." : "Crear Cotizacion"}
+              <button onClick={handleSubmit} disabled={cart.length === 0 || createMutation.isPending || updateMutation.isPending} className="btn-gold disabled:opacity-50">
+                {editingQuote
+                  ? updateMutation.isPending ? "Guardando..." : "Guardar Cambios"
+                  : createMutation.isPending ? "Guardando..." : "Crear Cotizacion"}
               </button>
             </div>
           </div>
