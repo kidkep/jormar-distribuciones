@@ -1,5 +1,6 @@
 from typing import TYPE_CHECKING
 from sqlalchemy import String, Integer, Boolean, Numeric, ForeignKey, Text
+from sqlalchemy import JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from decimal import Decimal
 
@@ -28,6 +29,12 @@ class Product(Base, TimestampMixin):
     min_stock: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     current_stock: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+
+    # Atributos de prenda para el probador virtual y la dotacion
+    garment_type: Mapped[str | None] = mapped_column(String(30), nullable=True)
+    layer: Mapped[str | None] = mapped_column(String(30), nullable=True)
+    gender: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    available_sizes: Mapped[list | None] = mapped_column(JSON, nullable=True)
 
     category: Mapped["Category | None"] = relationship("Category", back_populates="products")
     unit: Mapped["Unit | None"] = relationship("Unit", back_populates="products")

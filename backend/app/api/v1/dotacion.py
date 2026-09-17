@@ -24,6 +24,7 @@ from app.schemas.dotacion import (
 )
 from app.exceptions import NotFoundException, BadRequestException
 from app.utils.audit import record_audit
+from app.utils.garments import LAYERS, resolve_product_fit
 
 router = APIRouter(prefix="/dotacion", tags=["Tallas y Dotacion"])
 
@@ -403,19 +404,31 @@ async def get_catalogo(
     db: AsyncSession = Depends(get_db),
     _user: User = Depends(require_permission("dotacion.view")),
 ):
-    """Prendas disponibles en el inventario (productos activos) y tallas soportadas."""
+    """Prendas disponibles en el inventario con su capa, genero y tallas."""
     result = await db.execute(
         select(Product).where(Product.is_active == True).order_by(Product.name)  # noqa: E712
     )
     products = result.scalars().all()
+    items = []
+    for p in products:
+        fit = resolve_product_fit(p)
+        items.append({
+            "id": p.id,
+            "name": p.name,
+            "sku": p.sku,
+            "sale_price": float(p.sale_price),
+            "garment_type": fit["garment_type"],
+            "layer": fit["layer"],
+            "gender": fit["gender"],
+            "sizes": fit["sizes"],
+            "size_class": fit["size_class"],
+        })
     return {
-        "products": [
-            {"id": p.id, "name": p.name, "sku": p.sku, "sale_price": float(p.sale_price)}
-            for p in products
-        ],
-        "sizes": ["XS", "S", "M", "L", "XL", "XXL", "XXXL"],
+        "products": items,
+        "layers": LAYERS,
         "colors": [
             "Negro", "Blanco", "Gris", "Azul", "Rojo", "Verde", "Amarillo",
-            "Naranja", "Cafe", "Beige", "Vino", "Cielo", "Tony",
+            "Naranja", "Cafe", "Beige", "Vino", "Cielo", "Tony", "Petroleo",
+            "Fucsia", "Morado",
         ],
     }

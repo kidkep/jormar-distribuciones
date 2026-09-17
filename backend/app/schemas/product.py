@@ -17,6 +17,10 @@ class ProductBase(BaseModel):
     min_stock: int = 0
     current_stock: int = 0
     is_active: bool = True
+    garment_type: str | None = None
+    layer: str | None = None
+    gender: str | None = None
+    available_sizes: list[str] | None = None
 
 
 class ProductCreate(ProductBase):
@@ -37,6 +41,10 @@ class ProductUpdate(BaseModel):
     min_stock: int | None = None
     current_stock: int | None = None
     is_active: bool | None = None
+    garment_type: str | None = None
+    layer: str | None = None
+    gender: str | None = None
+    available_sizes: list[str] | None = None
 
 
 class CategoryBrief(BaseModel):
