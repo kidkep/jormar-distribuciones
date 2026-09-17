@@ -44,6 +44,10 @@ class QuoteCreate(BaseModel):
     items: list[QuoteItemCreate] = Field(min_length=1)
 
 
+class QuoteAddItems(BaseModel):
+    items: list[QuoteItemCreate] = Field(min_length=1)
+
+
 class QuoteResponse(BaseModel):
     id: int
     quote_number: str

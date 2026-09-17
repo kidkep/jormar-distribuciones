@@ -6,7 +6,7 @@ import io
 from app.database import get_db
 from app.dependencies import require_permission
 from app.models.user import User
-from app.schemas.quote import QuoteCreate, QuoteResponse
+from app.schemas.quote import QuoteCreate, QuoteAddItems, QuoteResponse
 from app.schemas.common import MessageResponse
 from app.services.quote_service import QuoteService
 from app.utils.pdf_generator import generate_quote_pdf_bytes
@@ -117,6 +117,31 @@ async def update_quote(
             "subtotal": str(updated.subtotal),
             "total": str(updated.total),
             "items": len(updated.items),
+        },
+    )
+    return updated
+
+
+@router.post("/{quote_id}/items", response_model=QuoteResponse)
+async def add_quote_items(
+    quote_id: int,
+    data: QuoteAddItems,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(require_permission("cotizaciones.edit")),
+):
+    service = QuoteService(db)
+    existing = await service.get_quote(quote_id)
+    old_items = len(existing.items)
+    updated = await service.add_items(quote_id, data.items)
+    record_audit(
+        db, user, "update", "quote",
+        entity_id=quote_id,
+        old_values={"quote_number": existing.quote_number, "items": old_items, "total": str(existing.total)},
+        new_values={
+            "quote_number": updated.quote_number,
+            "items": len(updated.items),
+            "total": str(updated.total),
+            "added": len(data.items),
         },
     )
     return updated

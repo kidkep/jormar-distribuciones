@@ -18,6 +18,7 @@ from app.models.health_check import HealthCheck
 from app.models.purchase_order import PurchaseOrder, PurchaseOrderItem
 from app.models.prestamo import Prestamo, PrestamoPago
 from app.models.colchon import ColchonConfig, ColchonPrestamo, ColchonPago
+from app.models.dotacion import DotacionEmpresa, DotacionPersona, DotacionTalla, DotacionHistorial
 
 __all__ = [
     "Base", "User", "Role", "Permission", "AuditLog",
@@ -26,4 +27,5 @@ __all__ = [
     "SaleDistribution", "Task", "HealthCheck", "PurchaseOrder", "PurchaseOrderItem",
     "Prestamo", "PrestamoPago",
     "ColchonConfig", "ColchonPrestamo", "ColchonPago",
+    "DotacionEmpresa", "DotacionPersona", "DotacionTalla", "DotacionHistorial",
 ]
