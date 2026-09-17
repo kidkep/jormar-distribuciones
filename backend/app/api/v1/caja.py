@@ -320,6 +320,17 @@ async def get_caja_resumen(
     )
     gastos_mes = float(expenses_month_q.scalar() or 0)
 
+    # Gastos del mes por categoria de salida (lo que salio de Gastos/Utilidad/Inversion)
+    gastos_mes_por_dist = {}
+    for cat in ["costos", "utilidad", "inversion"]:
+        r = await db.execute(
+            select(func.coalesce(func.sum(Expense.amount), 0)).where(
+                Expense.expense_date >= month_start,
+                Expense.distribution_category == cat,
+            )
+        )
+        gastos_mes_por_dist[cat] = float(r.scalar() or 0)
+
     # Utilidad bruta (Ventas - Costo de lo vendido)
     utilidad_bruta_hoy = await compute_utilidad_bruta(db, today)
     utilidad_bruta_mes = await compute_utilidad_bruta(db, month_start)
@@ -457,6 +468,7 @@ async def get_caja_resumen(
         "ventas_mes": ventas_mes,
         "gastos_hoy": gastos_hoy,
         "gastos_mes": gastos_mes,
+        "gastos_mes_por_distribucion": gastos_mes_por_dist,
         "abonos_hoy": abonos_hoy,
         "deuda_pendiente": deuda_pendiente,
         "ganancia_neta_hoy": ventas_hoy - gastos_hoy,

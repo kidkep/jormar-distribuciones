@@ -13,6 +13,11 @@ export interface CajaResumen {
   ventas_mes: number;
   gastos_hoy: number;
   gastos_mes: number;
+  gastos_mes_por_distribucion: {
+    costos: number;
+    utilidad: number;
+    inversion: number;
+  };
   abonos_hoy: number;
   deuda_pendiente: number;
   ganancia_neta_hoy: number;
