@@ -207,20 +207,22 @@ export function DineroPage() {
             <TrendingDown className="h-5 w-5 text-red-600" />
           </div>
           <p className="text-xl font-bold text-red-700">{formatCurrency(d.gastos_mes)}</p>
-          <div className="mt-3 space-y-1 border-t border-red-100 pt-2">
-            <div className="flex items-center justify-between text-xs">
-              <span className="font-medium text-amber-700">De Gasto (reales)</span>
-              <span className="font-semibold text-amber-700">{formatCurrency(d.gastos_mes_por_distribucion.costos || 0)}</span>
+          {d.gastos_mes_por_distribucion && (
+            <div className="mt-3 space-y-1 border-t border-red-100 pt-2">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-medium text-amber-700">De Gasto (reales)</span>
+                <span className="font-semibold text-amber-700">{formatCurrency(d.gastos_mes_por_distribucion.costos || 0)}</span>
+              </div>
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-medium text-green-700">De Utilidad</span>
+                <span className="font-semibold text-green-700">{formatCurrency(d.gastos_mes_por_distribucion.utilidad || 0)}</span>
+              </div>
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-medium text-blue-700">De Inversión</span>
+                <span className="font-semibold text-blue-700">{formatCurrency(d.gastos_mes_por_distribucion.inversion || 0)}</span>
+              </div>
             </div>
-            <div className="flex items-center justify-between text-xs">
-              <span className="font-medium text-green-700">De Utilidad</span>
-              <span className="font-semibold text-green-700">{formatCurrency(d.gastos_mes_por_distribucion.utilidad || 0)}</span>
-            </div>
-            <div className="flex items-center justify-between text-xs">
-              <span className="font-medium text-blue-700">De Inversión</span>
-              <span className="font-semibold text-blue-700">{formatCurrency(d.gastos_mes_por_distribucion.inversion || 0)}</span>
-            </div>
-          </div>
+          )}
         </div>
         <Card title="Ganancia Neta Mes" value={d.ganancia_neta_mes} icon={<DollarSign className="h-5 w-5 text-gold-600" />} color="bg-gold-50 border-gold-200" textColor="text-gold-700" />
       </div>
