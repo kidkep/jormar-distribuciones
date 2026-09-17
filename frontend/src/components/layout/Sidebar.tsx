@@ -20,6 +20,7 @@ import {
   ListTodo,
   Landmark,
   PiggyBank,
+  Shirt,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -44,6 +45,7 @@ const navigation: NavItem[] = [
       { name: "Clientes", href: "/clientes", icon: Users, permission: "clientes.view" },
       { name: "Deudores", href: "/deudores", icon: AlertCircle, permission: "deudores.view" },
       { name: "Tareas y Recordatorios", href: "/tareas", icon: ListTodo, permission: "tareas.view" },
+      { name: "Tallas y Dotación", href: "/tallas-dotacion", icon: Shirt, permission: "dotacion.view" },
     ],
   },
   {

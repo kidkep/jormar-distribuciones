@@ -71,6 +71,11 @@ export const quotesApi = {
     return response.data;
   },
 
+  addItems: async (id: number, items: QuoteItemCreate[]): Promise<Quote> => {
+    const response = await apiClient.post(`/quotes/${id}/items`, { items });
+    return response.data;
+  },
+
   delete: async (id: number): Promise<void> => {
     await apiClient.delete(`/quotes/${id}`);
   },

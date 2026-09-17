@@ -14,7 +14,7 @@ import { SuppliersPage } from "@/pages/SuppliersPage";
 import { PurchaseOrdersPage } from "@/pages/PurchaseOrdersPage";
 import { SalesPage } from "@/pages/SalesPage";
 import { QuotesPage } from "@/pages/QuotesPage";
-import { DebtorsPage } from "@/pages/DebtorsPage";
+import { TallasDotacionPage } from "@/pages/TallasDotacionPage";import { DebtorsPage } from "@/pages/DebtorsPage";
 import { ExpensesPage } from "@/pages/ExpensesPage";
 import { TasksPage } from "@/pages/TasksPage";
 import { DineroPage } from "@/pages/DineroPage";
@@ -70,7 +70,8 @@ function AppRoutes() {
         <Route path="proveedores" element={<SuppliersPage />} />
         <Route path="pedidos-proveedores" element={<PermissionRoute permission="compras.view"><PurchaseOrdersPage /></PermissionRoute>} />
         <Route path="ventas/nueva" element={<SalesPage />} />
-        <Route path="cotizaciones" element={<QuotesPage />} />
+            <Route path="cotizaciones" element={<QuotesPage />} />
+            <Route path="tallas-dotacion" element={<PermissionRoute permission="dotacion.view"><TallasDotacionPage /></PermissionRoute>} />
         <Route path="deudores" element={<DebtorsPage />} />
         <Route path="gastos" element={<ExpensesPage />} />
         <Route path="tareas" element={<TasksPage />} />
