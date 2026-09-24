@@ -1,10 +1,13 @@
 ﻿import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { tasksApi, type Task } from "@/api/tasks.api";
-import { clientsApi, type Client } from "@/api/clients.api";
-import { Plus, Search, CheckCircle2, Trash2, Calendar, User, AlertCircle, ListTodo, X } from "lucide-react";
+import { usersApi } from "@/api/users.api";
+import type { User as AppUser } from "@/api/types";
+import { clientsApi } from "@/api/clients.api";
+import { Plus, Search, CheckCircle2, Trash2, Calendar, User, AlertCircle, ListTodo, X, Pencil, UserCog } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
 import { SkeletonCard } from "@/components/common/Skeleton";
 import { EmptyState } from "@/components/common/TableStates";
 
@@ -27,18 +30,24 @@ const STATUS = [
   { value: "completada", label: "Completada" },
 ];
 
+const EMPTY_FORM = {
+  title: "",
+  description: "",
+  task_type: "general",
+  client_id: "",
+  user_id: "",
+  due_date: "",
+  priority: "media",
+};
+
 export function TasksPage() {
+  const { user: currentUser } = useAuth();
+  const isSuper = Boolean(currentUser?.is_superuser);
   const [filter, setFilter] = useState("");
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({
-    title: "",
-    description: "",
-    task_type: "general",
-    client_id: "",
-    due_date: "",
-    priority: "media",
-  });
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [form, setForm] = useState(EMPTY_FORM);
   const queryClient = useQueryClient();
 
   const { data: tasks = [], isLoading } = useQuery({
@@ -51,12 +60,19 @@ export function TasksPage() {
     queryFn: () => clientsApi.list(1, 1000),
   });
 
+  const { data: users = [] } = useQuery({
+    queryKey: ["users", "assignable"],
+    queryFn: () => usersApi.list(1, 200),
+    enabled: isSuper,
+  });
+
   const createMutation = useMutation({
     mutationFn: tasksApi.create,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       setShowForm(false);
-      setForm({ title: "", description: "", task_type: "general", client_id: "", due_date: "", priority: "media" });
+      setEditingTask(null);
+      setForm(EMPTY_FORM);
     },
   });
 
@@ -64,6 +80,9 @@ export function TasksPage() {
     mutationFn: ({ id, data }: { id: number; data: Parameters<typeof tasksApi.update>[1] }) => tasksApi.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      setShowForm(false);
+      setEditingTask(null);
+      setForm(EMPTY_FORM);
     },
   });
 
@@ -74,16 +93,42 @@ export function TasksPage() {
     },
   });
 
+  const openCreate = () => {
+    setEditingTask(null);
+    setForm(EMPTY_FORM);
+    setShowForm(true);
+  };
+
+  const openEdit = (task: Task) => {
+    setEditingTask(task);
+    setForm({
+      title: task.title,
+      description: task.description || "",
+      task_type: task.task_type,
+      client_id: task.client_id ? String(task.client_id) : "",
+      user_id: task.user_id ? String(task.user_id) : "",
+      due_date: task.due_date ? task.due_date.slice(0, 10) : "",
+      priority: task.priority,
+    });
+    setShowForm(true);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    createMutation.mutate({
+    const payload = {
       title: form.title,
       description: form.description || undefined,
       task_type: form.task_type,
       client_id: form.client_id ? Number(form.client_id) : undefined,
+      user_id: form.user_id ? Number(form.user_id) : undefined,
       due_date: form.due_date || undefined,
       priority: form.priority,
-    });
+    };
+    if (editingTask) {
+      updateMutation.mutate({ id: editingTask.id, data: payload });
+    } else {
+      createMutation.mutate(payload);
+    }
   };
 
   const pending = tasks.filter((t) => t.status !== "completada").length;
@@ -98,7 +143,7 @@ export function TasksPage() {
           </h1>
           {pending > 0 && <p className="mt-1 text-sm text-gray-600">{pending} tareas pendientes</p>}
         </div>
-        <button onClick={() => setShowForm(true)} className="btn-gold">
+        <button onClick={openCreate} className="btn-gold">
           <Plus className="h-4 w-4" />
           Nueva Tarea
         </button>
@@ -161,6 +206,11 @@ export function TasksPage() {
                       <span className="rounded-full bg-gray-100 px-2 py-0.5">{TASK_TYPES.find((x) => x.value === t.task_type)?.label || t.task_type}</span>
                       {t.priority === "alta" && <span className="rounded-full bg-red-100 px-2 py-0.5 text-red-700">Alta</span>}
                       {t.priority === "baja" && <span className="rounded-full bg-gray-100 px-2 py-0.5">Baja</span>}
+                      {t.assignee_name && (
+                        <span className="flex items-center gap-1 rounded-full bg-gold-50 px-2 py-0.5 text-gold-700">
+                          <UserCog className="h-3 w-3" />{t.assignee_name}
+                        </span>
+                      )}
                       {t.creator_name && (
                         <span className="flex items-center gap-1 text-gray-600"><User className="h-3 w-3" />Creada por {t.creator_name}</span>
                       )}
@@ -174,9 +224,16 @@ export function TasksPage() {
                     {t.description && <p className="mt-2 text-sm text-gray-600">{t.description}</p>}
                   </div>
                 </div>
-                <button onClick={() => deleteMutation.mutate(t.id)} className="rounded-lg p-1.5 text-red-600 transition hover:bg-red-50">
-                  <Trash2 className="h-4 w-4" />
-                </button>
+                <div className="flex items-center gap-1">
+                  {isSuper && (
+                    <button onClick={() => openEdit(t)} className="rounded-lg p-1.5 text-gray-500 transition hover:bg-gold-50 hover:text-gold-700">
+                      <Pencil className="h-4 w-4" />
+                    </button>
+                  )}
+                  <button onClick={() => deleteMutation.mutate(t.id)} className="rounded-lg p-1.5 text-red-600 transition hover:bg-red-50">
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
             </div>
           ))
@@ -187,8 +244,8 @@ export function TasksPage() {
         <div className="modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="modal-content w-full max-w-md rounded-2xl p-6">
             <div className="mb-5 flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-gray-900">Nueva Tarea</h2>
-              <button onClick={() => setShowForm(false)} className="rounded-lg p-1.5 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600">
+              <h2 className="text-lg font-semibold text-gray-900">{editingTask ? "Editar Tarea" : "Nueva Tarea"}</h2>
+              <button onClick={() => { setShowForm(false); setEditingTask(null); }} className="rounded-lg p-1.5 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600">
                 <X className="h-5 w-5" />
               </button>
             </div>
@@ -211,6 +268,21 @@ export function TasksPage() {
                   </select>
                 </div>
               </div>
+              {isSuper && (
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">Asignar a</label>
+                  <select value={form.user_id} onChange={(e) => setForm({ ...form, user_id: e.target.value })} className="input-premium">
+                    <option value="">A mi mismo</option>
+                    {users
+                      .filter((u: AppUser) => u.id !== currentUser?.id)
+                      .map((u: AppUser) => (
+                        <option key={u.id} value={u.id}>
+                          {u.role ? `[${u.role.name}] ` : ""}{u.full_name || u.username}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+              )}
               {form.task_type === "deudor" && (
                 <div>
                   <label className="mb-1 block text-sm font-medium text-gray-700">Deudor (cliente)</label>
@@ -229,9 +301,9 @@ export function TasksPage() {
                 <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="input-premium" rows={2} />
               </div>
               <div className="flex justify-end gap-3">
-                <button type="button" onClick={() => setShowForm(false)} className="btn-outline">Cancelar</button>
-                <button type="submit" disabled={createMutation.isPending} className="btn-gold disabled:opacity-50">
-                  {createMutation.isPending ? "Guardando..." : "Guardar"}
+                <button type="button" onClick={() => { setShowForm(false); setEditingTask(null); }} className="btn-outline">Cancelar</button>
+                <button type="submit" disabled={createMutation.isPending || updateMutation.isPending} className="btn-gold disabled:opacity-50">
+                  {createMutation.isPending || updateMutation.isPending ? "Guardando..." : "Guardar"}
                 </button>
               </div>
             </form>
