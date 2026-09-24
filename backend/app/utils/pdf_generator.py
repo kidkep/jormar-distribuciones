@@ -84,11 +84,11 @@ class JormarPDF(FPDF):
             self.set_xy(x_label, y)
             self.set_font("Helvetica", "B", 9)
             self.set_text_color(120, 120, 120)
-            self.cell(w_label, line_h, label, align="L")
+            self.cell(w_label, line_h, self._sanitize_text(label), align="L")
             self.set_xy(x_value, y)
             self.set_font("Helvetica", "B" if bold else "", 9)
             self.set_text_color(*DARK)
-            self.cell(0, line_h, value, align="L")
+            self.cell(0, line_h, self._sanitize_text(value), align="L")
 
         for i, (label, value) in enumerate(rows):
             draw_row(i, label, value)
@@ -149,7 +149,7 @@ class JormarPDF(FPDF):
             self.set_text_color(*DARK)
             for i, val in enumerate(row):
                 align = "R" if i >= 2 else ("C" if i == 0 else "")
-                self.cell(col_widths[i], 7, val, border=1, fill=fill, align=align)
+                self.cell(col_widths[i], 7, self._sanitize_text(val), border=1, fill=fill, align=align)
             self.ln()
 
     def add_footer_text(self, text):
@@ -157,7 +157,13 @@ class JormarPDF(FPDF):
         self.set_text_color(90, 90, 90)
         self.cell(0, 6, text, new_x="LMARGIN", new_y="NEXT", align="C")
 
+    def _sanitize_text(self, text) -> str:
+        """Reemplaza caracteres no soportados por la fuente core Latin-1
+        (emojis, simbolos raros) para que el PDF nunca falle por codificacion."""
+        return "".join(ch if ord(ch) < 256 else "_" for ch in str(text))
+
     def _wrap_text_lines(self, text, width):
+        text = self._sanitize_text(text)
         lines = []
         for para in str(text).split("\n"):
             para = para.strip()
