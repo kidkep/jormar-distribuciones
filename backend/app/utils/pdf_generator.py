@@ -192,6 +192,12 @@ class JormarPDF(FPDF):
             lines.pop()
         return lines
 
+    def _draw_notes_header(self, title):
+        self.set_font("Helvetica", "B", 9.5)
+        self.set_text_color(*GOLD_DARK)
+        self.cell(0, 6, title.upper(), new_x="LMARGIN", new_y="NEXT", align="L")
+        self.set_font("Helvetica", "", 9.5)
+
     def add_notes_box(self, title, text):
         if not text or not text.strip():
             return
@@ -199,35 +205,44 @@ class JormarPDF(FPDF):
         x0, box_w = 12, 186
         inner_x = x0 + 5
         inner_w = box_w - 10
-        self.set_x(x0)
-        self.set_font("Helvetica", "B", 9.5)
-        self.set_text_color(*GOLD_DARK)
-        self.cell(0, 6, title.upper(), new_x="LMARGIN", new_y="NEXT", align="L")
+        line_h = 4.8
+        vpad = 5
 
         self.set_font("Helvetica", "", 9.5)
         lines = self._wrap_text_lines(text, inner_w)
-        content_h = len(lines) * 4.8 + 5
 
-        if self.get_y() + content_h + 8 > self.page_break_trigger - 4:
-            self.add_page()
+        chunk_start = 0
+        first_page = True
+        while chunk_start < len(lines):
+            if not first_page:
+                self.add_page()
+            first_page = False
+
+            # Espacio disponible en esta pagina (reservando margen y el titulo)
+            avail = self.page_break_trigger - self.get_y() - 20
+            max_lines = int(avail // line_h)
+            if max_lines < 1:
+                self.add_page()
+                max_lines = max(1, int((self.page_break_trigger - self.get_y() - 20) // line_h))
+
             self.set_x(x0)
-            self.set_font("Helvetica", "B", 9.5)
-            self.set_text_color(*GOLD_DARK)
-            self.cell(0, 6, title.upper(), new_x="LMARGIN", new_y="NEXT", align="L")
-            self.set_font("Helvetica", "", 9.5)
+            self._draw_notes_header(title)
 
-        box_y = self.get_y() + 0.8
-        self.set_fill_color(*LIGHT)
-        self.set_draw_color(*GOLD)
-        self.set_line_width(0.5)
-        self.rect(x0, box_y, box_w, content_h, "DF")
+            chunk_end = min(len(lines), chunk_start + max_lines)
+            content_h = (chunk_end - chunk_start) * line_h + vpad
+            box_y = self.get_y() + 0.8
+            self.set_fill_color(*LIGHT)
+            self.set_draw_color(*GOLD)
+            self.set_line_width(0.5)
+            self.rect(x0, box_y, box_w, content_h, "DF")
 
-        self.set_text_color(*DARK)
-        self.set_xy(inner_x, box_y + 2.5)
-        for ln in lines:
-            self.set_x(inner_x)
-            self.cell(inner_w, 4.8, ln, align="L")
-        self.set_y(box_y + content_h + 2)
+            self.set_text_color(*DARK)
+            self.set_xy(inner_x, box_y + 2.5)
+            for ln in lines[chunk_start:chunk_end]:
+                self.set_x(inner_x)
+                self.cell(inner_w, line_h, ln, align="L")
+            self.set_y(box_y + content_h + 2)
+            chunk_start = chunk_end
 
     def add_payment_info(self, rows):
         """Dibuja una caja con los datos de pago (bancos, Nequi...)."""

@@ -382,7 +382,7 @@ export function SalesPage() {
                 value={notes}
                 onChange={setNotes}
                 placeholder="Condiciones, direccion de entrega, notas para el despacho..."
-                maxLength={500}
+                maxLength={2000}
                 className="input-premium"
               />
             </div>
