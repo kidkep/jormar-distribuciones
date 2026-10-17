@@ -10,6 +10,18 @@ DARK = (40, 40, 40)
 LIGHT = (248, 249, 250)
 MID_GRAY = (230, 230, 230)
 
+# Datos de pago y condiciones comerciales que se imprimen en los documentos
+PAYMENT_INFO = [
+    ("Bancolombia", "Ahorros 389-000354-27"),
+    ("Llave", "@marisol5418"),
+    ("Nequi", "3203398997"),
+]
+
+COMMERCIAL_CONDITIONS = (
+    "50% de anticipo para dar inicio a la confeccion del pedido, "
+    "50% contra entrega."
+)
+
 
 class JormarPDF(FPDF):
     def header(self):
@@ -369,12 +381,9 @@ def generate_invoice_pdf_bytes(sale) -> bytes:
     pdf.add_impactes(float(sale.subtotal), float(sale.discount), float(sale.total))
 
     pdf.add_notes_box("Observaciones", sale.notes)
+    pdf.add_notes_box("Condiciones comerciales", COMMERCIAL_CONDITIONS)
 
-    pdf.add_payment_info([
-        ("Bancolombia", "Ahorros 389-000354-27"),
-        ("Llave", "@marisol5418"),
-        ("Nequi", "3203398997"),
-    ])
+    pdf.add_payment_info(PAYMENT_INFO)
 
     return pdf.output()
 
@@ -426,6 +435,9 @@ def generate_quote_pdf_bytes(quote) -> bytes:
     pdf.add_impactes(float(quote.subtotal), float(quote.discount), float(quote.total))
 
     pdf.add_notes_box("Observaciones", quote.notes)
+    pdf.add_notes_box("Condiciones comerciales", COMMERCIAL_CONDITIONS)
+
+    pdf.add_payment_info(PAYMENT_INFO)
 
     return pdf.output()
 
