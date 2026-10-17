@@ -54,7 +54,10 @@ async def download_order(
     return StreamingResponse(
         io.BytesIO(pdf_bytes),
         media_type="application/pdf",
-        headers={"Content-Disposition": f"attachment; filename={order.order_number}.pdf"},
+        headers={
+            "Content-Disposition": f"attachment; filename={order.order_number}.pdf",
+            "Cache-Control": "no-store, max-age=0",
+        },
     )
 
 
