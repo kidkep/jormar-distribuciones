@@ -5,20 +5,7 @@ import { retirosApi, type Retiro } from "@/api/retiros.api";
 import { colchonApi, type ColchonResumen } from "@/api/colchon.api";
 import { formatCurrency } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
-import { Wallet, Plus, X, AlertTriangle, ArrowUpCircle, Landmark, PiggyBank } from "lucide-react";
-
-type Accent = "green" | "red" | "blue" | "amber" | "purple" | "teal" | "gold" | "gray";
-
-const accentDot: Record<Accent, string> = {
-  green: "bg-green-500",
-  red: "bg-red-500",
-  blue: "bg-blue-500",
-  amber: "bg-amber-500",
-  purple: "bg-purple-500",
-  teal: "bg-teal-500",
-  gold: "bg-gold-500",
-  gray: "bg-gray-300",
-};
+import { TrendingUp, TrendingDown, DollarSign, CreditCard, ArrowUpCircle, Plus, X, Wallet, AlertTriangle, Landmark, PiggyBank } from "lucide-react";
 
 const methodLabels: Record<string, string> = {
   efectivo: "Efectivo",
@@ -28,37 +15,56 @@ const methodLabels: Record<string, string> = {
   credito: "Credito",
 };
 
+const methodColors: Record<string, string> = {
+  efectivo: "bg-green-50 border-green-200 text-green-700",
+  nequi: "bg-purple-50 border-purple-200 text-purple-700",
+  bancolombia: "bg-yellow-50 border-yellow-200 text-yellow-700",
+  bogota: "bg-red-50 border-red-200 text-red-700",
+  credito: "bg-orange-50 border-orange-200 text-orange-700",
+};
+
+const methodDot: Record<string, string> = {
+  efectivo: "bg-green-500",
+  nequi: "bg-purple-500",
+  bancolombia: "bg-yellow-500",
+  bogota: "bg-red-500",
+  credito: "bg-orange-500",
+};
+
 const catLabels: Record<string, string> = {
   utilidad: "Utilidad",
   inversion: "Inversión",
   costos: "Gasto",
 };
 
-function Stat({ title, value, accent = "gray" }: { title: string; value: number; accent?: Accent }) {
+function Stat({ title, value, icon, iconBg, iconColor, valueColor }: {
+  title: string; value: number; icon: React.ReactNode; iconBg: string; iconColor: string; valueColor: string;
+}) {
   return (
     <div className="card-premium rounded-2xl p-5">
-      <div className="flex items-center gap-2">
-        <span className={`h-1.5 w-1.5 rounded-full ${accentDot[accent]}`} />
+      <div className="flex items-start justify-between">
         <span className="text-[11px] font-medium uppercase tracking-wide text-gray-400">{title}</span>
+        <span className={`flex h-8 w-8 items-center justify-center rounded-lg ${iconBg} ${iconColor}`}>
+          {icon}
+        </span>
       </div>
-      <p className={`mt-3 text-2xl font-semibold tracking-tight ${value < 0 ? "text-red-600" : "text-gray-900"}`}>
+      <p className={`mt-3 text-2xl font-semibold tracking-tight ${value < 0 ? "text-red-600" : valueColor}`}>
         {formatCurrency(value)}
       </p>
     </div>
   );
 }
 
-function DistCard({ label, value, total, accent }: { label: string; value: number; total: number; accent: Accent }) {
+function DistCard({ label, value, total, className, labelColor, valueColor, totalColor }: {
+  label: string; value: number; total: number; className: string; labelColor: string; valueColor: string; totalColor: string;
+}) {
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-4">
-      <div className="flex items-center gap-2">
-        <span className={`h-1.5 w-1.5 rounded-full ${accentDot[accent]}`} />
-        <span className="text-[11px] font-medium uppercase tracking-wide text-gray-400">{label}</span>
-      </div>
-      <p className={`mt-3 text-2xl font-semibold tracking-tight ${value < 0 ? "text-red-600" : "text-gray-900"}`}>
+    <div className={`rounded-xl border p-4 ${className}`}>
+      <p className={`text-sm font-medium ${labelColor}`}>{label}</p>
+      <p className={`mt-1 text-2xl font-semibold tracking-tight ${value < 0 ? "text-red-600" : valueColor}`}>
         {formatCurrency(value)}
       </p>
-      <p className="mt-1 text-xs text-gray-400">Total generado: {formatCurrency(total)}</p>
+      <p className={`mt-1 text-xs ${totalColor}`}>Total generado: {formatCurrency(total)}</p>
     </div>
   );
 }
@@ -152,30 +158,35 @@ export function DineroPage() {
   return (
     <div className="space-y-6">
       <div className="animate-fade-up">
-        <h1 className="text-2xl font-semibold tracking-tight text-gray-900">Caja / Dinero</h1>
+        <h1 className="flex items-center gap-2 text-2xl font-semibold tracking-tight text-gray-900">
+          <Wallet className="h-6 w-6 text-gold-600" />
+          Caja / Dinero
+        </h1>
         <p className="mt-1 text-sm text-gray-500">Control de caja, dinero y saques</p>
       </div>
 
       {/* SALDO TOTAL */}
-      <div className="card-premium animate-fade-up rounded-2xl p-6 sm:p-7">
+      <div className="card-premium animate-fade-up rounded-2xl border-2 border-green-200 bg-gradient-to-r from-green-50 to-emerald-50 p-6 sm:p-7">
         <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-gray-400">Dinero total disponible</p>
-            <p className={`mt-2 text-4xl font-semibold tracking-tight ${d.saldo_total >= 0 ? "text-gray-900" : "text-red-600"}`}>
-              {formatCurrency(d.saldo_total)}
-            </p>
-            <p className="mt-1 text-xs text-gray-400">Ventas - gastos - saques</p>
+          <div className="flex items-start gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-green-100">
+              <Wallet className="h-6 w-6 text-green-600" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-gray-800">Dinero total disponible</h2>
+              <p className="text-xs text-gray-500">Lo que debería haber en total (ventas - gastos - saques)</p>
+            </div>
           </div>
-          <div className="flex h-11 w-11 items-center justify-center rounded-full border border-gray-200 bg-gray-50">
-            <Wallet className="h-5 w-5 text-gold-600" />
-          </div>
+          <p className={`text-3xl font-semibold tracking-tight sm:text-4xl ${d.saldo_total >= 0 ? "text-green-700" : "text-red-700"}`}>
+            {formatCurrency(d.saldo_total)}
+          </p>
         </div>
 
-        <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-5">
+        <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-5">
           {Object.entries(d.saldo_por_metodo).map(([key, val]) => (
-            <div key={key} className="rounded-xl border border-gray-200 bg-gray-50/60 p-3">
-              <p className="text-[11px] font-medium uppercase tracking-wide text-gray-400">{methodLabels[key] || key}</p>
-              <p className={`mt-1 text-base font-semibold ${val >= 0 ? "text-gray-900" : "text-red-600"}`}>
+            <div key={key} className={`rounded-xl border p-3 ${methodColors[key] || "bg-white border-gray-200 text-gray-700"}`}>
+              <p className="text-[11px] font-medium uppercase tracking-wide opacity-70">{methodLabels[key] || key}</p>
+              <p className={`mt-1 text-base font-semibold ${val >= 0 ? "" : "text-red-600"}`}>
                 {formatCurrency(val)}
               </p>
             </div>
@@ -183,32 +194,32 @@ export function DineroPage() {
         </div>
 
         {d.total_retiros > 0 && (
-          <p className="mt-4 text-xs text-gray-400">
-            Saques realizados: <span className="font-medium text-red-600">-{formatCurrency(d.total_retiros)}</span>
+          <p className="mt-4 text-xs text-gray-500">
+            Total saques realizados: <span className="font-semibold text-red-600">-{formatCurrency(d.total_retiros)}</span>
           </p>
         )}
 
         {/* Prestamos desglose */}
         {(d.prestamos_desembolsados > 0 || d.prestamos_abonados > 0) && (
-          <div className="mt-6 border-t border-gray-100 pt-5">
-            <div className="mb-3 flex items-center gap-2">
-              <Landmark className="h-4 w-4 text-gray-400" />
-              <span className="text-[11px] font-medium uppercase tracking-wide text-gray-400">Prestamos</span>
+          <div className="mt-4 rounded-xl border border-purple-200 bg-purple-50 p-4">
+            <div className="mb-2 flex items-center gap-2">
+              <Landmark className="h-4 w-4 text-purple-600" />
+              <p className="text-sm font-semibold text-purple-800">Prestamos</p>
             </div>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-              <div>
-                <p className="text-[11px] uppercase tracking-wide text-gray-400">Total prestado</p>
-                <p className="mt-0.5 text-base font-semibold text-red-600">-{formatCurrency(d.prestamos_desembolsados)}</p>
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+              <div className="flex flex-col">
+                <span className="text-xs text-gray-600">Total prestado (resta)</span>
+                <span className="text-base font-bold text-red-600">-{formatCurrency(d.prestamos_desembolsados)}</span>
               </div>
-              <div>
-                <p className="text-[11px] uppercase tracking-wide text-gray-400">Abonos recibidos</p>
-                <p className="mt-0.5 text-base font-semibold text-green-600">+{formatCurrency(d.prestamos_abonados)}</p>
+              <div className="flex flex-col">
+                <span className="text-xs text-gray-600">Total abonos recibidos (suma)</span>
+                <span className="text-base font-bold text-green-600">+{formatCurrency(d.prestamos_abonados)}</span>
               </div>
-              <div>
-                <p className="text-[11px] uppercase tracking-wide text-gray-400">Neto prestamos</p>
-                <p className={`mt-0.5 text-base font-semibold ${(d.prestamos_abonados - d.prestamos_desembolsados) >= 0 ? "text-gray-900" : "text-red-600"}`}>
+              <div className="flex flex-col">
+                <span className="text-xs text-gray-600">Neto prestamos</span>
+                <span className={`text-base font-bold ${(d.prestamos_abonados - d.prestamos_desembolsados) >= 0 ? "text-green-700" : "text-red-700"}`}>
                   {formatCurrency(d.prestamos_abonados - d.prestamos_desembolsados)}
-                </p>
+                </span>
               </div>
             </div>
           </div>
@@ -217,51 +228,53 @@ export function DineroPage() {
 
       {/* Tarjetas resumen hoy */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5 animate-fade-up-delay-1">
-        <Stat title="Ventas hoy" value={d.ventas_hoy} accent="green" />
-        <Stat title="Utilidad bruta hoy" value={d.utilidad_bruta_hoy} accent="teal" />
-        <Stat title="Gastos hoy" value={d.gastos_hoy} accent="red" />
-        <Stat title="Ganancia neta hoy" value={d.ganancia_neta_hoy} accent="gold" />
-        <Stat title="Abonos hoy" value={d.abonos_hoy} accent="purple" />
+        <Stat title="Ventas hoy" value={d.ventas_hoy} icon={<TrendingUp className="h-4 w-4" />} iconBg="bg-green-100" iconColor="text-green-600" valueColor="text-green-700" />
+        <Stat title="Utilidad bruta hoy" value={d.utilidad_bruta_hoy} icon={<DollarSign className="h-4 w-4" />} iconBg="bg-teal-100" iconColor="text-teal-600" valueColor="text-teal-700" />
+        <Stat title="Gastos hoy" value={d.gastos_hoy} icon={<TrendingDown className="h-4 w-4" />} iconBg="bg-red-100" iconColor="text-red-600" valueColor="text-red-700" />
+        <Stat title="Ganancia neta hoy" value={d.ganancia_neta_hoy} icon={<DollarSign className="h-4 w-4" />} iconBg="bg-gold-100" iconColor="text-gold-600" valueColor="text-gold-700" />
+        <Stat title="Abonos hoy" value={d.abonos_hoy} icon={<CreditCard className="h-4 w-4" />} iconBg="bg-purple-100" iconColor="text-purple-600" valueColor="text-purple-700" />
       </div>
 
       {/* Tarjetas resumen mes */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 animate-fade-up-delay-1">
-        <Stat title="Ventas mes" value={d.ventas_mes} accent="green" />
-        <Stat title="Utilidad bruta mes" value={d.utilidad_bruta_mes} accent="teal" />
+        <Stat title="Ventas mes" value={d.ventas_mes} icon={<TrendingUp className="h-4 w-4" />} iconBg="bg-green-100" iconColor="text-green-600" valueColor="text-green-700" />
+        <Stat title="Utilidad bruta mes" value={d.utilidad_bruta_mes} icon={<DollarSign className="h-4 w-4" />} iconBg="bg-teal-100" iconColor="text-teal-600" valueColor="text-teal-700" />
 
-        <div className="card-premium rounded-2xl p-5">
-          <div className="flex items-center gap-2">
-            <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
-            <span className="text-[11px] font-medium uppercase tracking-wide text-gray-400">Gastos mes</span>
+        <div className="rounded-2xl border border-red-200 bg-red-50 p-5">
+          <div className="flex items-start justify-between">
+            <span className="text-[11px] font-medium uppercase tracking-wide text-gray-500">Gastos mes</span>
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-100 text-red-600">
+              <TrendingDown className="h-4 w-4" />
+            </span>
           </div>
-          <p className="mt-3 text-2xl font-semibold tracking-tight text-gray-900">{formatCurrency(d.gastos_mes)}</p>
+          <p className="mt-3 text-2xl font-semibold tracking-tight text-red-700">{formatCurrency(d.gastos_mes)}</p>
           {d.gastos_mes_por_distribucion && (
-            <div className="mt-3 space-y-1.5 border-t border-gray-100 pt-3">
+            <div className="mt-3 space-y-1 border-t border-red-100 pt-3">
               <div className="flex items-center justify-between text-xs">
-                <span className="text-gray-400">De Gasto (reales)</span>
-                <span className="font-medium text-gray-700">{formatCurrency(d.gastos_mes_por_distribucion.costos || 0)}</span>
+                <span className="font-medium text-amber-700">De Gasto (reales)</span>
+                <span className="font-semibold text-amber-700">{formatCurrency(d.gastos_mes_por_distribucion.costos || 0)}</span>
               </div>
               <div className="flex items-center justify-between text-xs">
-                <span className="text-gray-400">De Utilidad</span>
-                <span className="font-medium text-gray-700">{formatCurrency(d.gastos_mes_por_distribucion.utilidad || 0)}</span>
+                <span className="font-medium text-green-700">De Utilidad</span>
+                <span className="font-semibold text-green-700">{formatCurrency(d.gastos_mes_por_distribucion.utilidad || 0)}</span>
               </div>
               <div className="flex items-center justify-between text-xs">
-                <span className="text-gray-400">De Inversión</span>
-                <span className="font-medium text-gray-700">{formatCurrency(d.gastos_mes_por_distribucion.inversion || 0)}</span>
+                <span className="font-medium text-blue-700">De Inversión</span>
+                <span className="font-semibold text-blue-700">{formatCurrency(d.gastos_mes_por_distribucion.inversion || 0)}</span>
               </div>
             </div>
           )}
         </div>
 
-        <Stat title="Ganancia neta mes" value={d.ganancia_neta_mes} accent="gold" />
+        <Stat title="Ganancia neta mes" value={d.ganancia_neta_mes} icon={<DollarSign className="h-4 w-4" />} iconBg="bg-gold-100" iconColor="text-gold-600" valueColor="text-gold-700" />
       </div>
 
       {/* Distribucion del dinero */}
       <div className="card-premium animate-scale-in rounded-2xl p-5 sm:p-6">
         <div className="mb-5 flex items-start justify-between gap-4">
           <div>
-            <h2 className="text-base font-semibold text-gray-900">Distribución del dinero</h2>
-            <p className="mt-1 text-xs text-gray-400">
+            <h2 className="text-base font-semibold text-gray-800">Distribución del dinero</h2>
+            <p className="mt-1 text-xs text-gray-500">
               Cada venta se reparte entre estas categorías. Los gastos y saques salen de la categoría que elijas al crearlos.
             </p>
           </div>
@@ -274,62 +287,63 @@ export function DineroPage() {
         </div>
 
         {showConfig && (
-          <div className="mb-5 rounded-xl border border-gray-200 bg-gray-50 p-3 text-xs text-gray-500">
-            Reparto por defecto por cada venta: <strong className="font-medium text-gray-700">20% Utilidad</strong> ·{" "}
-            <strong className="font-medium text-gray-700">10% Gasto</strong> ·{" "}
-            <strong className="font-medium text-gray-700">70% Inversión</strong>. Los gastos se descuentan de{" "}
-            <strong className="font-medium text-gray-700">Gasto</strong> y los saques de{" "}
-            <strong className="font-medium text-gray-700">Utilidad</strong> (puedes cambiarlo al crearlos).
+          <div className="mb-5 rounded-xl border border-gold-200 bg-gold-50 p-3 text-xs text-gray-700">
+            Reparto por defecto por cada venta: <strong>20% Utilidad</strong> · <strong>10% Gasto</strong> ·{" "}
+            <strong>70% Inversión</strong>. Los gastos se descuentan de <strong>Gasto</strong> y los saques de{" "}
+            <strong>Utilidad</strong> (puedes cambiarlo al crearlos).
           </div>
         )}
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <DistCard label="Utilidad" value={d.distribucion.utilidad} total={d.distribucion_totales.utilidad} accent="green" />
-          <DistCard label="Inversión" value={d.distribucion.inversion} total={d.distribucion_totales.inversion} accent="blue" />
-          <DistCard label="Gasto" value={d.distribucion.costos} total={d.distribucion_totales.costos} accent="amber" />
+          <DistCard label="Utilidad" value={d.distribucion.utilidad} total={d.distribucion_totales.utilidad}
+            className="border-green-200 bg-green-50" labelColor="text-green-800" valueColor="text-green-700" totalColor="text-green-600" />
+          <DistCard label="Inversión" value={d.distribucion.inversion} total={d.distribucion_totales.inversion}
+            className="border-blue-200 bg-blue-50" labelColor="text-blue-800" valueColor="text-blue-700" totalColor="text-blue-600" />
+          <DistCard label="Gasto" value={d.distribucion.costos} total={d.distribucion_totales.costos}
+            className="border-amber-200 bg-amber-50" labelColor="text-amber-800" valueColor="text-amber-700" totalColor="text-amber-600" />
         </div>
 
-        <div className="mt-4 flex items-center justify-between rounded-xl bg-gray-50 px-4 py-3">
-          <span className="text-xs font-medium uppercase tracking-wide text-gray-400">Total distribución</span>
-          <span className="text-lg font-semibold text-gray-900">
+        <div className="mt-4 flex items-center justify-between rounded-xl border-2 border-gray-300 bg-gray-50 px-4 py-3">
+          <span className="text-sm font-semibold text-gray-700">Total distribución</span>
+          <span className="text-xl font-semibold tracking-tight text-gray-900">
             {formatCurrency(d.distribucion.utilidad + d.distribucion.inversion + d.distribucion.costos)}
           </span>
         </div>
 
         {/* Prestamos */}
         {(d.prestamos_desembolsados > 0 || d.prestamos_abonados > 0) && (
-          <div className="mt-4 rounded-xl border border-gray-200 bg-gray-50/60 p-4">
-            <div className="mb-3 flex items-center gap-2">
-              <Landmark className="h-4 w-4 text-gray-400" />
-              <span className="text-[11px] font-medium uppercase tracking-wide text-gray-400">Prestamos</span>
+          <div className="mt-3 rounded-xl border border-purple-200 bg-purple-50 p-4">
+            <div className="mb-2 flex items-center gap-2">
+              <Landmark className="h-4 w-4 text-purple-600" />
+              <span className="text-sm font-semibold text-purple-800">Prestamos</span>
             </div>
             <div className="flex items-center justify-between text-xs">
-              <span className="text-gray-400">Desembolsados (salen)</span>
+              <span className="text-gray-600">Desembolsados (salen)</span>
               <span className="font-medium text-red-600">-{formatCurrency(d.prestamos_desembolsados)}</span>
             </div>
-            <div className="mt-1.5 flex items-center justify-between text-xs">
-              <span className="text-gray-400">Abonos recibidos (entran)</span>
+            <div className="mt-1 flex items-center justify-between text-xs">
+              <span className="text-gray-600">Abonos recibidos (entran)</span>
               <span className="font-medium text-green-600">+{formatCurrency(d.prestamos_abonados)}</span>
             </div>
-            <div className="mt-2 flex items-center justify-between border-t border-gray-200 pt-2 text-xs">
-              <span className="font-medium text-gray-500">Neto prestamos</span>
-              <span className={`font-semibold ${(d.prestamos_abonados - d.prestamos_desembolsados) >= 0 ? "text-gray-900" : "text-red-600"}`}>
+            <div className="mt-2 flex items-center justify-between border-t border-purple-200 pt-2 text-xs">
+              <span className="font-semibold text-purple-800">Neto prestamos</span>
+              <span className={`font-bold ${(d.prestamos_abonados - d.prestamos_desembolsados) >= 0 ? "text-green-700" : "text-red-700"}`}>
                 {formatCurrency(d.prestamos_abonados - d.prestamos_desembolsados)}
               </span>
             </div>
           </div>
         )}
 
-        {/* Colchon financiero (sutil) */}
+        {/* Colchon financiero */}
         {colchon && (
-          <div className="mt-3 flex items-center justify-between rounded-xl border border-gray-200 bg-gray-50/60 px-4 py-3">
+          <div className="mt-3 flex items-center justify-between rounded-xl border border-blue-100 bg-blue-50/60 px-4 py-3">
             <div className="flex items-center gap-2">
-              <PiggyBank className="h-4 w-4 text-gray-400" />
-              <span className="text-xs font-medium text-gray-500">Colchón financiero</span>
+              <PiggyBank className="h-4 w-4 text-blue-500" />
+              <span className="text-xs font-medium text-blue-700">Colchón financiero</span>
             </div>
             <div className="text-right">
-              <span className="text-sm font-semibold text-gray-900">{formatCurrency(colchon.monto_base)}</span>
-              <span className="ml-2 text-[11px] text-gray-400">disp. {formatCurrency(colchon.saldo_disponible)}</span>
+              <span className="text-sm font-semibold text-blue-800">{formatCurrency(colchon.monto_base)}</span>
+              <span className="ml-2 text-[11px] text-blue-500">disp. {formatCurrency(colchon.saldo_disponible)}</span>
             </div>
           </div>
         )}
@@ -338,30 +352,33 @@ export function DineroPage() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Metodos de pago */}
         <div className="card-premium rounded-2xl p-5 sm:p-6">
-          <h2 className="text-base font-semibold text-gray-900">Ventas hoy por método</h2>
+          <h2 className="text-base font-semibold text-gray-800">Ventas hoy por método</h2>
           <div className="mt-4 space-y-3">
             {Object.entries(d.por_metodo).map(([key, val]) => (
-              <div key={key} className="flex items-center justify-between text-sm">
-                <span className="text-gray-500">{methodLabels[key] || key}</span>
-                <span className={`font-medium ${val < 0 ? "text-red-600" : "text-gray-900"}`}>{formatCurrency(val)}</span>
+              <div key={key} className="flex items-center justify-between">
+                <span className="flex items-center gap-2 text-sm text-gray-600">
+                  <span className={`h-2 w-2 rounded-full ${methodDot[key] || "bg-gray-400"}`} />
+                  {methodLabels[key] || key}
+                </span>
+                <span className={`text-sm font-semibold ${val < 0 ? "text-red-600" : "text-gray-900"}`}>{formatCurrency(val)}</span>
               </div>
             ))}
           </div>
-          <div className="mt-5 flex items-center justify-between border-t border-gray-100 pt-4">
-            <span className="text-sm font-medium text-gray-500">Deuda pendiente</span>
-            <span className="text-sm font-semibold text-red-600">{formatCurrency(d.deuda_pendiente)}</span>
+          <div className="mt-4 flex items-center justify-between border-t pt-3">
+            <span className="text-sm font-semibold text-gray-800">Deuda pendiente</span>
+            <span className="text-sm font-bold text-red-600">{formatCurrency(d.deuda_pendiente)}</span>
           </div>
         </div>
 
         {/* Saques / Retiros */}
         <div className="card-premium rounded-2xl p-5 sm:p-6">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-base font-semibold text-gray-900">Saques / Retiros</h2>
+            <h2 className="text-base font-semibold text-gray-800">Saques / Retiros</h2>
             <button
               onClick={() => { setShowForm(!showForm); setRetiroError(null); }}
               className={showForm
                 ? "flex items-center gap-1 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-500 transition-colors hover:bg-gray-50"
-                : "btn-gold !px-3 !py-1.5 !text-xs"}
+                : "flex items-center gap-1 rounded-lg bg-red-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-red-700"}
             >
               {showForm ? <X className="h-3 w-3" /> : <Plus className="h-3 w-3" />}
               {showForm ? "Cancelar" : "Nuevo saque"}
@@ -369,10 +386,10 @@ export function DineroPage() {
           </div>
 
           {showForm && (
-            <div className="mb-4 space-y-3 rounded-xl border border-gray-200 bg-gray-50/60 p-4">
+            <div className="mb-4 space-y-3 rounded-xl border border-red-200 bg-red-50 p-4">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-gray-500">Monto *</label>
+                  <label className="mb-1 block text-xs font-medium text-gray-600">Monto *</label>
                   <input
                     type="text"
                     inputMode="decimal"
@@ -382,13 +399,13 @@ export function DineroPage() {
                     placeholder="0"
                   />
                   {d && (
-                    <p className="mt-1 text-xs text-gray-400">
-                      Disponible: <span className="font-medium text-gray-600">{formatCurrency(d.saldo_por_metodo[form.source_method] || 0)}</span>
+                    <p className="mt-1 text-xs text-gray-500">
+                      Disponible: <span className="font-semibold text-gray-700">{formatCurrency(d.saldo_por_metodo[form.source_method] || 0)}</span>
                     </p>
                   )}
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-gray-500">Salida de *</label>
+                  <label className="mb-1 block text-xs font-medium text-gray-600">Salida de *</label>
                   <select
                     value={form.source_method}
                     onChange={(e) => setForm({ ...form, source_method: e.target.value })}
@@ -401,7 +418,7 @@ export function DineroPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-gray-500">Sale de la categoria *</label>
+                  <label className="mb-1 block text-xs font-medium text-gray-600">Sale de la categoria *</label>
                   <select
                     value={form.distribution_category}
                     onChange={(e) => setForm({ ...form, distribution_category: e.target.value })}
@@ -414,7 +431,7 @@ export function DineroPage() {
                 </div>
               </div>
               <div>
-                <label className="mb-1 block text-xs font-medium text-gray-500">Para que fue? *</label>
+                <label className="mb-1 block text-xs font-medium text-gray-600">Para que fue? *</label>
                 <input
                   type="text"
                   value={form.description}
@@ -425,7 +442,7 @@ export function DineroPage() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-gray-500">Fecha</label>
+                  <label className="mb-1 block text-xs font-medium text-gray-600">Fecha</label>
                   <input
                     type="date"
                     value={form.retiro_date}
@@ -434,7 +451,7 @@ export function DineroPage() {
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-gray-500">Referencia</label>
+                  <label className="mb-1 block text-xs font-medium text-gray-600">Referencia</label>
                   <input
                     type="text"
                     value={form.reference}
@@ -445,7 +462,7 @@ export function DineroPage() {
                 </div>
               </div>
               <div>
-                <label className="mb-1 block text-xs font-medium text-gray-500">Notas</label>
+                <label className="mb-1 block text-xs font-medium text-gray-600">Notas</label>
                 <input
                   type="text"
                   value={form.notes}
@@ -457,12 +474,12 @@ export function DineroPage() {
               <button
                 onClick={handleSubmit}
                 disabled={createMutation.isPending || !form.amount || !form.description}
-                className="btn-gold w-full justify-center disabled:opacity-50"
+                className="w-full rounded-lg bg-red-600 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700 disabled:opacity-50"
               >
                 {createMutation.isPending ? "Guardando..." : "Registrar saque"}
               </button>
               {retiroError && (
-                <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-white p-3 text-sm text-red-700">
                   <AlertTriangle className="h-4 w-4 flex-shrink-0" />
                   <span>{retiroError}</span>
                 </div>
@@ -473,12 +490,12 @@ export function DineroPage() {
           {retiros.length === 0 ? (
             <p className="text-sm text-gray-400">No hay saques registrados</p>
           ) : (
-            <div className="max-h-80 space-y-1 overflow-y-auto">
+            <div className="max-h-80 space-y-2 overflow-y-auto">
               {retiros.map((r) => (
-                <div key={r.id} className="flex items-center gap-3 border-b border-gray-100 py-3 last:border-0">
+                <div key={r.id} className="flex items-center gap-3 rounded-lg border border-gray-100 bg-gray-50/60 px-3 py-2">
                   <ArrowUpCircle className="h-4 w-4 shrink-0 text-red-500" />
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-gray-900">{r.description}</p>
+                    <p className="truncate text-sm font-medium text-gray-800">{r.description}</p>
                     <p className="truncate text-xs text-gray-400">
                       {methodLabels[r.source_method] || r.source_method} | {r.retiro_date} | {catLabels[r.distribution_category] || r.distribution_category} | Por: {r.user_name}
                     </p>
