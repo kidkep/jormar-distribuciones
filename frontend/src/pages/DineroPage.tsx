@@ -5,7 +5,63 @@ import { retirosApi, type Retiro } from "@/api/retiros.api";
 import { colchonApi, type ColchonResumen } from "@/api/colchon.api";
 import { formatCurrency } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
-import { TrendingUp, TrendingDown, DollarSign, CreditCard, ArrowDownCircle, ArrowUpCircle, Plus, X, Wallet, AlertTriangle, Landmark, PiggyBank } from "lucide-react";
+import { Wallet, Plus, X, AlertTriangle, ArrowUpCircle, Landmark, PiggyBank } from "lucide-react";
+
+type Accent = "green" | "red" | "blue" | "amber" | "purple" | "teal" | "gold" | "gray";
+
+const accentDot: Record<Accent, string> = {
+  green: "bg-green-500",
+  red: "bg-red-500",
+  blue: "bg-blue-500",
+  amber: "bg-amber-500",
+  purple: "bg-purple-500",
+  teal: "bg-teal-500",
+  gold: "bg-gold-500",
+  gray: "bg-gray-300",
+};
+
+const methodLabels: Record<string, string> = {
+  efectivo: "Efectivo",
+  nequi: "Nequi",
+  bancolombia: "Bancolombia",
+  bogota: "Banco de Bogota",
+  credito: "Credito",
+};
+
+const catLabels: Record<string, string> = {
+  utilidad: "Utilidad",
+  inversion: "Inversión",
+  costos: "Gasto",
+};
+
+function Stat({ title, value, accent = "gray" }: { title: string; value: number; accent?: Accent }) {
+  return (
+    <div className="card-premium rounded-2xl p-5">
+      <div className="flex items-center gap-2">
+        <span className={`h-1.5 w-1.5 rounded-full ${accentDot[accent]}`} />
+        <span className="text-[11px] font-medium uppercase tracking-wide text-gray-400">{title}</span>
+      </div>
+      <p className={`mt-3 text-2xl font-semibold tracking-tight ${value < 0 ? "text-red-600" : "text-gray-900"}`}>
+        {formatCurrency(value)}
+      </p>
+    </div>
+  );
+}
+
+function DistCard({ label, value, total, accent }: { label: string; value: number; total: number; accent: Accent }) {
+  return (
+    <div className="rounded-xl border border-gray-200 bg-white p-4">
+      <div className="flex items-center gap-2">
+        <span className={`h-1.5 w-1.5 rounded-full ${accentDot[accent]}`} />
+        <span className="text-[11px] font-medium uppercase tracking-wide text-gray-400">{label}</span>
+      </div>
+      <p className={`mt-3 text-2xl font-semibold tracking-tight ${value < 0 ? "text-red-600" : "text-gray-900"}`}>
+        {formatCurrency(value)}
+      </p>
+      <p className="mt-1 text-xs text-gray-400">Total generado: {formatCurrency(total)}</p>
+    </div>
+  );
+}
 
 export function DineroPage() {
   const queryClient = useQueryClient();
@@ -63,13 +119,13 @@ export function DineroPage() {
         <div className="h-8 w-64 rounded-lg bg-gray-200/60 animate-pulse" />
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="card-premium animate-pulse p-5">
+            <div key={i} className="card-premium animate-pulse rounded-2xl p-5">
               <div className="h-4 w-24 rounded bg-gray-200/60" />
               <div className="mt-3 h-8 w-32 rounded bg-gray-200/60" />
             </div>
           ))}
         </div>
-        <div className="card-premium animate-pulse h-72 p-5">
+        <div className="card-premium animate-pulse h-72 rounded-2xl p-5">
           <div className="h-5 w-48 rounded bg-gray-200/60" />
         </div>
       </div>
@@ -79,28 +135,6 @@ export function DineroPage() {
   const d = cajaData as CajaResumen;
   const retiros = (retirosData || []) as Retiro[];
   const colchon = colchonData as ColchonResumen | undefined;
-
-  const methodLabels: Record<string, string> = {
-    efectivo: "Efectivo",
-    nequi: "Nequi",
-    bancolombia: "Bancolombia",
-    bogota: "Banco de Bogota",
-    credito: "Credito",
-  };
-
-  const methodColors: Record<string, string> = {
-    efectivo: "bg-green-50 border-green-200 text-green-700",
-    nequi: "bg-purple-50 border-purple-200 text-purple-700",
-    bancolombia: "bg-yellow-50 border-yellow-200 text-yellow-700",
-    bogota: "bg-red-50 border-red-200 text-red-700",
-    credito: "bg-orange-50 border-orange-200 text-orange-700",
-  };
-
-  const catLabels: Record<string, string> = {
-    utilidad: "Utilidad",
-    inversion: "Inversión",
-    costos: "Gasto",
-  };
 
   const handleSubmit = () => {
     if (!form.amount || !form.description) return;
@@ -117,71 +151,64 @@ export function DineroPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex animate-fade-up items-center justify-between">
-        <div>
-          <h1 className="flex items-center gap-2 text-2xl font-bold text-gray-900">
-            <Wallet className="h-6 w-6 text-gold-600" />
-            Caja / Dinero
-          </h1>
-          <p className="mt-1 text-sm text-gray-600">Control de caja, dinero y saques</p>
-        </div>
+      <div className="animate-fade-up">
+        <h1 className="text-2xl font-semibold tracking-tight text-gray-900">Caja / Dinero</h1>
+        <p className="mt-1 text-sm text-gray-500">Control de caja, dinero y saques</p>
       </div>
 
       {/* SALDO TOTAL */}
-      <div className="card-premium rounded-xl border-2 border-green-200 bg-gradient-to-r from-green-50 to-emerald-50 p-6 animate-fade-up">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="rounded-full bg-green-100 p-2">
-            <Wallet className="h-6 w-6 text-green-600" />
-          </div>
+      <div className="card-premium animate-fade-up rounded-2xl p-6 sm:p-7">
+        <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h2 className="text-lg font-bold text-gray-800">Dinero Total Disponible</h2>
-            <p className="text-xs text-gray-500">Lo que deberia haber en total (ventas - gastos - saques)</p>
+            <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-gray-400">Dinero total disponible</p>
+            <p className={`mt-2 text-4xl font-semibold tracking-tight ${d.saldo_total >= 0 ? "text-gray-900" : "text-red-600"}`}>
+              {formatCurrency(d.saldo_total)}
+            </p>
+            <p className="mt-1 text-xs text-gray-400">Ventas - gastos - saques</p>
+          </div>
+          <div className="flex h-11 w-11 items-center justify-center rounded-full border border-gray-200 bg-gray-50">
+            <Wallet className="h-5 w-5 text-gold-600" />
           </div>
         </div>
-        <p className={`text-4xl font-extrabold ${d.saldo_total >= 0 ? "text-green-700" : "text-red-700"}`}>
-          {formatCurrency(d.saldo_total)}
-        </p>
 
-        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-5">
+        <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-5">
           {Object.entries(d.saldo_por_metodo).map(([key, val]) => (
-            <div key={key} className={`rounded-lg border p-3 ${methodColors[key] || "bg-gray-50 border-gray-200"}`}>
-              <p className="text-xs font-medium opacity-70">{methodLabels[key] || key}</p>
-              <p className={`text-lg font-bold ${val >= 0 ? "" : "text-red-600"}`}>
+            <div key={key} className="rounded-xl border border-gray-200 bg-gray-50/60 p-3">
+              <p className="text-[11px] font-medium uppercase tracking-wide text-gray-400">{methodLabels[key] || key}</p>
+              <p className={`mt-1 text-base font-semibold ${val >= 0 ? "text-gray-900" : "text-red-600"}`}>
                 {formatCurrency(val)}
               </p>
             </div>
           ))}
         </div>
 
-        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-          {d.total_retiros > 0 && (
-            <p className="text-xs text-gray-500">
-              Total saques realizados: <span className="font-semibold text-red-600">-{formatCurrency(d.total_retiros)}</span>
-            </p>
-          )}
-        </div>
+        {d.total_retiros > 0 && (
+          <p className="mt-4 text-xs text-gray-400">
+            Saques realizados: <span className="font-medium text-red-600">-{formatCurrency(d.total_retiros)}</span>
+          </p>
+        )}
 
         {/* Prestamos desglose */}
         {(d.prestamos_desembolsados > 0 || d.prestamos_abonados > 0) && (
-          <div className="mt-4 rounded-lg border border-purple-200 bg-purple-50 p-4">
-            <div className="mb-2 flex items-center gap-2">
-              <Landmark className="h-4 w-4 text-purple-600" />
-              <p className="text-sm font-semibold text-purple-800">Prestamos</p>
+          <div className="mt-6 border-t border-gray-100 pt-5">
+            <div className="mb-3 flex items-center gap-2">
+              <Landmark className="h-4 w-4 text-gray-400" />
+              <span className="text-[11px] font-medium uppercase tracking-wide text-gray-400">Prestamos</span>
             </div>
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-              <div className="flex flex-col">
-                <span className="text-xs text-gray-600">Total prestado (resta)</span>
-                <span className="text-base font-bold text-red-600">-{formatCurrency(d.prestamos_desembolsados)}</span>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <div>
+                <p className="text-[11px] uppercase tracking-wide text-gray-400">Total prestado</p>
+                <p className="mt-0.5 text-base font-semibold text-red-600">-{formatCurrency(d.prestamos_desembolsados)}</p>
               </div>
-              <div className="flex flex-col">
-                <span className="text-xs text-gray-600">Total abonos recibidos (suma)</span>
-                <span className="text-base font-bold text-green-600">+{formatCurrency(d.prestamos_abonados)}</span>
+              <div>
+                <p className="text-[11px] uppercase tracking-wide text-gray-400">Abonos recibidos</p>
+                <p className="mt-0.5 text-base font-semibold text-green-600">+{formatCurrency(d.prestamos_abonados)}</p>
               </div>
-              <div className="flex flex-col">
-                <span className="text-xs text-gray-600">Neto prestamos</span>
-                <span className={`text-base font-bold ${(d.prestamos_abonados - d.prestamos_desembolsados) >= 0 ? "text-green-700" : "text-red-700"}`}>
+              <div>
+                <p className="text-[11px] uppercase tracking-wide text-gray-400">Neto prestamos</p>
+                <p className={`mt-0.5 text-base font-semibold ${(d.prestamos_abonados - d.prestamos_desembolsados) >= 0 ? "text-gray-900" : "text-red-600"}`}>
                   {formatCurrency(d.prestamos_abonados - d.prestamos_desembolsados)}
-                </span>
+                </p>
               </div>
             </div>
           </div>
@@ -190,122 +217,103 @@ export function DineroPage() {
 
       {/* Tarjetas resumen hoy */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5 animate-fade-up-delay-1">
-        <Card title="Ventas Hoy" value={d.ventas_hoy} icon={<TrendingUp className="h-5 w-5 text-green-600" />} color="bg-green-50 border-green-200" textColor="text-green-700" />
-        <Card title="Utilidad Bruta Hoy" value={d.utilidad_bruta_hoy} icon={<DollarSign className="h-5 w-5 text-teal-600" />} color="bg-teal-50 border-teal-200" textColor="text-teal-700" />
-        <Card title="Gastos Hoy" value={d.gastos_hoy} icon={<TrendingDown className="h-5 w-5 text-red-600" />} color="bg-red-50 border-red-200" textColor="text-red-700" />
-        <Card title="Ganancia Neta Hoy" value={d.ganancia_neta_hoy} icon={<DollarSign className="h-5 w-5 text-gold-600" />} color="bg-gold-50 border-gold-200" textColor="text-gold-700" />
-        <Card title="Abonos Hoy" value={d.abonos_hoy} icon={<CreditCard className="h-5 w-5 text-purple-600" />} color="bg-purple-50 border-purple-200" textColor="text-purple-700" />
+        <Stat title="Ventas hoy" value={d.ventas_hoy} accent="green" />
+        <Stat title="Utilidad bruta hoy" value={d.utilidad_bruta_hoy} accent="teal" />
+        <Stat title="Gastos hoy" value={d.gastos_hoy} accent="red" />
+        <Stat title="Ganancia neta hoy" value={d.ganancia_neta_hoy} accent="gold" />
+        <Stat title="Abonos hoy" value={d.abonos_hoy} accent="purple" />
       </div>
 
       {/* Tarjetas resumen mes */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 animate-fade-up-delay-1">
-        <Card title="Ventas Mes" value={d.ventas_mes} icon={<TrendingUp className="h-5 w-5 text-green-600" />} color="bg-green-50 border-green-200" textColor="text-green-700" />
-        <Card title="Utilidad Bruta Mes" value={d.utilidad_bruta_mes} icon={<DollarSign className="h-5 w-5 text-teal-600" />} color="bg-teal-50 border-teal-200" textColor="text-teal-700" />
-        <div className="rounded-xl border border-red-200 bg-red-50 p-4">
-          <div className="mb-2 flex items-center justify-between">
-            <span className="text-sm font-medium text-gray-600">Gastos Mes</span>
-            <TrendingDown className="h-5 w-5 text-red-600" />
+        <Stat title="Ventas mes" value={d.ventas_mes} accent="green" />
+        <Stat title="Utilidad bruta mes" value={d.utilidad_bruta_mes} accent="teal" />
+
+        <div className="card-premium rounded-2xl p-5">
+          <div className="flex items-center gap-2">
+            <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
+            <span className="text-[11px] font-medium uppercase tracking-wide text-gray-400">Gastos mes</span>
           </div>
-          <p className="text-xl font-bold text-red-700">{formatCurrency(d.gastos_mes)}</p>
+          <p className="mt-3 text-2xl font-semibold tracking-tight text-gray-900">{formatCurrency(d.gastos_mes)}</p>
           {d.gastos_mes_por_distribucion && (
-            <div className="mt-3 space-y-1 border-t border-red-100 pt-2">
+            <div className="mt-3 space-y-1.5 border-t border-gray-100 pt-3">
               <div className="flex items-center justify-between text-xs">
-                <span className="font-medium text-amber-700">De Gasto (reales)</span>
-                <span className="font-semibold text-amber-700">{formatCurrency(d.gastos_mes_por_distribucion.costos || 0)}</span>
+                <span className="text-gray-400">De Gasto (reales)</span>
+                <span className="font-medium text-gray-700">{formatCurrency(d.gastos_mes_por_distribucion.costos || 0)}</span>
               </div>
               <div className="flex items-center justify-between text-xs">
-                <span className="font-medium text-green-700">De Utilidad</span>
-                <span className="font-semibold text-green-700">{formatCurrency(d.gastos_mes_por_distribucion.utilidad || 0)}</span>
+                <span className="text-gray-400">De Utilidad</span>
+                <span className="font-medium text-gray-700">{formatCurrency(d.gastos_mes_por_distribucion.utilidad || 0)}</span>
               </div>
               <div className="flex items-center justify-between text-xs">
-                <span className="font-medium text-blue-700">De Inversión</span>
-                <span className="font-semibold text-blue-700">{formatCurrency(d.gastos_mes_por_distribucion.inversion || 0)}</span>
+                <span className="text-gray-400">De Inversión</span>
+                <span className="font-medium text-gray-700">{formatCurrency(d.gastos_mes_por_distribucion.inversion || 0)}</span>
               </div>
             </div>
           )}
         </div>
-        <Card title="Ganancia Neta Mes" value={d.ganancia_neta_mes} icon={<DollarSign className="h-5 w-5 text-gold-600" />} color="bg-gold-50 border-gold-200" textColor="text-gold-700" />
+
+        <Stat title="Ganancia neta mes" value={d.ganancia_neta_mes} accent="gold" />
       </div>
 
       {/* Distribucion del dinero */}
-      <div className="card-premium animate-scale-in p-5">
-        <div className="mb-4 flex items-center justify-between">
+      <div className="card-premium animate-scale-in rounded-2xl p-5 sm:p-6">
+        <div className="mb-5 flex items-start justify-between gap-4">
           <div>
-            <h2 className="text-base font-semibold text-gray-800">Distribución del Dinero</h2>
-            <p className="text-xs text-gray-500">
+            <h2 className="text-base font-semibold text-gray-900">Distribución del dinero</h2>
+            <p className="mt-1 text-xs text-gray-400">
               Cada venta se reparte entre estas categorías. Los gastos y saques salen de la categoría que elijas al crearlos.
             </p>
           </div>
           <button
             onClick={() => setShowConfig(!showConfig)}
-            className="rounded-lg border border-gray-300 px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-50"
+            className="shrink-0 rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-gray-500 transition-colors hover:bg-gray-50"
           >
             {showConfig ? "Ocultar" : "Cómo se distribuye"}
           </button>
         </div>
 
         {showConfig && (
-          <div className="mb-4 rounded-lg border border-gold-200 bg-gold-50 p-3 text-xs text-gray-700">
-            Reparto por defecto por cada venta: <strong>20% Utilidad</strong> · <strong>10% Gasto</strong> · <strong>70% Inversión</strong>.
-            Los gastos se descuentan de <strong>Gasto</strong> y los saques de <strong>Utilidad</strong> (puedes cambiarlo al crearlos).
+          <div className="mb-5 rounded-xl border border-gray-200 bg-gray-50 p-3 text-xs text-gray-500">
+            Reparto por defecto por cada venta: <strong className="font-medium text-gray-700">20% Utilidad</strong> ·{" "}
+            <strong className="font-medium text-gray-700">10% Gasto</strong> ·{" "}
+            <strong className="font-medium text-gray-700">70% Inversión</strong>. Los gastos se descuentan de{" "}
+            <strong className="font-medium text-gray-700">Gasto</strong> y los saques de{" "}
+            <strong className="font-medium text-gray-700">Utilidad</strong> (puedes cambiarlo al crearlos).
           </div>
         )}
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <div className="rounded-lg border border-green-200 bg-green-50 p-4">
-            <p className="text-sm font-medium text-green-800">Utilidad</p>
-            <p className="mt-1 text-2xl font-bold text-green-700">{formatCurrency(d.distribucion.utilidad)}</p>
-            <p className="mt-1 text-xs text-green-600">
-              Total generado: {formatCurrency(d.distribucion_totales.utilidad)}
-            </p>
-          </div>
-          <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
-            <p className="text-sm font-medium text-blue-800">Inversión</p>
-            <p className={`mt-1 text-2xl font-bold ${d.distribucion.inversion >= 0 ? "text-blue-700" : "text-red-600"}`}>
-              {formatCurrency(d.distribucion.inversion)}
-            </p>
-            <p className="mt-1 text-xs text-blue-600">
-              Total generado: {formatCurrency(d.distribucion_totales.inversion)}
-            </p>
-          </div>
-          <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
-            <p className="text-sm font-medium text-amber-800">Gasto</p>
-            <p className={`mt-1 text-2xl font-bold ${d.distribucion.costos >= 0 ? "text-amber-700" : "text-red-600"}`}>
-              {formatCurrency(d.distribucion.costos)}
-            </p>
-            <p className="mt-1 text-xs text-amber-600">
-              Total generado: {formatCurrency(d.distribucion_totales.costos)}
-            </p>
-          </div>
+          <DistCard label="Utilidad" value={d.distribucion.utilidad} total={d.distribucion_totales.utilidad} accent="green" />
+          <DistCard label="Inversión" value={d.distribucion.inversion} total={d.distribucion_totales.inversion} accent="blue" />
+          <DistCard label="Gasto" value={d.distribucion.costos} total={d.distribucion_totales.costos} accent="amber" />
         </div>
 
-        <div className="mt-4 flex items-center justify-between rounded-lg border-2 border-gray-300 bg-gray-50 px-4 py-3">
-          <span className="text-sm font-semibold text-gray-700">
-            Total Distribucion
-          </span>
-          <span className="text-xl font-extrabold text-gray-900">
+        <div className="mt-4 flex items-center justify-between rounded-xl bg-gray-50 px-4 py-3">
+          <span className="text-xs font-medium uppercase tracking-wide text-gray-400">Total distribución</span>
+          <span className="text-lg font-semibold text-gray-900">
             {formatCurrency(d.distribucion.utilidad + d.distribucion.inversion + d.distribucion.costos)}
           </span>
         </div>
 
         {/* Prestamos */}
         {(d.prestamos_desembolsados > 0 || d.prestamos_abonados > 0) && (
-          <div className="mt-3 rounded-lg border border-purple-200 bg-purple-50 p-3">
-            <div className="flex items-center gap-2 mb-2">
-              <Landmark className="h-4 w-4 text-purple-600" />
-              <span className="text-xs font-semibold text-purple-800">Prestamos</span>
+          <div className="mt-4 rounded-xl border border-gray-200 bg-gray-50/60 p-4">
+            <div className="mb-3 flex items-center gap-2">
+              <Landmark className="h-4 w-4 text-gray-400" />
+              <span className="text-[11px] font-medium uppercase tracking-wide text-gray-400">Prestamos</span>
             </div>
             <div className="flex items-center justify-between text-xs">
-              <span className="text-gray-600">Desembolsados (salen):</span>
+              <span className="text-gray-400">Desembolsados (salen)</span>
               <span className="font-medium text-red-600">-{formatCurrency(d.prestamos_desembolsados)}</span>
             </div>
-            <div className="flex items-center justify-between text-xs mt-1">
-              <span className="text-gray-600">Abonos recibidos (entran):</span>
+            <div className="mt-1.5 flex items-center justify-between text-xs">
+              <span className="text-gray-400">Abonos recibidos (entran)</span>
               <span className="font-medium text-green-600">+{formatCurrency(d.prestamos_abonados)}</span>
             </div>
-            <div className="mt-2 flex items-center justify-between border-t border-purple-200 pt-2 text-xs">
-              <span className="font-semibold text-purple-800">Neto prestamos:</span>
-              <span className={`font-bold ${(d.prestamos_abonados - d.prestamos_desembolsados) >= 0 ? "text-green-700" : "text-red-700"}`}>
+            <div className="mt-2 flex items-center justify-between border-t border-gray-200 pt-2 text-xs">
+              <span className="font-medium text-gray-500">Neto prestamos</span>
+              <span className={`font-semibold ${(d.prestamos_abonados - d.prestamos_desembolsados) >= 0 ? "text-gray-900" : "text-red-600"}`}>
                 {formatCurrency(d.prestamos_abonados - d.prestamos_desembolsados)}
               </span>
             </div>
@@ -314,16 +322,14 @@ export function DineroPage() {
 
         {/* Colchon financiero (sutil) */}
         {colchon && (
-          <div className="mt-3 flex items-center justify-between rounded-lg border border-blue-100 bg-blue-50/60 px-3 py-2">
+          <div className="mt-3 flex items-center justify-between rounded-xl border border-gray-200 bg-gray-50/60 px-4 py-3">
             <div className="flex items-center gap-2">
-              <PiggyBank className="h-3.5 w-3.5 text-blue-500" />
-              <span className="text-xs font-medium text-blue-700">Colchon Financiero</span>
+              <PiggyBank className="h-4 w-4 text-gray-400" />
+              <span className="text-xs font-medium text-gray-500">Colchón financiero</span>
             </div>
             <div className="text-right">
-              <span className="text-xs font-semibold text-blue-800">{formatCurrency(colchon.monto_base)}</span>
-              <span className="ml-2 text-[11px] text-blue-500">
-                disp. {formatCurrency(colchon.saldo_disponible)}
-              </span>
+              <span className="text-sm font-semibold text-gray-900">{formatCurrency(colchon.monto_base)}</span>
+              <span className="ml-2 text-[11px] text-gray-400">disp. {formatCurrency(colchon.saldo_disponible)}</span>
             </div>
           </div>
         )}
@@ -331,40 +337,42 @@ export function DineroPage() {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Metodos de pago */}
-        <div className="card-premium p-5">
-          <h2 className="mb-4 text-base font-semibold text-gray-800">Ventas Hoy por Metodo</h2>
-          <div className="space-y-3">
+        <div className="card-premium rounded-2xl p-5 sm:p-6">
+          <h2 className="text-base font-semibold text-gray-900">Ventas hoy por método</h2>
+          <div className="mt-4 space-y-3">
             {Object.entries(d.por_metodo).map(([key, val]) => (
-              <div key={key} className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">{methodLabels[key] || key}</span>
-                <span className="text-sm font-medium">{formatCurrency(val)}</span>
+              <div key={key} className="flex items-center justify-between text-sm">
+                <span className="text-gray-500">{methodLabels[key] || key}</span>
+                <span className={`font-medium ${val < 0 ? "text-red-600" : "text-gray-900"}`}>{formatCurrency(val)}</span>
               </div>
             ))}
           </div>
-          <div className="mt-4 flex items-center justify-between border-t pt-3">
-            <span className="text-sm font-semibold text-gray-800">Deuda Pendiente</span>
-            <span className="text-sm font-bold text-red-600">{formatCurrency(d.deuda_pendiente)}</span>
+          <div className="mt-5 flex items-center justify-between border-t border-gray-100 pt-4">
+            <span className="text-sm font-medium text-gray-500">Deuda pendiente</span>
+            <span className="text-sm font-semibold text-red-600">{formatCurrency(d.deuda_pendiente)}</span>
           </div>
         </div>
 
         {/* Saques / Retiros */}
-        <div className="card-premium p-5">
+        <div className="card-premium rounded-2xl p-5 sm:p-6">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-base font-semibold text-gray-800">Saques / Retiros</h2>
+            <h2 className="text-base font-semibold text-gray-900">Saques / Retiros</h2>
             <button
               onClick={() => { setShowForm(!showForm); setRetiroError(null); }}
-              className="flex items-center gap-1 rounded-lg bg-red-600 px-3 py-1.5 text-xs text-white hover:bg-red-700"
+              className={showForm
+                ? "flex items-center gap-1 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-500 transition-colors hover:bg-gray-50"
+                : "btn-gold !px-3 !py-1.5 !text-xs"}
             >
               {showForm ? <X className="h-3 w-3" /> : <Plus className="h-3 w-3" />}
-              {showForm ? "Cancelar" : "Nuevo Saque"}
+              {showForm ? "Cancelar" : "Nuevo saque"}
             </button>
           </div>
 
           {showForm && (
-            <div className="mb-4 space-y-3 rounded-lg border border-red-200 bg-red-50 p-4">
+            <div className="mb-4 space-y-3 rounded-xl border border-gray-200 bg-gray-50/60 p-4">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-gray-600">Monto *</label>
+                  <label className="mb-1 block text-xs font-medium text-gray-500">Monto *</label>
                   <input
                     type="text"
                     inputMode="decimal"
@@ -374,13 +382,13 @@ export function DineroPage() {
                     placeholder="0"
                   />
                   {d && (
-                    <p className="mt-1 text-xs text-gray-500">
-                      Disponible: <span className="font-semibold text-gray-700">{formatCurrency(d.saldo_por_metodo[form.source_method] || 0)}</span>
+                    <p className="mt-1 text-xs text-gray-400">
+                      Disponible: <span className="font-medium text-gray-600">{formatCurrency(d.saldo_por_metodo[form.source_method] || 0)}</span>
                     </p>
                   )}
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-gray-600">Salida de *</label>
+                  <label className="mb-1 block text-xs font-medium text-gray-500">Salida de *</label>
                   <select
                     value={form.source_method}
                     onChange={(e) => setForm({ ...form, source_method: e.target.value })}
@@ -393,7 +401,7 @@ export function DineroPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-gray-600">Sale de la categoria *</label>
+                  <label className="mb-1 block text-xs font-medium text-gray-500">Sale de la categoria *</label>
                   <select
                     value={form.distribution_category}
                     onChange={(e) => setForm({ ...form, distribution_category: e.target.value })}
@@ -406,7 +414,7 @@ export function DineroPage() {
                 </div>
               </div>
               <div>
-                <label className="mb-1 block text-xs font-medium text-gray-600">Para que fue? *</label>
+                <label className="mb-1 block text-xs font-medium text-gray-500">Para que fue? *</label>
                 <input
                   type="text"
                   value={form.description}
@@ -417,7 +425,7 @@ export function DineroPage() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-gray-600">Fecha</label>
+                  <label className="mb-1 block text-xs font-medium text-gray-500">Fecha</label>
                   <input
                     type="date"
                     value={form.retiro_date}
@@ -426,7 +434,7 @@ export function DineroPage() {
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-gray-600">Referencia</label>
+                  <label className="mb-1 block text-xs font-medium text-gray-500">Referencia</label>
                   <input
                     type="text"
                     value={form.reference}
@@ -437,7 +445,7 @@ export function DineroPage() {
                 </div>
               </div>
               <div>
-                <label className="mb-1 block text-xs font-medium text-gray-600">Notas</label>
+                <label className="mb-1 block text-xs font-medium text-gray-500">Notas</label>
                 <input
                   type="text"
                   value={form.notes}
@@ -449,12 +457,12 @@ export function DineroPage() {
               <button
                 onClick={handleSubmit}
                 disabled={createMutation.isPending || !form.amount || !form.description}
-                className="w-full rounded-lg bg-red-600 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
+                className="btn-gold w-full justify-center disabled:opacity-50"
               >
-                {createMutation.isPending ? "Guardando..." : "Registrar Saque"}
+                {createMutation.isPending ? "Guardando..." : "Registrar saque"}
               </button>
               {retiroError && (
-                <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-white p-3 text-sm text-red-700">
+                <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
                   <AlertTriangle className="h-4 w-4 flex-shrink-0" />
                   <span>{retiroError}</span>
                 </div>
@@ -465,37 +473,23 @@ export function DineroPage() {
           {retiros.length === 0 ? (
             <p className="text-sm text-gray-400">No hay saques registrados</p>
           ) : (
-            <div className="max-h-80 space-y-2 overflow-y-auto">
+            <div className="max-h-80 space-y-1 overflow-y-auto">
               {retiros.map((r) => (
-                <div key={r.id} className="flex items-center gap-3 rounded-lg border px-3 py-2">
+                <div key={r.id} className="flex items-center gap-3 border-b border-gray-100 py-3 last:border-0">
                   <ArrowUpCircle className="h-4 w-4 shrink-0 text-red-500" />
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium">{r.description}</p>
-                    <p className="text-xs text-gray-400">
+                    <p className="truncate text-sm font-medium text-gray-900">{r.description}</p>
+                    <p className="truncate text-xs text-gray-400">
                       {methodLabels[r.source_method] || r.source_method} | {r.retiro_date} | {catLabels[r.distribution_category] || r.distribution_category} | Por: {r.user_name}
                     </p>
                   </div>
-                  <span className="text-sm font-semibold text-red-600">-{formatCurrency(r.amount)}</span>
+                  <span className="shrink-0 text-sm font-semibold text-red-600">-{formatCurrency(r.amount)}</span>
                 </div>
               ))}
             </div>
           )}
         </div>
       </div>
-    </div>
-  );
-}
-
-function Card({ title, value, icon, color, textColor }: {
-  title: string; value: number; icon: React.ReactNode; color: string; textColor: string;
-}) {
-  return (
-    <div className={`rounded-xl border p-4 ${color}`}>
-      <div className="mb-2 flex items-center justify-between">
-        <span className="text-sm font-medium text-gray-600">{title}</span>
-        {icon}
-      </div>
-      <p className={`text-xl font-bold ${textColor}`}>{formatCurrency(value)}</p>
     </div>
   );
 }
