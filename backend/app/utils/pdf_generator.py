@@ -125,32 +125,58 @@ class JormarPDF(FPDF):
 
     def add_item_table(self, headers, col_widths, items, get_row):
         header_x = 10
-        self.set_x(header_x)
-        self.set_fill_color(*GOLD_DARK)
-        self.set_text_color(255, 255, 255)
-        self.set_font("Helvetica", "B", 9)
-        for i, h in enumerate(headers):
-            self.cell(col_widths[i], 8, h, border=1, fill=True, align="C")
-        self.ln()
+        line_h = 5.0
+        pad = 2.5
 
-        self.set_text_color(*DARK)
-        self.set_font("Helvetica", "", 9)
+        def draw_header():
+            self.set_x(header_x)
+            self.set_fill_color(*GOLD_DARK)
+            self.set_text_color(255, 255, 255)
+            self.set_font("Helvetica", "B", 9)
+            for i, h in enumerate(headers):
+                self.cell(col_widths[i], 8, h, border=1, fill=True, align="C")
+            self.ln()
+
+        draw_header()
+
         self.set_draw_color(*MID_GRAY)
         for idx, item in enumerate(items):
-            row = get_row(item)
-            # Filas alternadas
-            if idx % 2 == 0:
-                self.set_fill_color(*LIGHT)
-                fill = True
-            else:
-                self.set_fill_color(255, 255, 255)
-                fill = True
-            self.set_x(header_x)
-            self.set_text_color(*DARK)
-            for i, val in enumerate(row):
-                align = "R" if i >= 2 else ("C" if i == 0 else "")
-                self.cell(col_widths[i], 7, self._sanitize_text(val), border=1, fill=fill, align=align)
-            self.ln()
+            self.set_font("Helvetica", "", 9)
+            values = [self._sanitize_text(v) for v in get_row(item)]
+            # Envuelve el contenido de cada celda para no recortar informacion
+            cells = [self._wrap_text_lines(v, col_widths[i] - pad) or [""] for i, v in enumerate(values)]
+            n_lines = max(len(c) for c in cells)
+            row_h = max(7.0, n_lines * line_h + 2.0)
+
+            # Si la fila completa no cabe, pasa a nueva pagina y repite encabezado
+            if self.get_y() + row_h > self.page_break_trigger:
+                self.add_page()
+                draw_header()
+
+            y0 = self.get_y()
+            x = header_x
+            self.set_fill_color(*(LIGHT if idx % 2 == 0 else (255, 255, 255)))
+            for i, w in enumerate(col_widths):
+                align = "R" if i >= 2 else ("C" if i == 0 else "L")
+                # Fondo y borde de la celda
+                self.set_xy(x, y0)
+                self.cell(w, row_h, "", border=1, fill=True)
+                # Texto envuelto, centrado verticalmente
+                self.set_text_color(*DARK)
+                self.set_font("Helvetica", "", 9)
+                block_h = len(cells[i]) * line_h
+                ty = y0 + (row_h - block_h) / 2
+                if align == "R":
+                    tx, tw = x, w - 2
+                elif align == "C":
+                    tx, tw = x, w
+                else:
+                    tx, tw = x + 1.5, w - 3
+                for li, ln in enumerate(cells[i]):
+                    self.set_xy(tx, ty + li * line_h)
+                    self.cell(tw, line_h, ln, border=0, align=align)
+                x += w
+            self.set_xy(header_x, y0 + row_h)
 
     def add_footer_text(self, text):
         self.set_font("Helvetica", "I", 9)
@@ -331,7 +357,7 @@ def generate_invoice_pdf_bytes(sale) -> bytes:
         item_sub = float(item.unit_price) * item.quantity
         return [
             str(item.quantity),
-            label[:40],
+            label,
             f"${item.unit_price:,.0f}",
             f"${item_sub:,.0f}",
             f"${float(item.total_price):,.0f}",
@@ -388,7 +414,7 @@ def generate_quote_pdf_bytes(quote) -> bytes:
         item_sub = float(item.unit_price) * item.quantity
         return [
             str(item.quantity),
-            label[:40],
+            label,
             f"${item.unit_price:,.0f}",
             f"${item_sub:,.0f}",
             f"${float(item.total_price):,.0f}",
@@ -437,7 +463,7 @@ def generate_purchase_order_pdf_bytes(order) -> bytes:
         item_sub = float(item.unit_price) * item.quantity
         return [
             str(item.quantity),
-            label[:40],
+            label,
             f"${item.unit_price:,.0f}",
             f"${item_sub:,.0f}",
             f"${float(item.total_price):,.0f}",
