@@ -22,6 +22,46 @@ COMMERCIAL_CONDITIONS = (
     "50% contra entrega."
 )
 
+_ROUND_LOGO_CACHE: dict = {}
+
+
+def round_logo_bytes(px: int = 700, ring: int = 12) -> bytes:
+    """Recorta el logo en circulo con un anillo dorado y devuelve un PNG con
+    transparencia. El contenido del logo cabe en el circulo inscrito, por lo que
+    no se pierde nada. Se cachea para no reprocesar en cada PDF."""
+    cached = _ROUND_LOGO_CACHE.get((px, ring))
+    if cached is not None:
+        return cached
+
+    from PIL import Image, ImageDraw
+
+    src = Image.open(LOGO_PATH).convert("RGBA").resize((px, px), Image.LANCZOS)
+
+    ss = 4  # supersampling para bordes suaves
+    big = px * ss
+
+    mask = Image.new("L", (big, big), 0)
+    ImageDraw.Draw(mask).ellipse((0, 0, big - 1, big - 1), fill=255)
+    mask = mask.resize((px, px), Image.LANCZOS)
+
+    out = Image.new("RGBA", (px, px), (0, 0, 0, 0))
+    out.paste(src, (0, 0), mask)
+
+    # Anillo dorado alrededor del borde
+    ring_mask = Image.new("L", (big, big), 0)
+    draw = ImageDraw.Draw(ring_mask)
+    draw.ellipse((0, 0, big - 1, big - 1), fill=255)
+    inner = ring * ss
+    draw.ellipse((inner, inner, big - 1 - inner, big - 1 - inner), fill=0)
+    ring_mask = ring_mask.resize((px, px), Image.LANCZOS)
+    out.paste(Image.new("RGBA", (px, px), GOLD + (255,)), (0, 0), ring_mask)
+
+    buf = io.BytesIO()
+    out.save(buf, format="PNG")
+    data = buf.getvalue()
+    _ROUND_LOGO_CACHE[(px, ring)] = data
+    return data
+
 
 class JormarPDF(FPDF):
     def header(self):
@@ -38,10 +78,16 @@ class JormarPDF(FPDF):
         self.set_fill_color(*GOLD)
         self.rect(0, 0, 210, 3, "F")
 
-        # Logo centrado
+        # Logo circular centrado (medallon con anillo dorado)
         if os.path.exists(LOGO_PATH):
-            self.image(LOGO_PATH, x=80, w=50)
-            self.ln(30)
+            logo_w = 44
+            logo_top = 6
+            try:
+                logo_src = round_logo_bytes()
+            except Exception:
+                logo_src = LOGO_PATH
+            self.image(logo_src, x=(210 - logo_w) / 2, y=logo_top, w=logo_w)
+            self.set_y(logo_top + logo_w + 2)
 
         y0 = self.get_y()
 
