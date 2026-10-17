@@ -349,7 +349,7 @@ export function PurchaseOrdersPage() {
                 value={notes}
                 onChange={setNotes}
                 placeholder="Condiciones de compra, plazos de entrega, forma de pago..."
-                maxLength={2000}
+                maxLength={5000}
                 className="input-premium"
               />
             </div>

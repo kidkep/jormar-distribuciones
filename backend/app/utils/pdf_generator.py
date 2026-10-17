@@ -270,9 +270,11 @@ class JormarPDF(FPDF):
 
             self.set_text_color(*DARK)
             self.set_xy(inner_x, box_y + 2.5)
+            line_y = box_y + 2.5
             for ln in lines[chunk_start:chunk_end]:
-                self.set_x(inner_x)
+                self.set_xy(inner_x, line_y)
                 self.cell(inner_w, line_h, ln, align="L")
+                line_y += line_h
             self.set_y(box_y + content_h + 2)
             chunk_start = chunk_end
 

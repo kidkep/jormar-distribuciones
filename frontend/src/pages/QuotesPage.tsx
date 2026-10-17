@@ -393,7 +393,7 @@ export function QuotesPage() {
                 value={notes}
                 onChange={setNotes}
                 placeholder="Condiciones, forma de pago, plazos de entrega, garantias..."
-                maxLength={2000}
+                maxLength={5000}
                 className="input-premium"
               />
             </div>
