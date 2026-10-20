@@ -3,8 +3,9 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { quotesApi, type Quote, type QuoteCreate } from "@/api/quotes.api";
 import { productsApi, type Product } from "@/api/products.api";
 import { clientsApi, type Client } from "@/api/clients.api";
-import { Plus, Search, Eye, Trash2, Send, CheckCircle, XCircle, FileText, Download, X, Pencil } from "lucide-react";
+import { Plus, Search, Eye, Trash2, Send, CheckCircle, XCircle, FileText, Download, X, Pencil, MessageCircle } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { buildQuoteWaLink } from "@/lib/whatsapp";
 import { ClientPicker } from "@/components/common/ClientPicker";
 import { AutoResizeTextarea } from "@/components/common/AutoResizeTextarea";
 import { SkeletonRows, EmptyTableRow } from "@/components/common/TableStates";
@@ -45,6 +46,7 @@ export function QuotesPage() {
   const [notes, setNotes] = useState("");
   const [cart, setCart] = useState<CartItem[]>([]);
   const [productSearch, setProductSearch] = useState("");
+  const [waNotice, setWaNotice] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   const { data: quotes = [], isLoading } = useQuery({
@@ -143,6 +145,19 @@ export function QuotesPage() {
     a.download = `cotizacion-${quoteId}.pdf`;
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  const sendByWhatsApp = (quote: Quote) => {
+    const { href, isClient, hasClient } = buildQuoteWaLink(quote, clients);
+    window.open(href, "_blank", "noopener,noreferrer");
+    if (isClient) {
+      setWaNotice("Abriendo WhatsApp del cliente...");
+    } else if (hasClient) {
+      setWaNotice("El cliente no tiene teléfono guardado. Se abrió el WhatsApp de JORMAR.");
+    } else {
+      setWaNotice("Cotización sin cliente. Se abrió el WhatsApp de JORMAR.");
+    }
+    window.setTimeout(() => setWaNotice(null), 4000);
   };
 
   const addToCart = (product: Product) => {
@@ -271,6 +286,9 @@ export function QuotesPage() {
                       )}
                       <button onClick={() => downloadQuotePdf(q.id)} className="rounded-lg p-1.5 text-green-600 transition hover:bg-green-50" title="Descargar PDF">
                         <Download className="h-4 w-4" />
+                      </button>
+                      <button onClick={() => sendByWhatsApp(q)} className="rounded-lg p-1.5 text-emerald-600 transition hover:bg-emerald-50" title="Enviar por WhatsApp">
+                        <MessageCircle className="h-4 w-4" />
                       </button>
                       {q.status === "borrador" && (
                         <button onClick={() => statusMutation.mutate({ id: q.id, status: "enviada" })} className="rounded-lg p-1.5 text-gold-500 transition hover:bg-gold-50" title="Enviar">
@@ -422,6 +440,9 @@ export function QuotesPage() {
                 <button onClick={() => downloadQuotePdf(showDetail.id)} className="rounded-lg p-1.5 text-green-600 transition hover:bg-green-50" title="Descargar PDF">
                   <Download className="h-5 w-5" />
                 </button>
+                <button onClick={() => sendByWhatsApp(showDetail)} className="rounded-lg p-1.5 text-emerald-600 transition hover:bg-emerald-50" title="Enviar por WhatsApp">
+                  <MessageCircle className="h-5 w-5" />
+                </button>
                 <button onClick={() => setShowDetail(null)} className="rounded-lg p-1.5 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600">
                   <X className="h-5 w-5" />
                 </button>
@@ -457,6 +478,13 @@ export function QuotesPage() {
             </div>
             {showDetail.notes && <div className="mt-4 rounded-lg bg-gray-50 p-3 text-sm text-gray-600"><strong>Notas:</strong> {showDetail.notes}</div>}
           </div>
+        </div>
+      )}
+
+      {waNotice && (
+        <div className="fixed bottom-6 right-6 z-[100] flex items-center gap-2 rounded-xl bg-gray-900 px-4 py-3 text-sm text-white shadow-xl animate-fade-up">
+          <MessageCircle className="h-4 w-4 text-emerald-400" />
+          {waNotice}
         </div>
       )}
     </div>
