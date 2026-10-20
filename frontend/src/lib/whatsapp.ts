@@ -22,6 +22,8 @@ export function resolveQuotePhone(
   clients: Client[]
 ): { phone: string; isClient: boolean; client: Client | null } {
   const client = clientLookup(clients, quote.client_id);
+  const quotePhone = normalizePhone(quote.client_phone);
+  if (quotePhone) return { phone: quotePhone, isClient: true, client };
   const clientPhone = normalizePhone(client?.phone);
   if (clientPhone) return { phone: clientPhone, isClient: true, client };
   return { phone: JORMAR_WHATSAPP, isClient: false, client };

@@ -37,9 +37,12 @@ export function QuotesPage() {
   const [editingQuote, setEditingQuote] = useState<Quote | null>(null);
   const [clientName, setClientName] = useState("");
   const [clientId, setClientId] = useState<number | null>(null);
-  const handleClientChange = ({ clientId: id, clientName: name }: { clientId: number | null; clientName: string }) => {
+  const [clientPhone, setClientPhone] = useState("");
+  const handlePickClient = ({ clientId: id, clientName: name }: { clientId: number | null; clientName: string }) => {
     setClientId(id);
     setClientName(name);
+    const picked = clients.find((c) => c.id === id);
+    setClientPhone(picked?.phone || "");
   };
   const [validUntil, setValidUntil] = useState("");
   const [discount, setDiscount] = useState(0);
@@ -102,6 +105,7 @@ export function QuotesPage() {
     setCart([]);
     setClientName("");
     setClientId(null);
+    setClientPhone("");
     setValidUntil("");
     setDiscount(0);
     setNotes("");
@@ -112,6 +116,7 @@ export function QuotesPage() {
     setEditingQuote(q);
     setClientName(q.client_name || q.client?.name || "");
     setClientId(q.client_id);
+    setClientPhone(q.client_phone || "");
     setValidUntil(q.valid_until ? String(q.valid_until).slice(0, 10) : "");
     const sub = Number(q.subtotal);
     setDiscount(sub > 0 ? Math.round((Number(q.discount) / sub) * 100) : 0);
@@ -191,6 +196,7 @@ export function QuotesPage() {
     const payload: QuoteCreate = {
       client_id: clientId,
       client_name: clientName || null,
+      client_phone: clientPhone.trim() || null,
       valid_until: validUntil || undefined,
       discount: discountAmount,
       notes: notes || undefined,
@@ -329,10 +335,21 @@ export function QuotesPage() {
               </button>
             </div>
 
-            <div className="grid grid-cols-3 gap-4 mb-4">
-              <div>
+            <div className="grid grid-cols-2 gap-4 mb-4 sm:grid-cols-4">
+              <div className="sm:col-span-1">
                 <label className="mb-1.5 block text-sm font-medium text-gray-700">Cliente</label>
-                <ClientPicker clients={clients} value={clientName} onChange={handleClientChange} />
+                <ClientPicker clients={clients} value={clientName} onChange={handlePickClient} />
+              </div>
+              <div className="sm:col-span-1">
+                <label className="mb-1.5 block text-sm font-medium text-gray-700">WhatsApp del cliente</label>
+                <input
+                  type="text"
+                  inputMode="tel"
+                  value={clientPhone}
+                  onChange={(e) => setClientPhone(e.target.value)}
+                  className="input-premium"
+                  placeholder="Ej: 3001234567"
+                />
               </div>
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-gray-700">Validez hasta</label>
@@ -343,6 +360,9 @@ export function QuotesPage() {
                 <input type="text" inputMode="decimal" value={discount} onChange={(e) => setDiscount(Number(e.target.value))} className="input-premium" placeholder="0" />
               </div>
             </div>
+            <p className="mb-4 -mt-2 text-xs text-gray-500">
+              No necesitas crear el cliente. Escribe su nombre y WhatsApp para cotizar y enviarle el mensaje al instante.
+            </p>
 
             <div className="relative mb-4">
               <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />

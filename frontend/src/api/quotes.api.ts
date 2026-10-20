@@ -17,6 +17,7 @@ export interface Quote {
   client_id: number | null;
   client: { id: number; name: string } | null;
   client_name: string | null;
+  client_phone: string | null;
   user_id: number;
   subtotal: number;
   tax_amount: number;
@@ -38,6 +39,7 @@ export interface QuoteItemCreate {
 export interface QuoteCreate {
   client_id?: number | null;
   client_name?: string | null;
+  client_phone?: string | null;
   quote_date?: string;
   valid_until?: string;
   discount?: number;

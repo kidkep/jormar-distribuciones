@@ -55,6 +55,7 @@ class QuoteService:
             valid_until=data.valid_until,
             client_id=data.client_id,
             client_name=data.client_name,
+            client_phone=data.client_phone,
             user_id=user_id,
             subtotal=subtotal,
             tax_amount=tax_amount,
@@ -106,6 +107,7 @@ class QuoteService:
         quote.valid_until = data.valid_until
         quote.client_id = data.client_id
         quote.client_name = data.client_name
+        quote.client_phone = data.client_phone
         quote.subtotal = subtotal
         quote.tax_amount = Decimal("0")
         quote.discount = discount
