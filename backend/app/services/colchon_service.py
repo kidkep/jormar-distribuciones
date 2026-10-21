@@ -5,7 +5,7 @@ from zoneinfo import ZoneInfo
 from app.models.colchon import ColchonConfig, ColchonPrestamo, ColchonPago
 from app.repositories.colchon_repository import ColchonRepository
 from app.schemas.colchon import ColchonMontoUpdate, ColchonPrestamoCreate, ColchonPagoCreate
-from app.api.v1.caja import compute_inversion_neta
+from app.api.v1.caja import compute_distribucion_netas
 from app.exceptions import NotFoundException, BadRequestException
 
 # El colchon solo se maneja con bancolombia (es donde esta el fondo).
@@ -82,12 +82,39 @@ class ColchonService:
         if data.payment_method not in VALID_METHODS:
             raise BadRequestException("Metodo de pago invalido")
 
-        # El abono se paga con inversion: verificar que la inversion sea suficiente
-        inversion_neta = await compute_inversion_neta(self.db)
-        if float(data.amount) > inversion_neta:
+        # El abono se puede pagar con inversion, utilidad y/o gastos. Si no se
+        # envia reparto, se descuenta todo de inversion (comportamiento previo).
+        amount = float(data.amount)
+        reparto = {
+            "inversion": float(data.amount_inversion or 0),
+            "utilidad": float(data.amount_utilidad or 0),
+            "gastos": float(data.amount_gastos or 0),
+        }
+        if reparto["inversion"] == 0 and reparto["utilidad"] == 0 and reparto["gastos"] == 0:
+            reparto["inversion"] = amount
+
+        total_reparto = round(sum(reparto.values()), 2)
+        if total_reparto != round(amount, 2):
             raise BadRequestException(
-                f"Inversion insuficiente para el abono. Inversion disponible: ${inversion_neta:,.0f}, abono: ${float(data.amount):,.0f}"
+                f"El reparto entre inversion, utilidad y gastos (${total_reparto:,.0f}) "
+                f"debe sumar el total del abono (${amount:,.0f})"
             )
+
+        netas = await compute_distribucion_netas(self.db)
+        disponibles = {
+            "inversion": netas["inversion"],
+            "utilidad": netas["utilidad"],
+            "gastos": netas["costos"],
+        }
+        labels = {"inversion": "Inversion", "utilidad": "Utilidad", "gastos": "Gastos"}
+        for cat, monto in reparto.items():
+            if monto <= 0:
+                continue
+            if monto > disponibles[cat]:
+                raise BadRequestException(
+                    f"{labels[cat]} insuficiente para el abono. "
+                    f"Disponible: ${disponibles[cat]:,.0f}, usado: ${monto:,.0f}"
+                )
 
         payment_date = datetime.now(ZoneInfo("America/Bogota")).replace(tzinfo=None)
         if data.payment_date:
@@ -95,7 +122,10 @@ class ColchonService:
 
         pago = ColchonPago(
             colchon_prestamo_id=prestamo.id,
-            amount=float(data.amount),
+            amount=amount,
+            amount_inversion=reparto["inversion"],
+            amount_utilidad=reparto["utilidad"],
+            amount_gastos=reparto["gastos"],
             payment_method=data.payment_method,
             payment_date=payment_date,
             notes=data.notes,

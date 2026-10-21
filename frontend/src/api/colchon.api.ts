@@ -4,6 +4,9 @@ export interface ColchonPago {
   id: number;
   colchon_prestamo_id: number;
   amount: number;
+  amount_inversion: number;
+  amount_utilidad: number;
+  amount_gastos: number;
   payment_method: string;
   payment_date: string;
   notes: string | null;
@@ -47,6 +50,9 @@ export interface ColchonPrestamoCreate {
 
 export interface ColchonPagoCreate {
   amount: number;
+  amount_inversion?: number;
+  amount_utilidad?: number;
+  amount_gastos?: number;
   payment_method: string;
   payment_date?: string;
   notes?: string;

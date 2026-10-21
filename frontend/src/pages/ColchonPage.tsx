@@ -27,7 +27,9 @@ export function ColchonPage() {
   });
 
   const [pagoForm, setPagoForm] = useState({
-    amount: "",
+    amount_inversion: "",
+    amount_utilidad: "",
+    amount_gastos: "",
     payment_method: "bancolombia",
     payment_date: new Date().toISOString().split("T")[0],
     notes: "",
@@ -77,7 +79,7 @@ export function ColchonPage() {
       queryClient.invalidateQueries({ queryKey: ["colchon-resumen"] });
       queryClient.invalidateQueries({ queryKey: ["caja"] });
       setShowPagoForm(null);
-                        setPagoForm({ amount: "", payment_method: "bancolombia", payment_date: new Date().toISOString().split("T")[0], notes: "" });
+      setPagoForm({ amount_inversion: "", amount_utilidad: "", amount_gastos: "", payment_method: "bancolombia", payment_date: new Date().toISOString().split("T")[0], notes: "" });
     },
     onError: (err: any) => {
       setError(err?.response?.data?.detail || err?.message || "Error al registrar abono");
@@ -153,12 +155,20 @@ export function ColchonPage() {
     });
   };
 
+  const pagoTotal =
+    (parseFloat(pagoForm.amount_inversion) || 0) +
+    (parseFloat(pagoForm.amount_utilidad) || 0) +
+    (parseFloat(pagoForm.amount_gastos) || 0);
+
   const handlePago = (prestamoId: number) => {
-    if (!pagoForm.amount) return;
+    if (pagoTotal <= 0) return;
     pagoMutation.mutate({
       id: prestamoId,
       data: {
-        amount: parseFloat(pagoForm.amount),
+        amount: pagoTotal,
+        amount_inversion: parseFloat(pagoForm.amount_inversion) || 0,
+        amount_utilidad: parseFloat(pagoForm.amount_utilidad) || 0,
+        amount_gastos: parseFloat(pagoForm.amount_gastos) || 0,
         payment_method: pagoForm.payment_method,
         payment_date: pagoForm.payment_date,
         notes: pagoForm.notes || undefined,
@@ -205,7 +215,7 @@ export function ColchonPage() {
           </div>
           <div className="flex-1">
             <h2 className="text-lg font-bold text-gray-800">Tarjeta de Inversion (Colchon Financiero)</h2>
-            <p className="text-xs text-gray-500">Fondo de $1,000,000 que pertenece a la categoria inversion. Los abonos descuentan de inversion.</p>
+            <p className="text-xs text-gray-500">Fondo de $1,000,000 que pertenece a la categoria inversion. Los abonos se descuentan de las categorias que elijas.</p>
           </div>
           {isSuper && (
             <button
@@ -313,7 +323,7 @@ export function ColchonPage() {
         <div className="card-premium animate-scale-in rounded-xl border-2 border-gold-200 bg-gold-50/50 p-6">
           <h3 className="mb-4 text-base font-semibold text-gray-800">Nuevo Prestamo del Colchon</h3>
           <p className="mb-4 text-xs text-gray-500">
-            Los prestamos se descuentan del colchon (disponible para prestar). Los abonos se pagan con la categoria Inversion.
+            Los prestamos se descuentan del colchon (disponible para prestar). Los abonos se pagan con Inversion, Utilidad o Gastos.
           </p>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
@@ -461,15 +471,34 @@ export function ColchonPage() {
                 {/* Pagos recientes */}
                 {p.pagos && p.pagos.length > 0 && (
                   <div className="mt-3 rounded-lg bg-gray-50 p-3">
-                    <p className="mb-2 text-xs font-medium text-gray-600">Abonos ({p.pagos.length}) - se descuentan de inversion</p>
-                    <div className="max-h-32 space-y-1 overflow-y-auto">
+                    <p className="mb-2 text-xs font-medium text-gray-600">Abonos ({p.pagos.length}) - repartidos por categoria</p>
+                    <div className="max-h-40 space-y-2 overflow-y-auto">
                       {p.pagos.map((pg) => (
-                        <div key={pg.id} className="flex items-center justify-between text-xs">
-                          <span className="text-gray-600">
-                            <ArrowDownCircle className="mr-1 inline h-3 w-3 text-green-500" />
-                            {pg.payment_date} - {methodLabels[pg.payment_method] || pg.payment_method}
-                          </span>
-                          <span className="font-medium text-green-600">+{formatCurrency(pg.amount)}</span>
+                        <div key={pg.id} className="rounded-md border border-gray-200 bg-white px-2 py-1.5 text-xs">
+                          <div className="flex items-center justify-between">
+                            <span className="text-gray-600">
+                              <ArrowDownCircle className="mr-1 inline h-3 w-3 text-green-500" />
+                              {pg.payment_date} - {methodLabels[pg.payment_method] || pg.payment_method}
+                            </span>
+                            <span className="font-medium text-green-600">+{formatCurrency(pg.amount)}</span>
+                          </div>
+                          <div className="mt-1 flex flex-wrap gap-1">
+                            {pg.amount_inversion > 0 && (
+                              <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-medium text-blue-700">
+                                Inversion {formatCurrency(pg.amount_inversion)}
+                              </span>
+                            )}
+                            {pg.amount_utilidad > 0 && (
+                              <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-medium text-emerald-700">
+                                Utilidad {formatCurrency(pg.amount_utilidad)}
+                              </span>
+                            )}
+                            {pg.amount_gastos > 0 && (
+                              <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-700">
+                                Gastos {formatCurrency(pg.amount_gastos)}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -482,13 +511,13 @@ export function ColchonPage() {
                     <button
                       onClick={() => {
                         setShowPagoForm(showPagoForm === p.id ? null : p.id);
-      setPagoForm({ amount: "", payment_method: "bancolombia", payment_date: new Date().toISOString().split("T")[0], notes: "" });
+      setPagoForm({ amount_inversion: "", amount_utilidad: "", amount_gastos: "", payment_method: "bancolombia", payment_date: new Date().toISOString().split("T")[0], notes: "" });
                         setError(null);
                       }}
                       className="flex items-center gap-1 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 transition-all"
                     >
                       <DollarSign className="h-3 w-3" />
-                      {showPagoForm === p.id ? "Cancelar" : "Registrar Abono (Inversion)"}
+                      {showPagoForm === p.id ? "Cancelar" : "Registrar Abono"}
                     </button>
                   )}
                   {p.status === "activo" && (!p.pagos || p.pagos.length === 0) && (
@@ -514,20 +543,48 @@ export function ColchonPage() {
                     </p>
                     <p className="mb-3 text-xs text-blue-700 flex items-center gap-1">
                       <ShieldAlert className="h-3 w-3" />
-                      Este abono se descuenta de la categoria Inversion. Debe haber inversion suficiente para realizarlo.
+                      Reparte el abono como quieras: puedes pagar con Inversion, Utilidad y/o Gastos al mismo tiempo.
                     </p>
                     <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                       <div>
-                        <label className="mb-1 block text-xs font-medium text-gray-600">Monto *</label>
+                        <label className="mb-1 block text-xs font-medium text-blue-700">Inversion</label>
                         <input
                           type="text"
                           inputMode="decimal"
-                          value={pagoForm.amount}
-                          onChange={(e) => setPagoForm({ ...pagoForm, amount: e.target.value })}
+                          value={pagoForm.amount_inversion}
+                          onChange={(e) => setPagoForm({ ...pagoForm, amount_inversion: e.target.value })}
                           className="input-premium"
                           placeholder="0"
                         />
                       </div>
+                      <div>
+                        <label className="mb-1 block text-xs font-medium text-emerald-700">Utilidad</label>
+                        <input
+                          type="text"
+                          inputMode="decimal"
+                          value={pagoForm.amount_utilidad}
+                          onChange={(e) => setPagoForm({ ...pagoForm, amount_utilidad: e.target.value })}
+                          className="input-premium"
+                          placeholder="0"
+                        />
+                      </div>
+                      <div>
+                        <label className="mb-1 block text-xs font-medium text-amber-700">Gastos</label>
+                        <input
+                          type="text"
+                          inputMode="decimal"
+                          value={pagoForm.amount_gastos}
+                          onChange={(e) => setPagoForm({ ...pagoForm, amount_gastos: e.target.value })}
+                          className="input-premium"
+                          placeholder="0"
+                        />
+                      </div>
+                    </div>
+                    <div className="mt-3 flex items-center justify-between rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm">
+                      <span className="font-medium text-gray-600">Total del abono</span>
+                      <span className="font-bold text-blue-700">{formatCurrency(pagoTotal)}</span>
+                    </div>
+                    <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
                       <div>
                         <label className="mb-1 block text-xs font-medium text-gray-600">Recibido en *</label>
                         <select
@@ -560,10 +617,10 @@ export function ColchonPage() {
                     </div>
                     <button
                       onClick={() => handlePago(p.id)}
-                      disabled={pagoMutation.isPending || !pagoForm.amount}
+                      disabled={pagoMutation.isPending || pagoTotal <= 0}
                       className="mt-3 w-full rounded-lg bg-blue-600 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 transition-all"
                     >
-                      {pagoMutation.isPending ? "Registrando..." : "Registrar Abono (descuenta de Inversion)"}
+                      {pagoMutation.isPending ? "Registrando..." : "Registrar Abono"}
                     </button>
                   </div>
                 )}

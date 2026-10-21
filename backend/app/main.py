@@ -135,6 +135,9 @@ async def lifespan(app: FastAPI):
             "id SERIAL PRIMARY KEY, "
             "colchon_prestamo_id INTEGER NOT NULL REFERENCES colchon_prestamos(id) ON DELETE CASCADE, "
             "amount NUMERIC(12,2) NOT NULL, "
+            "amount_inversion NUMERIC(12,2) NOT NULL DEFAULT 0, "
+            "amount_utilidad NUMERIC(12,2) NOT NULL DEFAULT 0, "
+            "amount_gastos NUMERIC(12,2) NOT NULL DEFAULT 0, "
             "payment_method VARCHAR(30) NOT NULL DEFAULT 'efectivo', "
             "payment_date TIMESTAMP NOT NULL DEFAULT NOW(), "
             "notes TEXT, "
@@ -142,6 +145,20 @@ async def lifespan(app: FastAPI):
             "created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), "
             "updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()"
             ")"
+        ))
+        await conn.execute(text(
+            "ALTER TABLE colchon_pagos ADD COLUMN IF NOT EXISTS amount_inversion NUMERIC(12,2) NOT NULL DEFAULT 0"
+        ))
+        await conn.execute(text(
+            "ALTER TABLE colchon_pagos ADD COLUMN IF NOT EXISTS amount_utilidad NUMERIC(12,2) NOT NULL DEFAULT 0"
+        ))
+        await conn.execute(text(
+            "ALTER TABLE colchon_pagos ADD COLUMN IF NOT EXISTS amount_gastos NUMERIC(12,2) NOT NULL DEFAULT 0"
+        ))
+        # Los abonos antiguos se descontaban solo de inversion: se migran asi.
+        await conn.execute(text(
+            "UPDATE colchon_pagos SET amount_inversion = amount "
+            "WHERE amount_inversion = 0 AND amount_utilidad = 0 AND amount_gastos = 0"
         ))
 
     from sqlalchemy import select

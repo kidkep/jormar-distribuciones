@@ -17,6 +17,9 @@ class ColchonPrestamoCreate(BaseModel):
 
 class ColchonPagoCreate(BaseModel):
     amount: Decimal = Field(gt=0)
+    amount_inversion: Decimal = Field(default=Decimal("0"), ge=0)
+    amount_utilidad: Decimal = Field(default=Decimal("0"), ge=0)
+    amount_gastos: Decimal = Field(default=Decimal("0"), ge=0)
     payment_method: str = "efectivo"
     payment_date: str = ""
     notes: str | None = None
@@ -26,6 +29,9 @@ class ColchonPagoResponse(BaseModel):
     id: int
     colchon_prestamo_id: int
     amount: Decimal
+    amount_inversion: Decimal
+    amount_utilidad: Decimal
+    amount_gastos: Decimal
     payment_method: str
     payment_date: str
     notes: str | None = None
