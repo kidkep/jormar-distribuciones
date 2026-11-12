@@ -20,6 +20,7 @@ export interface Debtor {
   total: number;
   total_paid: number;
   balance: number;
+  status: string;
   items: { product_name: string; sku: string; quantity: number; unit_price: number; total_price: number }[];
   payments: Payment[];
 }
@@ -32,8 +33,8 @@ export interface PaymentCreate {
 }
 
 export const debtorsApi = {
-  list: async (page = 1, size = 50): Promise<Debtor[]> => {
-    const response = await apiClient.get("/debtors", { params: { page, size } });
+  list: async (page = 1, size = 50, search = ""): Promise<Debtor[]> => {
+    const response = await apiClient.get("/debtors", { params: { page, size, search } });
     return response.data;
   },
 

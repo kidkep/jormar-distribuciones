@@ -1,7 +1,7 @@
 ﻿import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { debtorsApi, type Debtor } from "@/api/debtors.api";
-import { AlertCircle, DollarSign, Eye, Download, X, Wallet } from "lucide-react";
+import { AlertCircle, DollarSign, Eye, Download, X, Wallet, Search } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { SkeletonRows, EmptyTableRow } from "@/components/common/TableStates";
 
@@ -11,11 +11,12 @@ export function DebtorsPage() {
   const [paymentAmount, setPaymentAmount] = useState(0);
   const [paymentMethod, setPaymentMethod] = useState("efectivo");
   const [paymentNotes, setPaymentNotes] = useState("");
+  const [search, setSearch] = useState("");
   const queryClient = useQueryClient();
 
   const { data: debtors = [], isLoading } = useQuery({
-    queryKey: ["debtors"],
-    queryFn: () => debtorsApi.list(1, 200),
+    queryKey: ["debtors", search],
+    queryFn: () => debtorsApi.list(1, 200, search),
   });
 
   const paymentMutation = useMutation({
@@ -30,7 +31,9 @@ export function DebtorsPage() {
     },
   });
 
-  const totalDebt = debtors.reduce((sum, d) => sum + d.balance, 0);
+  const totalDebt = debtors
+    .filter((d) => d.status !== "anulada")
+    .reduce((sum, d) => sum + d.balance, 0);
 
   const downloadInvoice = async (invoiceNumber: string) => {
     const baseUrl = import.meta.env.VITE_API_URL || "/api/v1";
@@ -63,6 +66,17 @@ export function DebtorsPage() {
         </div>
       </div>
 
+      <div className="relative animate-fade-up-delay-1">
+        <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+        <input
+          type="text"
+          placeholder="Buscar por remision, cliente o documento..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="input-premium pl-10"
+        />
+      </div>
+
       <div className="card-premium animate-scale-in overflow-x-auto p-0">
         <table className="table-premium w-full text-left text-sm">
           <thead className="text-xs uppercase">
@@ -80,11 +94,25 @@ export function DebtorsPage() {
             {isLoading ? (
               <SkeletonRows colSpan={7} />
             ) : debtors.length === 0 ? (
-              <EmptyTableRow colSpan={7} icon={AlertCircle} title="No hay deudores pendientes" description="Cuando vendas a crédito, aquí verás quién te debe" />
+              <EmptyTableRow
+                colSpan={7}
+                icon={AlertCircle}
+                title={search ? "Sin resultados" : "No hay deudores pendientes"}
+                description={search ? "Prueba con otra remision, cliente o documento" : "Cuando vendas a credito, aqui veras quien te debe"}
+              />
             ) : (
               debtors.map((d) => (
-                <tr key={d.sale_id} className="hover:bg-gray-50">
-                  <td className="px-5 py-3.5 font-mono text-xs font-bold text-gold-700">{d.invoice_number}</td>
+                <tr key={d.sale_id} className={d.status === "anulada" ? "bg-gray-50/60" : "hover:bg-gray-50"}>
+                  <td className="px-5 py-3.5 font-mono text-xs font-bold text-gold-700">
+                    <div className="flex items-center gap-2">
+                      <span className={d.status === "anulada" ? "text-gray-400 line-through" : ""}>{d.invoice_number}</span>
+                      {d.status === "anulada" && (
+                        <span className="rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-red-600">
+                          Anulada
+                        </span>
+                      )}
+                    </div>
+                  </td>
                   <td className="px-5 py-3.5 text-gray-600">{formatDate(d.sale_date)}</td>
                   <td className="px-5 py-3.5">
                     <div className="font-medium text-gray-800">{d.client_name || "Sin cliente"}</div>
@@ -98,13 +126,15 @@ export function DebtorsPage() {
                       <button onClick={() => setShowDetail(d)} className="rounded-lg p-1.5 text-gold-600 transition hover:bg-gold-50">
                         <Eye className="h-4 w-4" />
                       </button>
-                      <button
-                        onClick={() => { setShowPayment(d); setPaymentAmount(Number(d.balance)); }}
-                        className="flex items-center gap-1 rounded-lg bg-emerald-600 px-2.5 py-1.5 text-xs font-medium text-white shadow-sm transition hover:bg-emerald-700"
-                      >
-                        <DollarSign className="h-3 w-3" />
-                        Abonar
-                      </button>
+                      {d.status !== "anulada" && (
+                        <button
+                          onClick={() => { setShowPayment(d); setPaymentAmount(Number(d.balance)); }}
+                          className="flex items-center gap-1 rounded-lg bg-emerald-600 px-2.5 py-1.5 text-xs font-medium text-white shadow-sm transition hover:bg-emerald-700"
+                        >
+                          <DollarSign className="h-3 w-3" />
+                          Abonar
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -119,7 +149,14 @@ export function DebtorsPage() {
         <div className="modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="modal-content w-full max-w-lg rounded-2xl p-6">
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-gray-900">Detalle - <span className="font-mono text-gold-700">{showDetail.invoice_number}</span></h2>
+              <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-900">
+                Detalle - <span className="font-mono text-gold-700">{showDetail.invoice_number}</span>
+                {showDetail.status === "anulada" && (
+                  <span className="rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-red-600">
+                    Anulada
+                  </span>
+                )}
+              </h2>
               <div className="flex gap-2">
                 <button onClick={() => downloadInvoice(showDetail.invoice_number)} className="rounded-lg p-1.5 text-emerald-600 transition hover:bg-emerald-50" title="Descargar remision">
                   <Download className="h-5 w-5" />

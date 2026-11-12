@@ -15,12 +15,13 @@ router = APIRouter(prefix="/debtors", tags=["Deudores"])
 async def list_debtors(
     page: int = Query(1, ge=1),
     size: int = Query(50, ge=1, le=200),
+    search: str = Query("", max_length=100),
     db: AsyncSession = Depends(get_db),
     _user: User = Depends(require_permission("deudores.view")),
 ):
     service = DebtorService(db)
     skip = (page - 1) * size
-    debtors, total = await service.get_debtors(skip, size)
+    debtors, total = await service.get_debtors(skip, size, search)
     return debtors
 
 

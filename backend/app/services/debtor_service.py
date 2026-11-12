@@ -17,8 +17,8 @@ class DebtorService:
         self.repo = DebtorRepository(db)
         self.sale_repo = SaleRepository(db)
 
-    async def get_debtors(self, skip: int = 0, limit: int = 50) -> tuple[list, int]:
-        sales, total = await self.repo.get_credit_sales(skip, limit)
+    async def get_debtors(self, skip: int = 0, limit: int = 50, search: str = "") -> tuple[list, int]:
+        sales, total = await self.repo.get_credit_sales(skip, limit, search)
 
         debtors = []
         for sale in sales:
@@ -34,6 +34,7 @@ class DebtorService:
                 "total": sale.total,
                 "total_paid": Decimal(str(total_paid)),
                 "balance": Decimal(str(balance)),
+                "status": sale.status,
                 "items": [
                     {"product_name": item.product.name if item.product else "N/A", "sku": item.product.sku if item.product else "", "quantity": item.quantity, "unit_price": item.unit_price, "total_price": item.total_price}
                     for item in sale.items

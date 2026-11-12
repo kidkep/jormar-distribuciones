@@ -31,6 +31,7 @@ class DebtorResponse(BaseModel):
     total: float
     total_paid: float
     balance: float
+    status: str = "pendiente"
     items: list[dict] = []
     payments: list[PaymentResponse] = []
 
