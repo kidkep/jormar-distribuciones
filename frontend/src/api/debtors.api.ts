@@ -42,4 +42,8 @@ export const debtorsApi = {
     const response = await apiClient.post(`/debtors/${saleId}/payments`, data);
     return response.data;
   },
+
+  cancel: async (saleId: number): Promise<void> => {
+    await apiClient.post(`/debtors/${saleId}/cancel`);
+  },
 };

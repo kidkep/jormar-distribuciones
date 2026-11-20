@@ -1,7 +1,8 @@
 ﻿import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { debtorsApi, type Debtor } from "@/api/debtors.api";
-import { AlertCircle, DollarSign, Eye, Download, X, Wallet, Search } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { AlertCircle, DollarSign, Eye, Download, X, Wallet, Search, Ban } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { SkeletonRows, EmptyTableRow } from "@/components/common/TableStates";
 
@@ -13,6 +14,8 @@ export function DebtorsPage() {
   const [paymentNotes, setPaymentNotes] = useState("");
   const [search, setSearch] = useState("");
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const isCEO = (user?.role?.name || "").trim().toLowerCase() === "ceo";
 
   const { data: debtors = [], isLoading } = useQuery({
     queryKey: ["debtors", search],
@@ -28,6 +31,15 @@ export function DebtorsPage() {
       setShowPayment(null);
       setPaymentAmount(0);
       setPaymentNotes("");
+    },
+  });
+
+  const cancelMutation = useMutation({
+    mutationFn: (saleId: number) => debtorsApi.cancel(saleId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["debtors"] });
+      queryClient.invalidateQueries({ queryKey: ["caja"] });
+      setShowDetail(null);
     },
   });
 
@@ -121,7 +133,7 @@ export function DebtorsPage() {
                   <td className="px-5 py-3.5 text-gray-800">{formatCurrency(Number(d.total))}</td>
                   <td className="px-5 py-3.5 text-green-600 font-medium">{formatCurrency(Number(d.total_paid))}</td>
                   <td className="px-5 py-3.5 font-bold text-red-600">{formatCurrency(Number(d.balance))}</td>
-                  <td className="px-5 py-3.5">
+                      <td className="px-5 py-3.5">
                     <div className="flex gap-2">
                       <button onClick={() => setShowDetail(d)} className="rounded-lg p-1.5 text-gold-600 transition hover:bg-gold-50">
                         <Eye className="h-4 w-4" />
@@ -133,6 +145,16 @@ export function DebtorsPage() {
                         >
                           <DollarSign className="h-3 w-3" />
                           Abonar
+                        </button>
+                      )}
+                      {isCEO && d.status !== "anulada" && (
+                        <button
+                          onClick={() => { if (confirm(`¿Anular deudor ${d.invoice_number}? Se restaurará stock y se eliminarán abonos.`)) cancelMutation.mutate(d.sale_id); }}
+                          disabled={cancelMutation.isPending}
+                          className="flex items-center gap-1 rounded-lg bg-red-600 px-2.5 py-1.5 text-xs font-medium text-white shadow-sm transition hover:bg-red-700 disabled:opacity-50"
+                        >
+                          <Ban className="h-3 w-3" />
+                          Anular
                         </button>
                       )}
                     </div>

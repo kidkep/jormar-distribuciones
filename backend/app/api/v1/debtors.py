@@ -2,11 +2,13 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
-from app.dependencies import require_permission
+from app.dependencies import require_permission, require_ceo
 from app.models.user import User
 from app.schemas.debtor import DebtorResponse, PaymentCreate, PaymentResponse
 from app.schemas.common import MessageResponse
 from app.services.debtor_service import DebtorService
+from app.services.sale_service import SaleService
+from app.utils.audit import record_audit
 
 router = APIRouter(prefix="/debtors", tags=["Deudores"])
 
@@ -34,3 +36,20 @@ async def register_payment(
 ):
     service = DebtorService(db)
     return await service.register_payment(sale_id, data)
+
+
+@router.post("/{sale_id}/cancel", response_model=MessageResponse)
+async def cancel_debtor(
+    sale_id: int,
+    db: AsyncSession = Depends(get_db),
+    _user: User = Depends(require_ceo),
+):
+    service = SaleService(db)
+    sale = await service.get_sale(sale_id)
+    await service.cancel_sale(sale_id)
+    record_audit(
+        db, _user, "cancel", "debtor_sale",
+        entity_id=sale_id,
+        old_values={"invoice_number": getattr(sale, "invoice_number", None), "total": str(getattr(sale, "total", ""))},
+    )
+    return MessageResponse(message="Deudor anulado correctamente")
