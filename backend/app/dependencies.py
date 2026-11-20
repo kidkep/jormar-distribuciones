@@ -99,6 +99,8 @@ def require_any_permission(*permission_names: str):
 def require_ceo(
     current_user: User = Depends(get_current_active_user),
 ) -> User:
+    if current_user.is_superuser:
+        return current_user
     role_name = (current_user.role.name or "").strip().lower() if current_user.role else ""
     if role_name == "ceo":
         return current_user

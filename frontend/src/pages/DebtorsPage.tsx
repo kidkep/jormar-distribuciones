@@ -15,7 +15,7 @@ export function DebtorsPage() {
   const [search, setSearch] = useState("");
   const queryClient = useQueryClient();
   const { user } = useAuth();
-  const isCEO = (user?.role?.name || "").trim().toLowerCase() === "ceo";
+  const isCEO = !!user?.is_superuser || (user?.role?.name || "").trim().toLowerCase() === "ceo";
 
   const { data: debtors = [], isLoading } = useQuery({
     queryKey: ["debtors", search],
